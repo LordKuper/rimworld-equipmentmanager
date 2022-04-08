@@ -18,6 +18,8 @@
 	<EquipmentManager.Loadouts.AutoSelect>Auto-select</EquipmentManager.Loadouts.AutoSelect>
 	<EquipmentManager.Loadouts.PriorityLabel>Priority:</EquipmentManager.Loadouts.PriorityLabel>
 	<EquipmentManager.Loadouts.PriorityTooltip>Loadout priority for auto-assignment. The higher the value, the more colonists matching the settings will get the loadout. Priority of '0' will disable automatic assignment of this loadout.</EquipmentManager.Loadouts.PriorityTooltip>
+	<EquipmentManager.Loadouts.DropUnassignedWeapons>Drop unassigned weapons</EquipmentManager.Loadouts.DropUnassignedWeapons>
+	<EquipmentManager.Loadouts.DropUnassignedWeaponsTooltip>Pawns will drop and forget all weapons not assigned by the Equipment Manager</EquipmentManager.Loadouts.DropUnassignedWeaponsTooltip>
 	<EquipmentManager.Loadouts.Rules>Rules</EquipmentManager.Loadouts.Rules>
 	<EquipmentManager.Loadouts.AvailablePawns>Available pawns</EquipmentManager.Loadouts.AvailablePawns>
 	<EquipmentManager.Loadouts.PawnTraits>Pawn traits</EquipmentManager.Loadouts.PawnTraits>

@@ -119,9 +119,32 @@ namespace EquipmentManager.Windows
 
         private void DoLoadoutSettings(Rect rect)
         {
-            var priorityRect = LabelInput.DoLabeledRect(rect, Strings.PriorityLabel, Strings.PriorityTooltip);
+            var priorityRect = LabelInput.DoLabeledRect(new Rect(rect.x, rect.y, rect.width, UiHelpers.ListRowHeight),
+                Strings.PriorityLabel, Strings.PriorityTooltip);
             SelectedLoadout.Priority = (int) Widgets.HorizontalSlider(priorityRect, SelectedLoadout.Priority, 0, 10,
                 true, $"{SelectedLoadout.Priority:N0}", roundTo: 1f);
+            var settingsRect = new Rect(rect.x, priorityRect.yMax + UiHelpers.ElementGap, rect.width,
+                UiHelpers.ListRowHeight);
+            var columnWidth = (settingsRect.width - (UiHelpers.ElementGap * (UiHelpers.BoolSettingsColumnCount - 1))) /
+                UiHelpers.BoolSettingsColumnCount;
+            for (var i = 1; i < UiHelpers.BoolSettingsColumnCount; i++)
+            {
+                UiHelpers.DoGapLineVertical(new Rect(
+                    settingsRect.x + (i * (columnWidth + UiHelpers.ElementGap)) - UiHelpers.ElementGap, settingsRect.y,
+                    UiHelpers.ElementGap, settingsRect.height));
+            }
+            var dropUnassignedWeaponsRect = UiHelpers.GetBoolSettingRect(settingsRect, 0, columnWidth);
+            var checkboxRect = new Rect(dropUnassignedWeaponsRect.x, dropUnassignedWeaponsRect.y,
+                dropUnassignedWeaponsRect.height, dropUnassignedWeaponsRect.height);
+            Widgets.Checkbox(checkboxRect.x, checkboxRect.y, ref SelectedLoadout.DropUnassignedWeapons);
+            var labelRect = new Rect(checkboxRect.xMax + (UiHelpers.ElementGap / 2f), dropUnassignedWeaponsRect.y,
+                dropUnassignedWeaponsRect.width - checkboxRect.width - (UiHelpers.ElementGap / 2f),
+                dropUnassignedWeaponsRect.height);
+            TooltipHandler.TipRegion(labelRect, Strings.DropUnassignedWeaponsTooltip);
+            var anchor = Text.Anchor;
+            Text.Anchor = TextAnchor.MiddleLeft;
+            Widgets.Label(labelRect, Strings.DropUnassignedWeapons);
+            Text.Anchor = anchor;
         }
 
         private void DoMeleeSidearmRules(Rect rect)
@@ -517,7 +540,7 @@ namespace EquipmentManager.Windows
                     availablePawnsHeight);
                 var outerRect = new Rect(inRect.x, labelRect.yMax + UiHelpers.ElementGap, inRect.width,
                     availablePawnsRect.y - UiHelpers.ElementGap - (labelRect.yMax + UiHelpers.ElementGap));
-                const int settingsRowCount = 1;
+                const int settingsRowCount = 2;
                 const float settingsHeight = (UiHelpers.ListRowHeight * settingsRowCount) +
                     (UiHelpers.ElementGap * (settingsRowCount - 1));
                 var rangedSidearmsRowCount =

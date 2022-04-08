@@ -70,22 +70,22 @@ namespace EquipmentManager.Windows
             Text.Anchor = anchor;
             var settingsRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
                 rect.yMax - (labelRect.yMax + UiHelpers.ElementGap));
-            var columnWidth = (settingsRect.width - (UiHelpers.ElementGap * (SettingsColumnCount - 1))) /
-                SettingsColumnCount;
-            for (var i = 1; i < SettingsColumnCount; i++)
+            var columnWidth = (settingsRect.width - (UiHelpers.ElementGap * (UiHelpers.BoolSettingsColumnCount - 1))) /
+                UiHelpers.BoolSettingsColumnCount;
+            for (var i = 1; i < UiHelpers.BoolSettingsColumnCount; i++)
             {
                 UiHelpers.DoGapLineVertical(new Rect(
                     settingsRect.x + (i * (columnWidth + UiHelpers.ElementGap)) - UiHelpers.ElementGap, settingsRect.y,
                     UiHelpers.ElementGap, settingsRect.height));
             }
-            DoRuleSetting(GetSettingRect(settingsRect, columnWidth, 0), () => SelectedRangedWeaponRule.Explosive,
-                value =>
+            DoRuleSetting(UiHelpers.GetBoolSettingRect(settingsRect, 0, columnWidth),
+                () => SelectedRangedWeaponRule.Explosive, value =>
                 {
                     SelectedRangedWeaponRule.Explosive = value;
                     UpdateAvailableItems_RangedWeapons();
                 }, Strings.RangedWeapons.Explosive, Strings.RangedWeapons.ExplosiveTooltip);
-            DoRuleSetting(GetSettingRect(settingsRect, columnWidth, 1), () => SelectedRangedWeaponRule.ManualCast,
-                value =>
+            DoRuleSetting(UiHelpers.GetBoolSettingRect(settingsRect, 1, columnWidth),
+                () => SelectedRangedWeaponRule.ManualCast, value =>
                 {
                     SelectedRangedWeaponRule.ManualCast = value;
                     UpdateAvailableItems_RangedWeapons();

@@ -30,6 +30,18 @@ namespace EquipmentManager
         {
             var newLoadout = AddLoadout();
             newLoadout.Label = $"{loadout.Label} (copy)";
+            newLoadout.Priority = loadout.Priority;
+            newLoadout.PrimaryRuleType = loadout.PrimaryRuleType;
+            newLoadout.PrimaryMeleeWeaponRuleId = loadout.PrimaryMeleeWeaponRuleId;
+            newLoadout.PrimaryRangedWeaponRuleId = loadout.PrimaryRangedWeaponRuleId;
+            newLoadout.RangedSidearmRules.AddRange(loadout.RangedSidearmRules);
+            newLoadout.MeleeSidearmRules.AddRange(loadout.MeleeSidearmRules);
+            newLoadout.ToolRuleId = loadout.ToolRuleId;
+            newLoadout.PawnTraits.AddRange(loadout.PawnTraits);
+            newLoadout.PawnCapacities.AddRange(loadout.PawnCapacities);
+            newLoadout.PreferredSkills.AddRange(loadout.PreferredSkills);
+            newLoadout.UndesirableSkills.AddRange(loadout.UndesirableSkills);
+            newLoadout.DropUnassignedWeapons = loadout.DropUnassignedWeapons;
             return newLoadout;
         }
 

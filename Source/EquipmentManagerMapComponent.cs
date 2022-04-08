@@ -49,8 +49,7 @@ namespace EquipmentManager
                     }
                     _ = pawn.Pawn.jobs.TryTakeOrderedJob(
                         JobMaker.MakeJob(SidearmsDefOf.EquipSecondary, (LocalTargetInfo) weapon),
-                        requestQueueing: new[] {JobDefOf.Equip, SidearmsDefOf.EquipSecondary}.Contains(pawn.Pawn.CurJob
-                            ?.def));
+                        requestQueueing: ShouldRequestQueueing(pawn));
                 }
             }
         }
@@ -83,8 +82,7 @@ namespace EquipmentManager
                 }
                 _ = pawn.Pawn.jobs.TryTakeOrderedJob(
                     JobMaker.MakeJob(SidearmsDefOf.EquipSecondary, (LocalTargetInfo) bestWeapon),
-                    requestQueueing: new[] {JobDefOf.Equip, SidearmsDefOf.EquipSecondary}.Contains(
-                        pawn.Pawn.CurJob?.def));
+                    requestQueueing: ShouldRequestQueueing(pawn));
             }
         }
 
@@ -200,8 +198,7 @@ namespace EquipmentManager
                     }
                     _ = pawn.Pawn.jobs.TryTakeOrderedJob(
                         JobMaker.MakeJob(SidearmsDefOf.EquipSecondary, (LocalTargetInfo) bestWeapon),
-                        requestQueueing: new[] {JobDefOf.Equip, SidearmsDefOf.EquipSecondary}.Contains(pawn.Pawn.CurJob
-                            ?.def));
+                        requestQueueing: ShouldRequestQueueing(pawn));
                 }
             }
         }
@@ -229,7 +226,8 @@ namespace EquipmentManager
 
         private void RemoveUnassignedWeapons()
         {
-            foreach (var pawn in _pawnCache.Where(pc => pc.IsCapable))
+            foreach (var pawn in _pawnCache.Where(pc =>
+                         pc.IsCapable && (pc.AssignedLoadout?.DropUnassignedWeapons ?? false)))
             {
                 var carriedWeapons = pawn.Pawn.getCarriedWeapons(true, true).ToList();
                 foreach (var weapon in carriedWeapons.Where(weapon => !pawn.AssignedWeapons.Contains(weapon)))
@@ -247,6 +245,12 @@ namespace EquipmentManager
                     sidearmMemory.ForgetSidearmMemory(weapon);
                 }
             }
+        }
+
+        private static bool ShouldRequestQueueing(PawnCache pawn)
+        {
+            return new[] {JobDefOf.Equip, SidearmsDefOf.EquipSecondary}.Contains(pawn.Pawn.CurJobDef) ||
+                (pawn.Pawn.CurJob?.workGiverDef?.emergency ?? false);
         }
 
         private void UpdateCache()
@@ -350,8 +354,7 @@ namespace EquipmentManager
                                 }
                                 _ = pawn.Pawn.jobs.TryTakeOrderedJob(
                                     JobMaker.MakeJob(SidearmsDefOf.EquipSecondary, (LocalTargetInfo) bestWeapon),
-                                    requestQueueing: new[] {JobDefOf.Equip, SidearmsDefOf.EquipSecondary}.Contains(
-                                        pawn.Pawn.CurJob?.def));
+                                    requestQueueing: ShouldRequestQueueing(pawn));
                             }
                             break;
                         case ItemRule.WeaponEquipMode.AllAvailable:
@@ -440,8 +443,7 @@ namespace EquipmentManager
                                 }
                                 _ = pawn.Pawn.jobs.TryTakeOrderedJob(
                                     JobMaker.MakeJob(SidearmsDefOf.EquipSecondary, (LocalTargetInfo) bestWeapon),
-                                    requestQueueing: new[] {JobDefOf.Equip, SidearmsDefOf.EquipSecondary}.Contains(
-                                        pawn.Pawn.CurJob?.def));
+                                    requestQueueing: ShouldRequestQueueing(pawn));
                             }
                             break;
                         case ItemRule.WeaponEquipMode.AllAvailable:
@@ -465,8 +467,7 @@ namespace EquipmentManager
                                     }
                                     _ = pawn.Pawn.jobs.TryTakeOrderedJob(
                                         JobMaker.MakeJob(SidearmsDefOf.EquipSecondary, (LocalTargetInfo) weapon),
-                                        requestQueueing: new[] {JobDefOf.Equip, SidearmsDefOf.EquipSecondary}.Contains(
-                                            pawn.Pawn.CurJob?.def));
+                                        requestQueueing: ShouldRequestQueueing(pawn));
                                 }
                             }
                             break;

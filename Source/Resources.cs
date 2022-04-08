@@ -29,6 +29,12 @@ namespace EquipmentManager
                 internal static readonly string DeleteLoadout =
                     $"EquipmentManager.Loadouts.{nameof(DeleteLoadout)}".Translate();
 
+                internal static readonly string DropUnassignedWeapons =
+                    $"EquipmentManager.Loadouts.{nameof(DropUnassignedWeapons)}".Translate();
+
+                internal static readonly string DropUnassignedWeaponsTooltip =
+                    $"EquipmentManager.Loadouts.{nameof(DropUnassignedWeaponsTooltip)}".Translate();
+
                 internal static readonly string ImportData =
                     $"EquipmentManager.Loadouts.{nameof(ImportData)}".Translate();
 

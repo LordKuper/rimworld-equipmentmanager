@@ -21,7 +21,10 @@ namespace EquipmentManager
         {
             new Loadout(0, true)
             {
-                Label = Strings.Default.NoLoadout, Priority = 0, _primaryRuleType = PrimaryWeaponType.None
+                Label = Strings.Default.NoLoadout,
+                Priority = 0,
+                _primaryRuleType = PrimaryWeaponType.None,
+                DropUnassignedWeapons = false
             },
             new Loadout(1, false)
             {
@@ -34,7 +37,8 @@ namespace EquipmentManager
                 ToolRuleId = 0,
                 PawnTraits = {{"Brawler", false}},
                 PawnCapacities = {{"Violent", true}},
-                PreferredSkills = {"Shooting"}
+                PreferredSkills = {"Shooting"},
+                DropUnassignedWeapons = true
             },
             new Loadout(2, false)
             {
@@ -46,7 +50,8 @@ namespace EquipmentManager
                 MeleeSidearmRules = {0},
                 ToolRuleId = 0,
                 PawnTraits = {{"Brawler", false}},
-                PawnCapacities = {{"Violent", true}}
+                PawnCapacities = {{"Violent", true}},
+                DropUnassignedWeapons = true
             },
             new Loadout(3, false)
             {
@@ -58,7 +63,8 @@ namespace EquipmentManager
                 MeleeSidearmRules = {0},
                 ToolRuleId = 0,
                 PawnTraits = {{"Brawler", false}},
-                PawnCapacities = {{"Violent", true}}
+                PawnCapacities = {{"Violent", true}},
+                DropUnassignedWeapons = true
             },
             new Loadout(4, false)
             {
@@ -68,7 +74,8 @@ namespace EquipmentManager
                 PrimaryMeleeWeaponRuleId = 0,
                 ToolRuleId = 0,
                 PawnTraits = {{"Brawler", true}},
-                PawnCapacities = {{"Violent", true}}
+                PawnCapacities = {{"Violent", true}},
+                DropUnassignedWeapons = true
             },
             new Loadout(5, false)
             {
@@ -76,7 +83,8 @@ namespace EquipmentManager
                 Priority = 5,
                 PrimaryRuleType = PrimaryWeaponType.None,
                 ToolRuleId = 0,
-                PawnCapacities = {{"Violent", false}}
+                PawnCapacities = {{"Violent", false}},
+                DropUnassignedWeapons = true
             }
         };
 
@@ -90,6 +98,7 @@ namespace EquipmentManager
         private bool _protected;
         private List<int> _rangedSidearmRules = new List<int>();
         private HashSet<string> _undesirableSkills = new HashSet<string>();
+        public bool DropUnassignedWeapons = true;
         public string Label;
         public int? PrimaryMeleeWeaponRuleId;
         public int? PrimaryRangedWeaponRuleId;
@@ -108,7 +117,8 @@ namespace EquipmentManager
         public Loadout(int id, string label, bool isProtected, int priority, PrimaryWeaponType primaryRuleType,
             int? primaryRangedWeaponRuleId, int? primaryMeleeWeaponRuleId, List<int> rangedSidearmRules,
             List<int> meleeSidearmRules, int? toolRuleId, Dictionary<string, bool> pawnTraits,
-            Dictionary<string, bool> pawnCapacities, HashSet<string> preferredSkills, HashSet<string> undesirableSkills)
+            Dictionary<string, bool> pawnCapacities, HashSet<string> preferredSkills, HashSet<string> undesirableSkills,
+            bool dropUnassignedWeapons)
         {
             _id = id;
             Label = label;
@@ -124,6 +134,7 @@ namespace EquipmentManager
             _pawnCapacities = pawnCapacities;
             _preferredSkills = preferredSkills;
             _undesirableSkills = undesirableSkills;
+            DropUnassignedWeapons = dropUnassignedWeapons;
         }
 
         public int Id => _id;
@@ -224,6 +235,7 @@ namespace EquipmentManager
             Scribe_Collections.Look(ref _pawnCapacities, nameof(PawnCapacities));
             Scribe_Collections.Look(ref _preferredSkills, nameof(PreferredSkills));
             Scribe_Collections.Look(ref _undesirableSkills, nameof(UndesirableSkills));
+            Scribe_Values.Look(ref DropUnassignedWeapons, nameof(DropUnassignedWeapons), true);
         }
 
         public IReadOnlyList<Pawn> GetAvailablePawns()

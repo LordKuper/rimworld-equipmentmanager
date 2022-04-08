@@ -70,25 +70,26 @@ namespace EquipmentManager.Windows
             Text.Anchor = anchor;
             var settingsRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
                 rect.yMax - (labelRect.yMax + UiHelpers.ElementGap));
-            var columnWidth = (settingsRect.width - (UiHelpers.ElementGap * (SettingsColumnCount - 1))) /
-                SettingsColumnCount;
-            for (var i = 1; i < SettingsColumnCount; i++)
+            var columnWidth = (settingsRect.width - (UiHelpers.ElementGap * (UiHelpers.BoolSettingsColumnCount - 1))) /
+                UiHelpers.BoolSettingsColumnCount;
+            for (var i = 1; i < UiHelpers.BoolSettingsColumnCount; i++)
             {
                 UiHelpers.DoGapLineVertical(new Rect(
                     settingsRect.x + (i * (columnWidth + UiHelpers.ElementGap)) - UiHelpers.ElementGap, settingsRect.y,
                     UiHelpers.ElementGap, settingsRect.height));
             }
-            DoRuleSetting(GetSettingRect(settingsRect, columnWidth, 0), () => SelectedMeleeWeaponRule.UsableWithShields,
-                value =>
+            DoRuleSetting(UiHelpers.GetBoolSettingRect(settingsRect, 0, columnWidth),
+                () => SelectedMeleeWeaponRule.UsableWithShields, value =>
                 {
                     SelectedMeleeWeaponRule.UsableWithShields = value;
                     UpdateAvailableItems_MeleeWeapons();
                 }, Strings.MeleeWeapons.UsableWithShields, Strings.MeleeWeapons.UsableWithShieldsTooltip);
-            DoRuleSetting(GetSettingRect(settingsRect, columnWidth, 1), () => SelectedMeleeWeaponRule.Rottable, value =>
-            {
-                SelectedMeleeWeaponRule.Rottable = value;
-                UpdateAvailableItems_MeleeWeapons();
-            }, Strings.MeleeWeapons.Rottable, Strings.MeleeWeapons.RottableTooltip);
+            DoRuleSetting(UiHelpers.GetBoolSettingRect(settingsRect, 1, columnWidth),
+                () => SelectedMeleeWeaponRule.Rottable, value =>
+                {
+                    SelectedMeleeWeaponRule.Rottable = value;
+                    UpdateAvailableItems_MeleeWeapons();
+                }, Strings.MeleeWeapons.Rottable, Strings.MeleeWeapons.RottableTooltip);
         }
 
         private void DoTab_MeleeWeapons(Rect rect)

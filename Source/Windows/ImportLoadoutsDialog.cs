@@ -240,6 +240,7 @@ namespace EquipmentManager.Windows
             Dictionary<string, bool> pawnCapacities = null;
             HashSet<string> preferredSkills = null;
             HashSet<string> undesirableSkills = null;
+            var dropUnassignedWeapons = true;
             while (true)
             {
                 if (xmlReader.NodeType != XmlNodeType.Element || xmlReader.IsEmptyElement)
@@ -321,6 +322,9 @@ namespace EquipmentManager.Windows
                         }
                         xmlReader.ReadEndElement();
                         break;
+                    case "DropUnassignedWeapons":
+                        dropUnassignedWeapons = bool.Parse(xmlReader.ReadElementContentAsString());
+                        break;
                     default:
                         Log.Warning($"Equipment Manager: Unknown Loadout property '{xmlReader.Name}'");
                         break;
@@ -328,7 +332,7 @@ namespace EquipmentManager.Windows
             }
             _loadouts.Add(new Loadout(id, label, isProtected, priority, primaryRuleType, primaryRangedWeaponRuleId,
                 primaryMeleeWeaponRuleId, rangedSidearmRules, meleeSidearmRules, toolRuleId, pawnTraits, pawnCapacities,
-                preferredSkills, undesirableSkills));
+                preferredSkills, undesirableSkills, dropUnassignedWeapons));
         }
 
         private void ReadLoadoutsData(string savedGameFile, XmlReader xmlReader)

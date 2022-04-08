@@ -8,6 +8,7 @@ namespace EquipmentManager.CustomWidgets
     internal static class UiHelpers
     {
         public const float ActionButtonWidth = 200f;
+        public const int BoolSettingsColumnCount = 2;
         public const float ButtonGap = 8f;
         public const float ButtonHeight = 32f;
         public const float ElementGap = 12f;
@@ -44,6 +45,13 @@ namespace EquipmentManager.CustomWidgets
             GUI.color = new Color(1f, 1f, 1f, 0.4f);
             Widgets.DrawLineVertical(rect.center.x, rect.y, rect.height);
             GUI.color = color;
+        }
+
+        public static Rect GetBoolSettingRect(Rect rect, int index, float columnWidth)
+        {
+            var rowIndex = Math.DivRem(index, BoolSettingsColumnCount, out var columnIndex);
+            return new Rect(rect.x + ((columnWidth + ElementGap) * columnIndex), rect.y + (ListRowHeight * rowIndex),
+                columnWidth, ListRowHeight).ContractedBy(4f);
         }
 
         public static MultiCheckboxState GetSettingCheckboxState(bool? value)

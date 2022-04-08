@@ -16,7 +16,6 @@ namespace EquipmentManager.Windows
         private const int ExclusiveItemIconsRowCount = 3;
         private const float ItemIconGap = 4f;
         private const float ItemIconSize = 32f;
-        private const int SettingsColumnCount = 2;
         private static Vector2 _blacklistScrollPosition;
         private static Vector2 _currentItemsScrollPosition;
         private static DialogTab _currentTab = DialogTab.MeleeWeapons;
@@ -372,13 +371,6 @@ namespace EquipmentManager.Windows
             }
         }
 
-        private static Rect GetSettingRect(Rect rect, float columnWidth, int index)
-        {
-            var rowIndex = Math.DivRem(index, SettingsColumnCount, out var columnIndex);
-            return new Rect(rect.x + ((columnWidth + UiHelpers.ElementGap) * columnIndex),
-                rect.y + (UiHelpers.ListRowHeight * rowIndex), columnWidth, UiHelpers.ListRowHeight).ContractedBy(4f);
-        }
-
         private static void GetWeaponRuleTabRects(Rect rect, int settingsCount, out Rect buttonRowRect,
             out Rect labelRect, out Rect equipModeRect, out Rect settingsRect, out Rect availableItemsRect,
             out Rect exclusiveItemsRect, out Rect statsRect)
@@ -390,7 +382,7 @@ namespace EquipmentManager.Windows
             equipModeRect = new Rect(rect.center.x + (UiHelpers.ElementGap / 2f),
                 buttonRowRect.yMax + UiHelpers.ElementGap, (rect.width - UiHelpers.ElementGap) / 2f,
                 UiHelpers.LabelHeight);
-            var settingsRowCount = (int) Math.Ceiling((double) settingsCount / SettingsColumnCount);
+            var settingsRowCount = (int) Math.Ceiling((double) settingsCount / UiHelpers.BoolSettingsColumnCount);
             settingsRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
                 sectionHeaderHeight + (UiHelpers.ListRowHeight * settingsRowCount));
             const float availableItemsBoxHeight = (ItemIconSize * AvailableItemIconsRowCount) +
