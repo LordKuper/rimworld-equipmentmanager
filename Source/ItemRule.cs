@@ -10,6 +10,15 @@ namespace EquipmentManager
     internal class ItemRule : IExposable
     {
         private static EquipmentManagerGameComponent _equipmentManager;
+
+        private static readonly SimpleCurve HitPointsCurve = new SimpleCurve
+        {
+            new CurvePoint(0f, 0f),
+            new CurvePoint(0.25f, 0.1f),
+            new CurvePoint(0.5f, 0.25f),
+            new CurvePoint(0.75f, 1f)
+        };
+
         private HashSet<ThingDef> _blacklistedItems = new HashSet<ThingDef>();
         private int _id;
         private bool _initialized;
@@ -129,11 +138,28 @@ namespace EquipmentManager
         public float GetStatScore([NotNull] Thing thing, IReadOnlyCollection<WorkTypeDef> workTypeDefs = null)
         {
             if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
-            var score = StatWeights.Where(statWeight => statWeight.StatDef != null).Sum(statWeight =>
-                EquipmentManager.NormalizeStatValue(statWeight.StatDef,
-                    StatHelper.GetStatValueDeviation(thing, statWeight.StatDef, new RimworldTime(0, 0, 0f),
-                        workTypeDefs)) * statWeight.Weight);
-            if (thing.def.useHitPoints) { score *= (float) thing.HitPoints / thing.MaxHitPoints; }
+            var statScores = new Dictionary<StatDef, float>();
+            float score = 0;
+            foreach (var statWeight in StatWeights)
+            {
+                if (statWeight.StatDef != null)
+                {
+                    var statScore = EquipmentManager.NormalizeStatValue(statWeight.StatDef,
+                        StatHelper.GetStatValueDeviation(thing, statWeight.StatDef, new RimworldTime(0, 0, 0f),
+                            workTypeDefs)) * statWeight.Weight;
+                    statScores.Add(statWeight.StatDef, statScore);
+                    score += statScore;
+                }
+            }
+            if (thing.def.useHitPoints)
+            {
+                score *= HitPointsCurve.Evaluate((float) thing.HitPoints / thing.MaxHitPoints);
+            }
+            if (Prefs.DevMode)
+            {
+                Log.Message(
+                    $"Equipment Manager: Score of '{thing.LabelCap}' = {score:N2} ({string.Join(", ", statScores.Select(pair => $"{pair.Key.LabelCap} = {pair.Value:N2}"))})");
+            }
             return score;
         }
 

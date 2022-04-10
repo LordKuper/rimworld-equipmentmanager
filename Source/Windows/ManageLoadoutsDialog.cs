@@ -10,13 +10,11 @@ namespace EquipmentManager.Windows
 {
     internal class ManageLoadoutsDialog : Window
     {
-        private const int AvailablePawnsColumnCount = 5;
-        private const int AvailablePawnsRowCount = 3;
-        private const int LabeledButtonListColumnCount = 3;
-        private const int PawnSettingsColumnCount = 4;
         private static Vector2 _availablePawnsScrollPosition;
         private static EquipmentManagerGameComponent _equipmentManager;
         private static Vector2 _scrollPosition;
+        private static readonly float WindowHeight = UiHelpers.GetWindowHeight(1000f);
+        private static readonly float WindowWidth = UiHelpers.GetWindowWidth(1200f);
         private Loadout _selectedLoadout;
 
         public ManageLoadoutsDialog(Loadout selectedLoadout)
@@ -29,12 +27,16 @@ namespace EquipmentManager.Windows
             SelectedLoadout = selectedLoadout;
         }
 
+        private static int AvailablePawnsColumnCount => WindowWidth < 1200f ? 3 : 5;
+        private static int AvailablePawnsRowCount => WindowHeight < 1000f ? 2 : 3;
         private static float AvailablePawnsRowHeight => Text.LineHeightOf(GameFont.Small) + UiHelpers.ElementGap;
 
         private static EquipmentManagerGameComponent EquipmentManager =>
             _equipmentManager ?? (_equipmentManager = Current.Game.GetComponent<EquipmentManagerGameComponent>());
 
-        public override Vector2 InitialSize => new Vector2(1200f, 1000f);
+        public override Vector2 InitialSize => new Vector2(WindowWidth, WindowHeight);
+        private static int LabeledButtonListColumnCount => WindowWidth < 1200f ? 2 : 3;
+        private static int PawnSettingsColumnCount => WindowWidth < 1200f ? 3 : 4;
 
         private Loadout SelectedLoadout
         {

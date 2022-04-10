@@ -59,5 +59,15 @@ namespace EquipmentManager.CustomWidgets
             return value == null ? MultiCheckboxState.Partial :
                 value == false ? MultiCheckboxState.Off : MultiCheckboxState.On;
         }
+
+        public static float GetWindowHeight(float desiredHeight)
+        {
+            return Math.Min(desiredHeight, Prefs.ScreenHeight / Prefs.UIScale * 0.9f);
+        }
+
+        public static float GetWindowWidth(float desiredWidth)
+        {
+            return Math.Min(desiredWidth, Prefs.ScreenWidth / Prefs.UIScale * 0.9f);
+        }
     }
 }

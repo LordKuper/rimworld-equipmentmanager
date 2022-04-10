@@ -28,6 +28,7 @@ namespace EquipmentManager
                 {"Doctor", new[] {"MedicalTendQualityOffset", "MedicalPotency"}}
             };
 
+        private readonly HashSet<StatDef> _requiredStats = new HashSet<StatDef>();
         private List<StatWeight> _defaultStatWeights;
         private bool _isInitialized;
         private List<StatWeight> _statWeights = new List<StatWeight>();
@@ -97,6 +98,15 @@ namespace EquipmentManager
                 ? WorkTypeDef.labelShort.NullOrEmpty() ? WorkTypeDefName : WorkTypeDef.labelShort.CapitalizeFirst()
                 : WorkTypeDefName;
 
+        public HashSet<StatDef> RequiredStats
+        {
+            get
+            {
+                Initialize();
+                return _requiredStats;
+            }
+        }
+
         private WorkTypeDef WorkTypeDef
         {
             get
@@ -139,7 +149,7 @@ namespace EquipmentManager
             var items = new List<ThingDef>();
             items.AddRange(AllRelevantThings.Where(def =>
                 (def.statBases ?? new List<StatModifier>()).Union(def.equippedStatOffsets ?? new List<StatModifier>())
-                .Any(sm => _statWeights.Any(sw => sw.StatDef == sm.stat))));
+                .Any(sm => _requiredStats.Any(statDef => statDef == sm.stat))));
             items.SortByDescending(GetStatScore);
             return items;
         }
@@ -187,11 +197,11 @@ namespace EquipmentManager
                     }
                 }
             }
-            foreach (var skill in WorkTypeDef.relevantSkills)
+            foreach (var statDef in WorkTypeDef.relevantSkills.Where(skill => SkillStatMap.Map.ContainsKey(skill))
+                         .Select(skill => SkillStatMap.Map[skill]).SelectMany(stats => stats))
             {
-                if (!SkillStatMap.Map.ContainsKey(skill)) { continue; }
-                foreach (var statDef in SkillStatMap.Map[skill].Where(statDef =>
-                             !_defaultStatWeights.Any(sw => sw.StatDefName == statDef.defName)))
+                _ = _requiredStats.Add(statDef);
+                if (!_defaultStatWeights.Any(sw => sw.StatDefName == statDef.defName))
                 {
                     _defaultStatWeights.Add(new StatWeight(statDef.defName, false) {Weight = 1f});
                 }
@@ -207,12 +217,16 @@ namespace EquipmentManager
                         _defaultStatWeights.Add(new StatWeight(recipe.efficiencyStat.defName, false) {Weight = 0.8f});
                     }
                 }
-                if (recipe.workSpeedStat != null &&
-                    !_defaultStatWeights.Any(sw => sw.StatDefName == recipe.workSpeedStat.defName))
+                if (recipe.workSpeedStat != null)
                 {
+                    _ = _requiredStats.Add(recipe.workSpeedStat);
                     if (!_defaultStatWeights.Any(sw => sw.StatDefName == recipe.workSpeedStat.defName))
                     {
-                        _defaultStatWeights.Add(new StatWeight(recipe.workSpeedStat.defName, false) {Weight = 0.5f});
+                        if (!_defaultStatWeights.Any(sw => sw.StatDefName == recipe.workSpeedStat.defName))
+                        {
+                            _defaultStatWeights.Add(
+                                new StatWeight(recipe.workSpeedStat.defName, false) {Weight = 0.5f});
+                        }
                     }
                 }
                 if (recipe.workTableEfficiencyStat != null &&

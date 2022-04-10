@@ -40,7 +40,7 @@ namespace EquipmentManager.Windows
             var buttonRowRect = new Rect(rect.x, rect.y, rect.width, UiHelpers.ButtonHeight);
             var labelRect = new Rect(rect.x, buttonRowRect.yMax + UiHelpers.ElementGap, rect.width,
                 UiHelpers.LabelHeight);
-            const float availableItemsBoxHeight = (ItemIconSize * AvailableItemIconsRowCount) +
+            var availableItemsBoxHeight = (ItemIconSize * AvailableItemIconsRowCount) +
                 (ItemIconGap * (AvailableItemIconsRowCount + 1));
             var availableItemsRect = new Rect(rect.x, rect.yMax - availableItemsBoxHeight - sectionHeaderHeight,
                 rect.width, availableItemsBoxHeight + sectionHeaderHeight);

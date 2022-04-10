@@ -9,7 +9,7 @@ namespace EquipmentManager
     {
         private static EquipmentManagerGameComponent _equipmentManager;
         private readonly RimworldTime _updateTime = new RimworldTime(-1, -1, -1);
-        public readonly HashSet<Thing> AssignedWeapons = new HashSet<Thing>();
+        public readonly Dictionary<Thing, string> AssignedWeapons = new Dictionary<Thing, string>();
         public Loadout AssignedLoadout;
         public bool AutoLoadout;
         public bool IsCapable;
@@ -50,11 +50,9 @@ namespace EquipmentManager
                 !Pawn.Drafted && !HealthAIUtility.ShouldSeekMedicalRest(Pawn);
             var pawnLoadout = EquipmentManager.GetPawnLoadout(Pawn);
             AutoLoadout = pawnLoadout.Automatic;
-            if (!AutoLoadout)
-            {
-                AssignedLoadout = EquipmentManager.GetLoadout(pawnLoadout.LoadoutId) ??
-                    EquipmentManager.GetLoadouts().First();
-            }
+            AssignedLoadout = !AutoLoadout
+                ? EquipmentManager.GetLoadout(pawnLoadout.LoadoutId) ?? EquipmentManager.GetLoadouts().First()
+                : null;
         }
     }
 }

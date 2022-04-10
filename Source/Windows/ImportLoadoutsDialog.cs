@@ -33,7 +33,8 @@ namespace EquipmentManager.Windows
         private static EquipmentManagerGameComponent EquipmentManager =>
             _equipmentManager ?? (_equipmentManager = Current.Game.GetComponent<EquipmentManagerGameComponent>());
 
-        public override Vector2 InitialSize => new Vector2(1000f, 500f);
+        public override Vector2 InitialSize =>
+            new Vector2(UiHelpers.GetWindowWidth(1000f), UiHelpers.GetWindowHeight(500f));
 
         private void DoButtonRow(Rect rect)
         {

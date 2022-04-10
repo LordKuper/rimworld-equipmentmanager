@@ -27,26 +27,21 @@ namespace EquipmentManager
             var workTypes = WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder
                 .Where(wt => !pawn.Pawn.WorkTypeIsDisabled(wt)).ToList();
             var availableWeapons = rule.GetCurrentlyAvailableItems(map, workTypes).ToList();
-            _ = availableWeapons.RemoveAll(thing => _pawnCache.Any(pc => pc.AssignedWeapons.Contains(thing)));
+            _ = availableWeapons.RemoveAll(thing => _pawnCache.Any(pc => pc.AssignedWeapons.ContainsKey(thing)));
             var carriedWeapons = pawn.Pawn.getCarriedWeapons(true, true)
                 .Where(thing => rule.IsAvailable(thing, workTypes)).ToList();
             availableWeapons.AddRange(carriedWeapons);
             foreach (var weapon in availableWeapons.Where(weapon =>
-                         pawn.AssignedWeapons.All(thing => thing.def != weapon.def) &&
+                         pawn.AssignedWeapons.Keys.All(thing => thing.def != weapon.def) &&
                          StatCalculator.canCarrySidearmInstance((ThingWithComps) weapon, pawn.Pawn, out _)))
             {
-                _ = pawn.AssignedWeapons.Add(weapon);
+                pawn.AssignedWeapons.Add(weapon, "tool");
                 if (carriedWeapons.Contains(weapon))
                 {
                     CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn).InformOfAddedSidearm(weapon);
                 }
                 else
                 {
-                    if (Prefs.DevMode)
-                    {
-                        Log.Message(
-                            $"Equipment Manager: {pawn.AssignedLoadout.Label}, {rule.Label}: setting {weapon.LabelCap} as tool for {pawn.Pawn.LabelCap}");
-                    }
                     _ = pawn.Pawn.jobs.TryTakeOrderedJob(
                         JobMaker.MakeJob(SidearmsDefOf.EquipSecondary, (LocalTargetInfo) weapon),
                         requestQueueing: ShouldRequestQueueing(pawn));
@@ -60,7 +55,7 @@ namespace EquipmentManager
             var workTypes = WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder
                 .Where(wt => !pawn.Pawn.WorkTypeIsDisabled(wt)).ToList();
             var availableWeapons = rule.GetCurrentlyAvailableItems(map, workTypes).ToList();
-            _ = availableWeapons.RemoveAll(thing => _pawnCache.Any(pc => pc.AssignedWeapons.Contains(thing)));
+            _ = availableWeapons.RemoveAll(thing => _pawnCache.Any(pc => pc.AssignedWeapons.ContainsKey(thing)));
             var carriedWeapons = pawn.Pawn.getCarriedWeapons(true, true)
                 .Where(thing => rule.IsAvailable(thing, workTypes)).ToList();
             availableWeapons.AddRange(carriedWeapons);
@@ -70,16 +65,11 @@ namespace EquipmentManager
                 .ThenByDescending(thing => sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
                 .ThenBy(thing => thing.GetHashCode()).FirstOrDefault();
             if (bestWeapon == null) { return; }
-            if (pawn.AssignedWeapons.Any(thing => thing.def == bestWeapon.def)) { return; }
-            _ = pawn.AssignedWeapons.Add(bestWeapon);
+            if (pawn.AssignedWeapons.Keys.Any(thing => thing.def == bestWeapon.def)) { return; }
+            pawn.AssignedWeapons.Add(bestWeapon, "tool");
             if (carriedWeapons.Contains(bestWeapon)) { sidearmMemory.InformOfAddedSidearm(bestWeapon); }
             else
             {
-                if (Prefs.DevMode)
-                {
-                    Log.Message(
-                        $"Equipment Manager: {pawn.AssignedLoadout.Label}, {rule.Label}: setting {bestWeapon.LabelCap} as tool for {pawn.Pawn.LabelCap}");
-                }
                 _ = pawn.Pawn.jobs.TryTakeOrderedJob(
                     JobMaker.MakeJob(SidearmsDefOf.EquipSecondary, (LocalTargetInfo) bestWeapon),
                     requestQueueing: ShouldRequestQueueing(pawn));
@@ -98,28 +88,16 @@ namespace EquipmentManager
                 .ToList();
             availableWeapons.AddRange(carriedWeapons);
             _ = availableWeapons.RemoveAll(thing =>
-                _pawnCache.Any(pc => pc.AssignedWeapons.Contains(thing)) ||
+                _pawnCache.Any(pc => pc.AssignedWeapons.ContainsKey(thing)) ||
                 !StatCalculator.canCarrySidearmInstance((ThingWithComps) thing, pawn.Pawn, out _));
             var bestWeapon = availableWeapons.OrderByDescending(thing => rule.GetStatScore(thing))
                 .ThenByDescending(thing => sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
                 .ThenBy(thing => thing.GetHashCode()).FirstOrDefault();
-            if (bestWeapon == null)
-            {
-                if (Prefs.DevMode)
-                {
-                    Log.Message($"Equipment Manager: No primary weapon found for {pawn.Pawn.LabelCap}");
-                }
-                return;
-            }
-            _ = pawn.AssignedWeapons.Add(bestWeapon);
+            if (bestWeapon == null) { return; }
+            pawn.AssignedWeapons.Add(bestWeapon, "primary");
             if (carriedWeapons.Contains(bestWeapon)) { sidearmMemory.InformOfAddedPrimary(bestWeapon); }
             else
             {
-                if (Prefs.DevMode)
-                {
-                    Log.Message(
-                        $"Equipment Manager: Setting {bestWeapon.LabelCap} as primary weapon for {pawn.Pawn.LabelCap}");
-                }
                 _ = pawn.Pawn.jobs.TryTakeOrderedJob(JobMaker.MakeJob(JobDefOf.Equip, (LocalTargetInfo) bestWeapon));
             }
         }
@@ -136,28 +114,16 @@ namespace EquipmentManager
                 .ToList();
             availableWeapons.AddRange(carriedWeapons);
             _ = availableWeapons.RemoveAll(thing =>
-                _pawnCache.Any(pc => pc.AssignedWeapons.Contains(thing)) ||
+                _pawnCache.Any(pc => pc.AssignedWeapons.ContainsKey(thing)) ||
                 !StatCalculator.canCarrySidearmInstance((ThingWithComps) thing, pawn.Pawn, out _));
             var bestWeapon = availableWeapons.OrderByDescending(thing => rule.GetStatScore(thing))
                 .ThenByDescending(thing => sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
                 .ThenBy(thing => thing.GetHashCode()).FirstOrDefault();
-            if (bestWeapon == null)
-            {
-                if (Prefs.DevMode)
-                {
-                    Log.Message($"Equipment Manager: No primary weapon found for {pawn.Pawn.LabelCap}");
-                }
-                return;
-            }
-            _ = pawn.AssignedWeapons.Add(bestWeapon);
+            if (bestWeapon == null) { return; }
+            pawn.AssignedWeapons.Add(bestWeapon, "primary");
             if (carriedWeapons.Contains(bestWeapon)) { sidearmMemory.InformOfAddedPrimary(bestWeapon); }
             else
             {
-                if (Prefs.DevMode)
-                {
-                    Log.Message(
-                        $"Equipment Manager: Setting {bestWeapon.LabelCap} as primary weapon for {pawn.Pawn.LabelCap}");
-                }
                 _ = pawn.Pawn.jobs.TryTakeOrderedJob(JobMaker.MakeJob(JobDefOf.Equip, (LocalTargetInfo) bestWeapon));
             }
         }
@@ -166,36 +132,23 @@ namespace EquipmentManager
         {
             var sidearmMemory = CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn);
             var availableWeapons = rule.GetCurrentlyAvailableItems(map, workTypes).ToList();
-            _ = availableWeapons.RemoveAll(thing => _pawnCache.Any(pc => pc.AssignedWeapons.Contains(thing)));
+            _ = availableWeapons.RemoveAll(thing => _pawnCache.Any(pc => pc.AssignedWeapons.ContainsKey(thing)));
             var carriedWeapons = pawn.Pawn.getCarriedWeapons(true, true)
                 .Where(thing => rule.IsAvailable(thing, workTypes)).ToList();
             availableWeapons.AddRange(carriedWeapons);
             foreach (var workType in workTypes)
             {
                 var things = availableWeapons.Where(thing =>
-                {
-                    var canCarrySidearmInstance =
-                        StatCalculator.canCarrySidearmInstance((ThingWithComps) thing, pawn.Pawn, out var err);
-                    if (!canCarrySidearmInstance)
-                    {
-                        if (Prefs.DevMode) { Log.Message($"Equipment Manager: Can not carry {thing.LabelCap}: {err}"); }
-                    }
-                    return canCarrySidearmInstance;
-                }).ToList();
+                    StatCalculator.canCarrySidearmInstance((ThingWithComps) thing, pawn.Pawn, out _)).ToList();
                 var bestWeapon = things.OrderByDescending(thing => rule.GetStatScore(thing, new[] {workType}))
                     .ThenByDescending(thing => sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
                     .ThenBy(thing => thing.GetHashCode()).FirstOrDefault();
                 if (bestWeapon == null) { continue; }
-                if (pawn.AssignedWeapons.Any(thing => thing.def == bestWeapon.def)) { continue; }
-                _ = pawn.AssignedWeapons.Add(bestWeapon);
+                if (pawn.AssignedWeapons.Keys.Any(thing => thing.def == bestWeapon.def)) { continue; }
+                pawn.AssignedWeapons.Add(bestWeapon, $"tool_{workType.labelShort}");
                 if (carriedWeapons.Contains(bestWeapon)) { sidearmMemory.InformOfAddedSidearm(bestWeapon); }
                 else
                 {
-                    if (Prefs.DevMode)
-                    {
-                        Log.Message(
-                            $"Equipment Manager: {pawn.AssignedLoadout.Label}, {rule.Label}: setting {bestWeapon.LabelCap} as tool for {pawn.Pawn.LabelCap} ({workType.labelShort})");
-                    }
                     _ = pawn.Pawn.jobs.TryTakeOrderedJob(
                         JobMaker.MakeJob(SidearmsDefOf.EquipSecondary, (LocalTargetInfo) bestWeapon),
                         requestQueueing: ShouldRequestQueueing(pawn));
@@ -221,6 +174,14 @@ namespace EquipmentManager
             UpdateRangedSidearms();
             UpdateMeleeSidearms();
             UpdateTools();
+            if (Prefs.DevMode)
+            {
+                foreach (var pawn in _pawnCache.Where(pc => pc.AssignedWeapons.Any()))
+                {
+                    Log.Message(
+                        $"Equipment Manager: Assigned weapons for {pawn.Pawn.LabelShortCap} = {string.Join(", ", pawn.AssignedWeapons.Select(pair => $"{pair.Key.LabelCap} ({pair.Value})"))}");
+                }
+            }
             RemoveUnassignedWeapons();
         }
 
@@ -229,18 +190,17 @@ namespace EquipmentManager
             foreach (var pawn in _pawnCache.Where(pc =>
                          pc.IsCapable && (pc.AssignedLoadout?.DropUnassignedWeapons ?? false)))
             {
-                var carriedWeapons = pawn.Pawn.getCarriedWeapons(true, true).ToList();
-                foreach (var weapon in carriedWeapons.Where(weapon => !pawn.AssignedWeapons.Contains(weapon)))
+                var unassignedWeapons = pawn.Pawn.getCarriedWeapons(true, true)
+                    .Where(weapon => !pawn.AssignedWeapons.ContainsKey(weapon)).ToList();
+                if (Prefs.DevMode && unassignedWeapons.Any())
                 {
-                    if (Prefs.DevMode)
-                    {
-                        Log.Message($"Equipment Manager: Dropping {weapon.LabelCap} from {pawn.Pawn.LabelCap}");
-                    }
-                    WeaponAssingment.dropSidearm(pawn.Pawn, weapon, true);
+                    Log.Message(
+                        $"Equipment Manager: Dropping {string.Join(", ", unassignedWeapons.Select(thing => thing.LabelCap))} from {pawn.Pawn.LabelShortCap}'s inventory");
                 }
+                foreach (var weapon in unassignedWeapons) { WeaponAssingment.dropSidearm(pawn.Pawn, weapon, true); }
                 var sidearmMemory = CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn);
                 foreach (var weapon in sidearmMemory.RememberedWeapons.Where(weapon =>
-                             pawn.AssignedWeapons.All(thing => thing.toThingDefStuffDefPair() != weapon)))
+                             pawn.AssignedWeapons.Keys.All(thing => thing.toThingDefStuffDefPair() != weapon)))
                 {
                     sidearmMemory.ForgetSidearmMemory(weapon);
                 }
@@ -278,7 +238,7 @@ namespace EquipmentManager
             if (Prefs.DevMode)
             {
                 Log.Message(
-                    $"Equipment Manager: Pawns: {string.Join("; ", _pawnCache.Select(pc => $"{pc.Pawn.LabelShort} ({pc.IsCapable})"))}");
+                    $"Equipment Manager: Pawns: {string.Join("; ", _pawnCache.Select(pc => $"{pc.Pawn.LabelShortCap} ({pc.IsCapable})"))}");
             }
         }
 
@@ -297,7 +257,8 @@ namespace EquipmentManager
                 while (assignedPawnsCount < targetCount)
                 {
                     var pawn = availablePawns.Where(pc => pc.AssignedLoadout == null && pc.AutoLoadout)
-                        .OrderByDescending(pc => pc.AvailableLoadouts[loadout]).FirstOrDefault();
+                        .OrderByDescending(pc => pc.AvailableLoadouts[loadout]).ThenBy(pc => pc.Pawn.GetHashCode())
+                        .FirstOrDefault();
                     if (pawn == null) { break; }
                     pawn.AssignedLoadout = loadout;
                     assignedPawnsCount++;
@@ -305,6 +266,11 @@ namespace EquipmentManager
             }
             foreach (var pawn in _pawnCache.Where(pc => pc.AutoLoadout && pc.AssignedLoadout != null))
             {
+                if (Prefs.DevMode)
+                {
+                    Log.Message(
+                        $"Equipment Manager: {pawn.Pawn.LabelShortCap} has been assigned a '{pawn.AssignedLoadout.Label}' loadout");
+                }
                 EquipmentManager.SetPawnLoadout(pawn.Pawn, pawn.AssignedLoadout, true);
                 pawn.AssignedWeapons.Clear();
             }
@@ -319,7 +285,8 @@ namespace EquipmentManager
                              .Where(rule => rule != null))
                 {
                     var availableWeapons = rule.GetCurrentlyAvailableItems(map).ToList();
-                    _ = availableWeapons.RemoveAll(thing => _pawnCache.Any(pc => pc.AssignedWeapons.Contains(thing)));
+                    _ = availableWeapons.RemoveAll(thing =>
+                        _pawnCache.Any(pc => pc.AssignedWeapons.ContainsKey(thing)));
                     var carriedWeapons = pawn.Pawn.getCarriedWeapons(true, true)
                         .Where(weapon => rule.IsAvailable(weapon)).ToList();
                     availableWeapons.AddRange(carriedWeapons);
@@ -333,25 +300,12 @@ namespace EquipmentManager
                                 .ThenByDescending(thing =>
                                     sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
                                 .ThenBy(thing => thing.GetHashCode()).FirstOrDefault();
-                            if (bestWeapon == null)
-                            {
-                                if (Prefs.DevMode)
-                                {
-                                    Log.Message(
-                                        $"Equipment Manager: {pawn.AssignedLoadout.Label}, {rule.Label}: no melee sidearm found for {pawn.Pawn.LabelCap}");
-                                }
-                                continue;
-                            }
-                            if (pawn.AssignedWeapons.Any(thing => thing.def == bestWeapon.def)) { continue; }
-                            _ = pawn.AssignedWeapons.Add(bestWeapon);
+                            if (bestWeapon == null) { continue; }
+                            if (pawn.AssignedWeapons.Keys.Any(thing => thing.def == bestWeapon.def)) { continue; }
+                            pawn.AssignedWeapons.Add(bestWeapon, "melee sidearm");
                             if (carriedWeapons.Contains(bestWeapon)) { sidearmMemory.InformOfAddedSidearm(bestWeapon); }
                             else
                             {
-                                if (Prefs.DevMode)
-                                {
-                                    Log.Message(
-                                        $"Equipment Manager: {pawn.AssignedLoadout.Label}, {rule.Label}: setting {bestWeapon.LabelCap} as melee sidearm for {pawn.Pawn.LabelCap}");
-                                }
                                 _ = pawn.Pawn.jobs.TryTakeOrderedJob(
                                     JobMaker.MakeJob(SidearmsDefOf.EquipSecondary, (LocalTargetInfo) bestWeapon),
                                     requestQueueing: ShouldRequestQueueing(pawn));
@@ -359,19 +313,14 @@ namespace EquipmentManager
                             break;
                         case ItemRule.WeaponEquipMode.AllAvailable:
                             foreach (var weapon in availableWeapons.Where(weapon =>
-                                         pawn.AssignedWeapons.All(thing => thing.def != weapon.def) &&
+                                         pawn.AssignedWeapons.Keys.All(thing => thing.def != weapon.def) &&
                                          StatCalculator.canCarrySidearmInstance((ThingWithComps) weapon, pawn.Pawn,
                                              out _)))
                             {
-                                _ = pawn.AssignedWeapons.Add(weapon);
+                                pawn.AssignedWeapons.Add(weapon, "melee sidearm");
                                 if (carriedWeapons.Contains(weapon)) { sidearmMemory.InformOfAddedSidearm(weapon); }
                                 else
                                 {
-                                    if (Prefs.DevMode)
-                                    {
-                                        Log.Message(
-                                            $"Equipment Manager: {pawn.AssignedLoadout.Label}, {rule.Label}: setting {weapon.LabelCap} as melee sidearm for {pawn.Pawn.LabelCap}");
-                                    }
                                     _ = pawn.Pawn.jobs.TryTakeOrderedJob(
                                         JobMaker.MakeJob(SidearmsDefOf.EquipSecondary, (LocalTargetInfo) weapon),
                                         requestQueueing: new[] {JobDefOf.Equip, SidearmsDefOf.EquipSecondary}.Contains(
@@ -414,7 +363,8 @@ namespace EquipmentManager
                              .Select(EquipmentManager.GetRangedWeaponRule).Where(rule => rule != null))
                 {
                     var availableWeapons = rule.GetCurrentlyAvailableItems(map).ToList();
-                    _ = availableWeapons.RemoveAll(thing => _pawnCache.Any(pc => pc.AssignedWeapons.Contains(thing)));
+                    _ = availableWeapons.RemoveAll(thing =>
+                        _pawnCache.Any(pc => pc.AssignedWeapons.ContainsKey(thing)));
                     var carriedWeapons = pawn.Pawn.getCarriedWeapons(true, true)
                         .Where(weapon => rule.IsAvailable(weapon)).ToList();
                     availableWeapons.AddRange(carriedWeapons);
@@ -425,22 +375,15 @@ namespace EquipmentManager
                                 .Where(thing =>
                                     StatCalculator.canCarrySidearmInstance((ThingWithComps) thing, pawn.Pawn, out _))
                                 .OrderByDescending(thing => rule.GetStatScore(thing)).FirstOrDefault();
-                            if (bestWeapon == null || pawn.AssignedWeapons.Any(thing => thing.def == bestWeapon.def))
-                            {
-                                continue;
-                            }
-                            _ = pawn.AssignedWeapons.Add(bestWeapon);
+                            if (bestWeapon == null ||
+                                pawn.AssignedWeapons.Keys.Any(thing => thing.def == bestWeapon.def)) { continue; }
+                            pawn.AssignedWeapons.Add(bestWeapon, "ranged sidearm");
                             if (carriedWeapons.Contains(bestWeapon))
                             {
                                 CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn).InformOfAddedSidearm(bestWeapon);
                             }
                             else
                             {
-                                if (Prefs.DevMode)
-                                {
-                                    Log.Message(
-                                        $"Equipment Manager: {pawn.AssignedLoadout.Label}, {rule.Label}: setting {bestWeapon.LabelCap} as ranged sidearm for {pawn.Pawn.LabelCap}");
-                                }
                                 _ = pawn.Pawn.jobs.TryTakeOrderedJob(
                                     JobMaker.MakeJob(SidearmsDefOf.EquipSecondary, (LocalTargetInfo) bestWeapon),
                                     requestQueueing: ShouldRequestQueueing(pawn));
@@ -449,22 +392,17 @@ namespace EquipmentManager
                         case ItemRule.WeaponEquipMode.AllAvailable:
                             foreach (var weapon in availableWeapons
                                          .Where(weapon =>
-                                             pawn.AssignedWeapons.All(thing => thing.def != weapon.def) &&
+                                             pawn.AssignedWeapons.Keys.All(thing => thing.def != weapon.def) &&
                                              StatCalculator.canCarrySidearmInstance((ThingWithComps) weapon, pawn.Pawn,
                                                  out _)).OrderByDescending(thing => rule.GetStatScore(thing)))
                             {
-                                _ = pawn.AssignedWeapons.Add(weapon);
+                                pawn.AssignedWeapons.Add(weapon, "ranged sidearm");
                                 if (carriedWeapons.Contains(weapon))
                                 {
                                     CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn).InformOfAddedSidearm(weapon);
                                 }
                                 else
                                 {
-                                    if (Prefs.DevMode)
-                                    {
-                                        Log.Message(
-                                            $"Equipment Manager: {pawn.AssignedLoadout.Label}, {rule.Label}: setting {weapon.LabelCap} as ranged sidearm for {pawn.Pawn.LabelCap}");
-                                    }
                                     _ = pawn.Pawn.jobs.TryTakeOrderedJob(
                                         JobMaker.MakeJob(SidearmsDefOf.EquipSecondary, (LocalTargetInfo) weapon),
                                         requestQueueing: ShouldRequestQueueing(pawn));

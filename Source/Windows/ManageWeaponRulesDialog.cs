@@ -12,8 +12,6 @@ namespace EquipmentManager.Windows
 {
     internal partial class ManageWeaponRulesDialog : Window
     {
-        private const int AvailableItemIconsRowCount = 5;
-        private const int ExclusiveItemIconsRowCount = 3;
         private const float ItemIconGap = 4f;
         private const float ItemIconSize = 32f;
         private static Vector2 _blacklistScrollPosition;
@@ -24,6 +22,8 @@ namespace EquipmentManager.Windows
         private static Vector2 _statLimitsScrollPosition;
         private static Vector2 _statWeightsScrollPosition;
         private static Vector2 _whitelistScrollPosition;
+        private static readonly float WindowHeight = UiHelpers.GetWindowHeight(1000f);
+        private static readonly float WindowWidth = UiHelpers.GetWindowWidth(1000f);
         private readonly List<TabRecord> _tabs = new List<TabRecord>();
         private bool _initialized;
 
@@ -36,10 +36,13 @@ namespace EquipmentManager.Windows
             absorbInputAroundWindow = true;
         }
 
+        private static int AvailableItemIconsRowCount => WindowHeight < 1000f ? 3 : 5;
+
         private static EquipmentManagerGameComponent EquipmentManager =>
             _equipmentManager ?? (_equipmentManager = Current.Game.GetComponent<EquipmentManagerGameComponent>());
 
-        public override Vector2 InitialSize => new Vector2(1000f, 1000f);
+        private static int ExclusiveItemIconsRowCount => WindowHeight < 1000f ? 2 : 3;
+        public override Vector2 InitialSize => new Vector2(WindowWidth, WindowHeight);
 
         private static void CheckSelectedItemRuleHasName(ItemRule rule)
         {
@@ -385,11 +388,11 @@ namespace EquipmentManager.Windows
             var settingsRowCount = (int) Math.Ceiling((double) settingsCount / UiHelpers.BoolSettingsColumnCount);
             settingsRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
                 sectionHeaderHeight + (UiHelpers.ListRowHeight * settingsRowCount));
-            const float availableItemsBoxHeight = (ItemIconSize * AvailableItemIconsRowCount) +
+            var availableItemsBoxHeight = (ItemIconSize * AvailableItemIconsRowCount) +
                 (ItemIconGap * (AvailableItemIconsRowCount + 1));
             availableItemsRect = new Rect(rect.x, rect.yMax - availableItemsBoxHeight - sectionHeaderHeight, rect.width,
                 availableItemsBoxHeight + sectionHeaderHeight);
-            const float exclusiveItemsBoxHeight = (ItemIconSize * ExclusiveItemIconsRowCount) +
+            var exclusiveItemsBoxHeight = (ItemIconSize * ExclusiveItemIconsRowCount) +
                 (ItemIconGap * (ExclusiveItemIconsRowCount + 1));
             exclusiveItemsRect = new Rect(rect.x,
                 availableItemsRect.y - exclusiveItemsBoxHeight - sectionHeaderHeight - UiHelpers.ElementGap, rect.width,
