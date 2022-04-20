@@ -137,7 +137,8 @@ namespace EquipmentManager
             }
             var bestWeapon = availableWeapons.OrderByDescending(thing => rule.GetThingScore(thing, _updateTime))
                 .ThenByDescending(thing => sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
-                .ThenBy(thing => thing.GetHashCode()).FirstOrDefault();
+                .ThenByDescending(thing => carriedWeapons.Contains(thing)).ThenBy(thing => thing.GetHashCode())
+                .FirstOrDefault();
             if (bestWeapon == null) { return; }
             pawn.AssignedWeapons.Add(bestWeapon, "primary");
             if (carriedWeapons.Contains(bestWeapon)) { sidearmMemory.InformOfAddedPrimary(bestWeapon); }
@@ -179,8 +180,8 @@ namespace EquipmentManager
                 availableWeapons.ToDictionary(thing => thing, thing => rule.GetThingScore(thing, _updateTime));
             var bestWeapon = availableWeapons.OrderByDescending(thing => weaponScores[thing])
                 .ThenByDescending(thing => sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
-                .ThenByDescending(thing => sidearmMemory.DefaultRangedWeapon == thing.toThingDefStuffDefPair())
-                .ThenBy(thing => thing.GetHashCode()).FirstOrDefault();
+                .ThenByDescending(thing => carriedWeapons.Contains(thing)).ThenBy(thing => thing.GetHashCode())
+                .FirstOrDefault();
             if (bestWeapon == null) { return; }
             pawn.AssignedWeapons.Add(bestWeapon, "primary");
             if (carriedWeapons.Contains(bestWeapon)) { sidearmMemory.InformOfAddedPrimary(bestWeapon); }
@@ -414,6 +415,7 @@ namespace EquipmentManager
                                 .OrderByDescending(thing => rule.GetThingScore(thing, _updateTime))
                                 .ThenByDescending(thing =>
                                     sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
+                                .ThenByDescending(thing => carriedWeapons.Contains(thing))
                                 .ThenBy(thing => thing.GetHashCode()).FirstOrDefault();
                             if (bestWeapon == null) { continue; }
                             if (pawn.AssignedWeapons.Keys.Any(thing => thing.def == bestWeapon.def)) { continue; }
@@ -504,6 +506,7 @@ namespace EquipmentManager
                 foreach (var rule in pawn.AssignedLoadout.RangedSidearmRules
                              .Select(EquipmentManager.GetRangedWeaponRule).Where(rule => rule != null))
                 {
+                    var sidearmMemory = CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn);
                     var availableWeapons = rule.GetCurrentlyAvailableItems(map, _updateTime).ToList();
                     var carriedWeapons = pawn.Pawn.getCarriedWeapons(true, true)
                         .Where(weapon => rule.IsAvailable(weapon, _updateTime)).ToList();
@@ -530,14 +533,15 @@ namespace EquipmentManager
                             var bestWeapon = availableWeapons
                                 .Where(thing => carriedWeapons.Contains(thing) ||
                                     StatCalculator.canCarrySidearmInstance((ThingWithComps) thing, pawn.Pawn, out _))
-                                .OrderByDescending(thing => rule.GetThingScore(thing, _updateTime)).FirstOrDefault();
+                                .OrderByDescending(thing => rule.GetThingScore(thing, _updateTime))
+                                .ThenByDescending(thing =>
+                                    sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
+                                .ThenByDescending(thing => carriedWeapons.Contains(thing))
+                                .ThenBy(thing => thing.GetHashCode()).FirstOrDefault();
                             if (bestWeapon == null ||
                                 pawn.AssignedWeapons.Keys.Any(thing => thing.def == bestWeapon.def)) { continue; }
                             pawn.AssignedWeapons.Add(bestWeapon, "ranged sidearm");
-                            if (carriedWeapons.Contains(bestWeapon))
-                            {
-                                CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn).InformOfAddedSidearm(bestWeapon);
-                            }
+                            if (carriedWeapons.Contains(bestWeapon)) { sidearmMemory.InformOfAddedSidearm(bestWeapon); }
                             else
                             {
                                 _ = pawn.Pawn.jobs.TryTakeOrderedJob(
@@ -555,10 +559,7 @@ namespace EquipmentManager
                                          rule.GetThingScore(thing, _updateTime)))
                             {
                                 pawn.AssignedWeapons.Add(weapon, "ranged sidearm");
-                                if (carriedWeapons.Contains(weapon))
-                                {
-                                    CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn).InformOfAddedSidearm(weapon);
-                                }
+                                if (carriedWeapons.Contains(weapon)) { sidearmMemory.InformOfAddedSidearm(weapon); }
                                 else
                                 {
                                     _ = pawn.Pawn.jobs.TryTakeOrderedJob(
