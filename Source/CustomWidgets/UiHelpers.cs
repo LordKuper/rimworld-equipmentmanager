@@ -60,14 +60,11 @@ namespace EquipmentManager.CustomWidgets
                 value == false ? MultiCheckboxState.Off : MultiCheckboxState.On;
         }
 
-        public static float GetWindowHeight(float desiredHeight)
+        public static Vector2 GetWindowSize(Vector2 minSize, Vector2 maxSize)
         {
-            return Math.Min(desiredHeight, Prefs.ScreenHeight / Prefs.UIScale * 0.9f);
-        }
-
-        public static float GetWindowWidth(float desiredWidth)
-        {
-            return Math.Min(desiredWidth, Prefs.ScreenWidth / Prefs.UIScale * 0.9f);
+            var width = Mathf.Clamp(Prefs.ScreenWidth / Prefs.UIScale * 0.9f, minSize.x, maxSize.x);
+            var height = Mathf.Clamp(Prefs.ScreenHeight / Prefs.UIScale * 0.9f, minSize.y, maxSize.y);
+            return new Vector2(width, height);
         }
     }
 }

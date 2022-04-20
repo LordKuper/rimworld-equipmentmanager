@@ -13,12 +13,12 @@ namespace EquipmentManager
         public override void ExposeData()
         {
             base.ExposeData();
-            ExposeData_Loadouts();
+            ExposeData_WorkTypes();
+            ExposeData_ToolRules();
             ExposeData_MeleeWeaponRules();
             ExposeData_RangedWeaponRules();
-            ExposeData_ToolRules();
+            ExposeData_Loadouts();
             ExposeData_StatRanges();
-            ExposeData_WorkTypes();
         }
 
         public override void FinalizeInit()

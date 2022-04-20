@@ -13,8 +13,6 @@ namespace EquipmentManager.Windows
         private static Vector2 _availablePawnsScrollPosition;
         private static EquipmentManagerGameComponent _equipmentManager;
         private static Vector2 _scrollPosition;
-        private static readonly float WindowHeight = UiHelpers.GetWindowHeight(1000f);
-        private static readonly float WindowWidth = UiHelpers.GetWindowWidth(1200f);
         private Loadout _selectedLoadout;
 
         public ManageLoadoutsDialog(Loadout selectedLoadout)
@@ -27,16 +25,17 @@ namespace EquipmentManager.Windows
             SelectedLoadout = selectedLoadout;
         }
 
-        private static int AvailablePawnsColumnCount => WindowWidth < 1200f ? 3 : 5;
-        private static int AvailablePawnsRowCount => WindowHeight < 1000f ? 2 : 3;
+        private int AvailablePawnsColumnCount => InitialSize.x < MaxSize.x ? 3 : 5;
+        private int AvailablePawnsRowCount => InitialSize.y < MaxSize.y ? 2 : 3;
         private static float AvailablePawnsRowHeight => Text.LineHeightOf(GameFont.Small) + UiHelpers.ElementGap;
 
         private static EquipmentManagerGameComponent EquipmentManager =>
             _equipmentManager ?? (_equipmentManager = Current.Game.GetComponent<EquipmentManagerGameComponent>());
 
-        public override Vector2 InitialSize => new Vector2(WindowWidth, WindowHeight);
-        private static int LabeledButtonListColumnCount => WindowWidth < 1200f ? 2 : 3;
-        private static int PawnSettingsColumnCount => WindowWidth < 1200f ? 3 : 4;
+        public override Vector2 InitialSize => UiHelpers.GetWindowSize(new Vector2(850f, 650f), MaxSize);
+        private int LabeledButtonListColumnCount => InitialSize.x < MaxSize.x ? 2 : 3;
+        private static Vector2 MaxSize => new Vector2(1200f, 1000f);
+        private int PawnSettingsColumnCount => InitialSize.x < MaxSize.x ? 3 : 4;
 
         private Loadout SelectedLoadout
         {
@@ -74,7 +73,7 @@ namespace EquipmentManager.Windows
 
         private void DoButtonRow(Rect rect)
         {
-            const int buttonCount = 6;
+            const int buttonCount = 7;
             var buttonWidth = (rect.width - (UiHelpers.ButtonGap * (buttonCount - 1))) / buttonCount;
             if (Widgets.ButtonText(new Rect(rect.x, rect.y, buttonWidth, UiHelpers.ButtonHeight),
                     Strings.SelectLoadout))
@@ -98,8 +97,8 @@ namespace EquipmentManager.Windows
                     new Rect(rect.x + ((buttonWidth + UiHelpers.ButtonGap) * 3), rect.y, buttonWidth,
                         UiHelpers.ButtonHeight), Strings.DeleteLoadout))
             {
-                Find.WindowStack.Add(new FloatMenu(EquipmentManager.GetLoadouts().Where(loadout => !loadout.Protected)
-                    .Select(loadout => new FloatMenuOption(loadout.Label, () =>
+                Find.WindowStack.Add(new FloatMenu(EquipmentManager.GetLoadouts().Select(loadout =>
+                    new FloatMenuOption(loadout.Label, () =>
                     {
                         EquipmentManager.DeleteLoadout(loadout);
                         if (loadout == SelectedLoadout) { SelectedLoadout = null; }
@@ -117,11 +116,23 @@ namespace EquipmentManager.Windows
             {
                 Find.WindowStack.Add(new ImportLoadoutsDialog());
             }
+            if (Widgets.ButtonText(
+                    new Rect(rect.x + ((buttonWidth + UiHelpers.ButtonGap) * 6), rect.y, buttonWidth,
+                        UiHelpers.ButtonHeight), Strings.Log)) { Find.WindowStack.Add(new LogDialog()); }
         }
 
         private void DoLoadoutSettings(Rect rect)
         {
-            var priorityRect = LabelInput.DoLabeledRect(new Rect(rect.x, rect.y, rect.width, UiHelpers.ListRowHeight),
+            var font = Text.Font;
+            var anchor = Text.Anchor;
+            Text.Font = GameFont.Medium;
+            Text.Anchor = TextAnchor.MiddleLeft;
+            var labelRect = new Rect(rect.x, rect.y, rect.width, Text.LineHeight);
+            Widgets.Label(labelRect, Strings.LoadoutSettings);
+            Text.Font = font;
+            Text.Anchor = anchor;
+            var priorityRect = LabelInput.DoLabeledRect(
+                new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width, UiHelpers.ListRowHeight),
                 Strings.PriorityLabel, Strings.PriorityTooltip);
             SelectedLoadout.Priority = (int) Widgets.HorizontalSlider(priorityRect, SelectedLoadout.Priority, 0, 10,
                 true, $"{SelectedLoadout.Priority:N0}", roundTo: 1f);
@@ -139,13 +150,14 @@ namespace EquipmentManager.Windows
             var checkboxRect = new Rect(dropUnassignedWeaponsRect.x, dropUnassignedWeaponsRect.y,
                 dropUnassignedWeaponsRect.height, dropUnassignedWeaponsRect.height);
             Widgets.Checkbox(checkboxRect.x, checkboxRect.y, ref SelectedLoadout.DropUnassignedWeapons);
-            var labelRect = new Rect(checkboxRect.xMax + (UiHelpers.ElementGap / 2f), dropUnassignedWeaponsRect.y,
+            var dropUnassignedWeaponsLabelRect = new Rect(checkboxRect.xMax + (UiHelpers.ElementGap / 2f),
+                dropUnassignedWeaponsRect.y,
                 dropUnassignedWeaponsRect.width - checkboxRect.width - (UiHelpers.ElementGap / 2f),
                 dropUnassignedWeaponsRect.height);
-            TooltipHandler.TipRegion(labelRect, Strings.DropUnassignedWeaponsTooltip);
-            var anchor = Text.Anchor;
+            TooltipHandler.TipRegion(dropUnassignedWeaponsLabelRect, Strings.DropUnassignedWeaponsTooltip);
+            anchor = Text.Anchor;
             Text.Anchor = TextAnchor.MiddleLeft;
-            Widgets.Label(labelRect, Strings.DropUnassignedWeapons);
+            Widgets.Label(dropUnassignedWeaponsLabelRect, Strings.DropUnassignedWeapons);
             Text.Anchor = anchor;
         }
 
@@ -543,7 +555,7 @@ namespace EquipmentManager.Windows
                 var outerRect = new Rect(inRect.x, labelRect.yMax + UiHelpers.ElementGap, inRect.width,
                     availablePawnsRect.y - UiHelpers.ElementGap - (labelRect.yMax + UiHelpers.ElementGap));
                 const int settingsRowCount = 2;
-                const float settingsHeight = (UiHelpers.ListRowHeight * settingsRowCount) +
+                var settingsHeight = sectionHeaderHeight + (UiHelpers.ListRowHeight * settingsRowCount) +
                     (UiHelpers.ElementGap * (settingsRowCount - 1));
                 var rangedSidearmsRowCount =
                     (int) Math.Ceiling((SelectedLoadout.RangedSidearmRules.Count + 1f) / LabeledButtonListColumnCount);
@@ -607,7 +619,7 @@ namespace EquipmentManager.Windows
             }
         }
 
-        private static Rect GetLabeledButtonListItemRect(Rect rect, int index)
+        private Rect GetLabeledButtonListItemRect(Rect rect, int index)
         {
             var rowIndex = Math.DivRem(index, LabeledButtonListColumnCount, out var columnIndex);
             var columnWidth =
@@ -618,7 +630,7 @@ namespace EquipmentManager.Windows
                 UiHelpers.ButtonHeight);
         }
 
-        private static Rect GetPawnSettingRect(Rect rect, int index)
+        private Rect GetPawnSettingRect(Rect rect, int index)
         {
             var rowIndex = Math.DivRem(index, PawnSettingsColumnCount, out var columnIndex);
             var columnWidth =

@@ -13,7 +13,7 @@ namespace EquipmentManager
         private readonly Dictionary<Thing, RangedWeaponCache> _rangedWeaponsCache =
             new Dictionary<Thing, RangedWeaponCache>();
 
-        private List<RangedWeaponRule> _rangedWeaponRules = new List<RangedWeaponRule>(RangedWeaponRule.DefaultRules);
+        private List<RangedWeaponRule> _rangedWeaponRules;
 
         public RangedWeaponRule AddRangedWeaponRule()
         {
@@ -89,7 +89,7 @@ namespace EquipmentManager
                 cache = new RangedWeaponCache(thing);
                 _rangedWeaponsCache[thing] = cache;
             }
-            cache.Update(time);
+            _ = cache.Update(time);
             return cache;
         }
 
@@ -103,7 +103,7 @@ namespace EquipmentManager
                 cache = new RangedWeaponCache(thing);
                 _rangedWeaponDefsCache[thingDef] = cache;
             }
-            cache.Update(time);
+            _ = cache.Update(time);
             return cache;
         }
 

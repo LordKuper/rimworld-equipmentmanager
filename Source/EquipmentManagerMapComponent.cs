@@ -7,6 +7,7 @@ using PeteTimesSix.SimpleSidearms.Utilities;
 using RimWorld;
 using SimpleSidearms.rimworld;
 using Verse;
+using Verse.AI;
 
 namespace EquipmentManager
 {
@@ -26,14 +27,29 @@ namespace EquipmentManager
         {
             var workTypes = WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder
                 .Where(wt => !pawn.Pawn.WorkTypeIsDisabled(wt)).ToList();
-            var availableWeapons = rule.GetCurrentlyAvailableItems(map, workTypes).ToList();
+            var availableWeapons = rule.GetCurrentlyAvailableItems(map, workTypes, _updateTime).ToList();
             _ = availableWeapons.RemoveAll(thing => _pawnCache.Any(pc => pc.AssignedWeapons.ContainsKey(thing)));
             var carriedWeapons = pawn.Pawn.getCarriedWeapons(true, true)
-                .Where(thing => rule.IsAvailable(thing, workTypes)).ToList();
+                .Where(thing => rule.IsAvailable(thing, workTypes, _updateTime)).ToList();
             availableWeapons.AddRange(carriedWeapons);
+            foreach (var thing in availableWeapons.ToList())
+            {
+                var biocodable = thing.TryGetComp<CompBiocodable>();
+                if (biocodable != null && biocodable.Biocoded && biocodable.CodedPawn != pawn.Pawn)
+                {
+                    _ = availableWeapons.Remove(thing);
+                    continue;
+                }
+                var bladelink = thing.TryGetComp<CompBladelinkWeapon>();
+                if (bladelink != null && bladelink.Biocoded && bladelink.CodedPawn != pawn.Pawn)
+                {
+                    _ = availableWeapons.Remove(thing);
+                }
+            }
             foreach (var weapon in availableWeapons.Where(weapon =>
                          pawn.AssignedWeapons.Keys.All(thing => thing.def != weapon.def) &&
-                         StatCalculator.canCarrySidearmInstance((ThingWithComps) weapon, pawn.Pawn, out _)))
+                         (carriedWeapons.Contains(weapon) ||
+                             StatCalculator.canCarrySidearmInstance((ThingWithComps) weapon, pawn.Pawn, out _))))
             {
                 pawn.AssignedWeapons.Add(weapon, "tool");
                 if (carriedWeapons.Contains(weapon))
@@ -54,14 +70,30 @@ namespace EquipmentManager
             var sidearmMemory = CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn);
             var workTypes = WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder
                 .Where(wt => !pawn.Pawn.WorkTypeIsDisabled(wt)).ToList();
-            var availableWeapons = rule.GetCurrentlyAvailableItems(map, workTypes).ToList();
+            var availableWeapons = rule.GetCurrentlyAvailableItems(map, workTypes, _updateTime).ToList();
             _ = availableWeapons.RemoveAll(thing => _pawnCache.Any(pc => pc.AssignedWeapons.ContainsKey(thing)));
             var carriedWeapons = pawn.Pawn.getCarriedWeapons(true, true)
-                .Where(thing => rule.IsAvailable(thing, workTypes)).ToList();
+                .Where(thing => rule.IsAvailable(thing, workTypes, _updateTime)).ToList();
             availableWeapons.AddRange(carriedWeapons);
+            foreach (var thing in availableWeapons.ToList())
+            {
+                var biocodable = thing.TryGetComp<CompBiocodable>();
+                if (biocodable != null && biocodable.Biocoded && biocodable.CodedPawn != pawn.Pawn)
+                {
+                    _ = availableWeapons.Remove(thing);
+                    continue;
+                }
+                var bladelink = thing.TryGetComp<CompBladelinkWeapon>();
+                if (bladelink != null && bladelink.Biocoded && bladelink.CodedPawn != pawn.Pawn)
+                {
+                    _ = availableWeapons.Remove(thing);
+                }
+            }
             var bestWeapon = availableWeapons
-                .Where(thing => StatCalculator.canCarrySidearmInstance((ThingWithComps) thing, pawn.Pawn, out _))
-                .OrderByDescending(thing => rule.GetStatScore(thing, workTypes))
+                .Where(thing =>
+                    carriedWeapons.Contains(thing) ||
+                    StatCalculator.canCarrySidearmInstance((ThingWithComps) thing, pawn.Pawn, out _))
+                .OrderByDescending(thing => rule.GetThingScore(thing, workTypes, _updateTime))
                 .ThenByDescending(thing => sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
                 .ThenBy(thing => thing.GetHashCode()).FirstOrDefault();
             if (bestWeapon == null) { return; }
@@ -83,14 +115,27 @@ namespace EquipmentManager
             if (pawn.AssignedLoadout.PrimaryMeleeWeaponRuleId == null) { return; }
             var rule = EquipmentManager.GetMeleeWeaponRule((int) pawn.AssignedLoadout.PrimaryMeleeWeaponRuleId);
             if (rule == null) { return; }
-            var availableWeapons = rule.GetCurrentlyAvailableItems(map).ToList();
-            var carriedWeapons = pawn.Pawn.getCarriedWeapons(true, true).Where(weapon => rule.IsAvailable(weapon))
-                .ToList();
+            var availableWeapons = rule.GetCurrentlyAvailableItems(map, _updateTime).ToList();
+            var carriedWeapons = pawn.Pawn.getCarriedWeapons(true, true)
+                .Where(weapon => rule.IsAvailable(weapon, _updateTime)).ToList();
             availableWeapons.AddRange(carriedWeapons);
             _ = availableWeapons.RemoveAll(thing =>
-                _pawnCache.Any(pc => pc.AssignedWeapons.ContainsKey(thing)) ||
-                !StatCalculator.canCarrySidearmInstance((ThingWithComps) thing, pawn.Pawn, out _));
-            var bestWeapon = availableWeapons.OrderByDescending(thing => rule.GetStatScore(thing))
+                _pawnCache.Any(pc => pc != pawn && pc.AssignedWeapons.ContainsKey(thing)));
+            foreach (var thing in availableWeapons.ToList())
+            {
+                var biocodable = thing.TryGetComp<CompBiocodable>();
+                if (biocodable != null && biocodable.Biocoded && biocodable.CodedPawn != pawn.Pawn)
+                {
+                    _ = availableWeapons.Remove(thing);
+                    continue;
+                }
+                var bladelink = thing.TryGetComp<CompBladelinkWeapon>();
+                if (bladelink != null && bladelink.Biocoded && bladelink.CodedPawn != pawn.Pawn)
+                {
+                    _ = availableWeapons.Remove(thing);
+                }
+            }
+            var bestWeapon = availableWeapons.OrderByDescending(thing => rule.GetThingScore(thing, _updateTime))
                 .ThenByDescending(thing => sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
                 .ThenBy(thing => thing.GetHashCode()).FirstOrDefault();
             if (bestWeapon == null) { return; }
@@ -98,7 +143,8 @@ namespace EquipmentManager
             if (carriedWeapons.Contains(bestWeapon)) { sidearmMemory.InformOfAddedPrimary(bestWeapon); }
             else
             {
-                _ = pawn.Pawn.jobs.TryTakeOrderedJob(JobMaker.MakeJob(JobDefOf.Equip, (LocalTargetInfo) bestWeapon));
+                _ = pawn.Pawn.jobs.TryTakeOrderedJob(JobMaker.MakeJob(JobDefOf.Equip, (LocalTargetInfo) bestWeapon),
+                    requestQueueing: ShouldRequestQueueing(pawn));
             }
         }
 
@@ -109,38 +155,74 @@ namespace EquipmentManager
             if (pawn.AssignedLoadout.PrimaryRangedWeaponRuleId == null) { return; }
             var rule = EquipmentManager.GetRangedWeaponRule((int) pawn.AssignedLoadout.PrimaryRangedWeaponRuleId);
             if (rule == null) { return; }
-            var availableWeapons = rule.GetCurrentlyAvailableItems(map).ToList();
-            var carriedWeapons = pawn.Pawn.getCarriedWeapons(true, true).Where(weapon => rule.IsAvailable(weapon))
-                .ToList();
+            var availableWeapons = rule.GetCurrentlyAvailableItems(map, _updateTime).ToList();
+            var carriedWeapons = pawn.Pawn.getCarriedWeapons(true, true)
+                .Where(weapon => rule.IsAvailable(weapon, _updateTime)).ToList();
             availableWeapons.AddRange(carriedWeapons);
             _ = availableWeapons.RemoveAll(thing =>
-                _pawnCache.Any(pc => pc.AssignedWeapons.ContainsKey(thing)) ||
-                !StatCalculator.canCarrySidearmInstance((ThingWithComps) thing, pawn.Pawn, out _));
-            var bestWeapon = availableWeapons.OrderByDescending(thing => rule.GetStatScore(thing))
+                _pawnCache.Any(pc => pc != pawn && pc.AssignedWeapons.ContainsKey(thing)));
+            foreach (var thing in availableWeapons.ToList())
+            {
+                var biocodable = thing.TryGetComp<CompBiocodable>();
+                if (biocodable != null && biocodable.Biocoded && biocodable.CodedPawn != pawn.Pawn)
+                {
+                    _ = availableWeapons.Remove(thing);
+                    continue;
+                }
+                var bladelink = thing.TryGetComp<CompBladelinkWeapon>();
+                if (bladelink != null && bladelink.Biocoded && bladelink.CodedPawn != pawn.Pawn)
+                {
+                    _ = availableWeapons.Remove(thing);
+                }
+            }
+            var weaponScores =
+                availableWeapons.ToDictionary(thing => thing, thing => rule.GetThingScore(thing, _updateTime));
+            var bestWeapon = availableWeapons.OrderByDescending(thing => weaponScores[thing])
                 .ThenByDescending(thing => sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
+                .ThenByDescending(thing => sidearmMemory.DefaultRangedWeapon == thing.toThingDefStuffDefPair())
                 .ThenBy(thing => thing.GetHashCode()).FirstOrDefault();
             if (bestWeapon == null) { return; }
             pawn.AssignedWeapons.Add(bestWeapon, "primary");
             if (carriedWeapons.Contains(bestWeapon)) { sidearmMemory.InformOfAddedPrimary(bestWeapon); }
             else
             {
-                _ = pawn.Pawn.jobs.TryTakeOrderedJob(JobMaker.MakeJob(JobDefOf.Equip, (LocalTargetInfo) bestWeapon));
+                _ = pawn.Pawn.jobs.TryTakeOrderedJob(JobMaker.MakeJob(JobDefOf.Equip, (LocalTargetInfo) bestWeapon),
+                    requestQueueing: ShouldRequestQueueing(pawn));
             }
+            UpdateAmmo(pawn, bestWeapon, rule);
         }
 
         private void AssignToolsForWorkTypes(PawnCache pawn, ToolRule rule, List<WorkTypeDef> workTypes)
         {
             var sidearmMemory = CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn);
-            var availableWeapons = rule.GetCurrentlyAvailableItems(map, workTypes).ToList();
-            _ = availableWeapons.RemoveAll(thing => _pawnCache.Any(pc => pc.AssignedWeapons.ContainsKey(thing)));
+            var availableWeapons = rule.GetCurrentlyAvailableItems(map, workTypes, _updateTime).ToList();
+            _ = availableWeapons.RemoveAll(thing =>
+                _pawnCache.Any(pc => pc != pawn && pc.AssignedWeapons.ContainsKey(thing)));
+            _ = availableWeapons.RemoveAll(thing =>
+                !StatCalculator.canCarrySidearmInstance((ThingWithComps) thing, pawn.Pawn, out _));
             var carriedWeapons = pawn.Pawn.getCarriedWeapons(true, true)
-                .Where(thing => rule.IsAvailable(thing, workTypes)).ToList();
+                .Where(thing => rule.IsAvailable(thing, workTypes, _updateTime)).ToList();
             availableWeapons.AddRange(carriedWeapons);
+            foreach (var thing in availableWeapons.ToList())
+            {
+                var biocodable = thing.TryGetComp<CompBiocodable>();
+                if (biocodable != null && biocodable.Biocoded && biocodable.CodedPawn != pawn.Pawn)
+                {
+                    _ = availableWeapons.Remove(thing);
+                    continue;
+                }
+                var bladelink = thing.TryGetComp<CompBladelinkWeapon>();
+                if (bladelink != null && bladelink.Biocoded && bladelink.CodedPawn != pawn.Pawn)
+                {
+                    _ = availableWeapons.Remove(thing);
+                }
+            }
             foreach (var workType in workTypes)
             {
-                var things = availableWeapons.Where(thing =>
+                var things = availableWeapons.Where(thing => carriedWeapons.Contains(thing) ||
                     StatCalculator.canCarrySidearmInstance((ThingWithComps) thing, pawn.Pawn, out _)).ToList();
-                var bestWeapon = things.OrderByDescending(thing => rule.GetStatScore(thing, new[] {workType}))
+                var bestWeapon = things
+                    .OrderByDescending(thing => rule.GetThingScore(thing, new[] {workType}, _updateTime))
                     .ThenByDescending(thing => sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
                     .ThenBy(thing => thing.GetHashCode()).FirstOrDefault();
                 if (bestWeapon == null) { continue; }
@@ -168,19 +250,19 @@ namespace EquipmentManager
             _updateTime.Year = mapTime.Year;
             _updateTime.Day = mapTime.Day;
             _updateTime.Hour = mapTime.Hour;
-            UpdateCache();
+            EquipmentManager.LogMessage(
+                $"Updating equipment at year={_updateTime.Year}, day={_updateTime.Day}, hour={_updateTime.Hour:N1} ====================");
+            UpdatePawnCache();
+            UpdateStatRanges();
             UpdateLoadouts();
             UpdatePrimaryWeapons();
             UpdateRangedSidearms();
             UpdateMeleeSidearms();
             UpdateTools();
-            if (Prefs.DevMode)
+            foreach (var pawn in _pawnCache.Where(pc => pc.AssignedWeapons.Any()))
             {
-                foreach (var pawn in _pawnCache.Where(pc => pc.AssignedWeapons.Any()))
-                {
-                    Log.Message(
-                        $"Equipment Manager: Assigned weapons for {pawn.Pawn.LabelShortCap} = {string.Join(", ", pawn.AssignedWeapons.Select(pair => $"{pair.Key.LabelCap} ({pair.Value})"))}");
-                }
+                EquipmentManager.LogMessage(
+                    $"Assigned weapons for {pawn.Pawn.LabelShortCap} = {string.Join(", ", pawn.AssignedWeapons.Select(pair => $"{pair.Key.LabelCap} ({pair.Value})"))}");
             }
             RemoveUnassignedWeapons();
         }
@@ -192,10 +274,10 @@ namespace EquipmentManager
             {
                 var unassignedWeapons = pawn.Pawn.getCarriedWeapons(true, true)
                     .Where(weapon => !pawn.AssignedWeapons.ContainsKey(weapon)).ToList();
-                if (Prefs.DevMode && unassignedWeapons.Any())
+                if (unassignedWeapons.Any())
                 {
-                    Log.Message(
-                        $"Equipment Manager: Dropping {string.Join(", ", unassignedWeapons.Select(thing => thing.LabelCap))} from {pawn.Pawn.LabelShortCap}'s inventory");
+                    EquipmentManager.LogMessage(
+                        $"Dropping {string.Join(", ", unassignedWeapons.Select(thing => thing.LabelCapNoCount))} from {pawn.Pawn.LabelShortCap}'s inventory");
                 }
                 foreach (var weapon in unassignedWeapons) { WeaponAssingment.dropSidearm(pawn.Pawn, weapon, true); }
                 var sidearmMemory = CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn);
@@ -209,36 +291,55 @@ namespace EquipmentManager
 
         private static bool ShouldRequestQueueing(PawnCache pawn)
         {
-            return new[] {JobDefOf.Equip, SidearmsDefOf.EquipSecondary}.Contains(pawn.Pawn.CurJobDef) ||
-                (pawn.Pawn.CurJob?.workGiverDef?.emergency ?? false);
+            return pawn.Pawn.CurJob != null;
         }
 
-        private void UpdateCache()
+        private void UpdateAmmo(PawnCache pawn, Thing weapon, RangedWeaponRule rule)
         {
-            if (_allPawns == null) { _allPawns = new HashSet<Pawn>(); }
-            _allPawns.Clear();
-            _allPawns.AddRange(map.mapPawns.FreeColonistsSpawned.Where(pawn =>
-                pawn.Faction == Faction.OfPlayer && !pawn.HasExtraHomeFaction() && !pawn.HasExtraMiniFaction() &&
-                pawn.GuestStatus == null));
-            if (_pawnCache == null) { _pawnCache = new HashSet<PawnCache>(); }
-            foreach (var pawn in _pawnCache.Where(pc => !_allPawns.Contains(pc.Pawn)).ToList())
+            if (!CombatExtendedHelper.EnableAmmoSystem) { return; }
+            var weaponCache = EquipmentManager.GetRangedWeaponCache(weapon, _updateTime);
+            var ammoDefs = weaponCache.AmmoTypes.ToList();
+            var pawnAmmo = pawn.Pawn.inventory.innerContainer.InnerListForReading
+                .Where(thing => ammoDefs.Contains(thing.def)).ToList();
+            var mapAmmo = ammoDefs.SelectMany(def => map?.listerThings.ThingsOfDef(def)).ToList();
+            var currentAmmo = pawnAmmo.Sum(thing => thing.stackCount) + pawn.AssignedAmmo
+                .Where(pair => ammoDefs.Contains(pair.Key.def)).Sum(pair => pair.Value);
+            EquipmentManager.LogMessage(
+                $"{pawn.Pawn.LabelShortCap}'s ammo count for {weapon.LabelCapNoCount} = {currentAmmo}");
+            var targetAmmoCount = weaponCache.IsAmmo ? 5 : rule.AmmoCount;
+            if (currentAmmo < targetAmmoCount)
             {
-                _ = _pawnCache.Remove(pawn);
-            }
-            foreach (var pawn in _allPawns)
-            {
-                var pawnCache = _pawnCache.FirstOrDefault(pc => pc.Pawn == pawn);
-                if (pawnCache == null)
+                foreach (var ammoDef in ammoDefs.OrderByDescending(def => def.BaseMarketValue))
                 {
-                    pawnCache = new PawnCache(pawn);
-                    _ = _pawnCache.Add(pawnCache);
+                    foreach (var ammoStack in mapAmmo.Where(thing => thing.def == ammoDef))
+                    {
+                        if (ammoStack.IsForbidden(pawn.Pawn)) { continue; }
+                        var assignedCount = _pawnCache.Sum(pc => pc.AssignedAmmo.TryGetValue(ammoStack));
+                        if (assignedCount >= ammoStack.stackCount) { continue; }
+                        var countToPickup = Math.Min(ammoStack.stackCount - assignedCount,
+                            targetAmmoCount - currentAmmo);
+                        if (countToPickup <= 0 || !pawn.Pawn.CanReserve(ammoStack, 10, countToPickup)) { continue; }
+                        pawn.AssignedAmmo.Add(ammoStack, countToPickup);
+                        currentAmmo += countToPickup;
+                        EquipmentManager.LogMessage(
+                            $"Assigning {countToPickup} of {ammoStack.LabelShortCap} to {pawn.Pawn.LabelShortCap} (ammo count = {currentAmmo})");
+                        var job = JobMaker.MakeJob(JobDefOf.TakeCountToInventory, ammoStack);
+                        job.count = countToPickup;
+                        _ = pawn.Pawn.jobs.TryTakeOrderedJob(job, requestQueueing: ShouldRequestQueueing(pawn));
+                    }
                 }
-                pawnCache.Update(_updateTime);
             }
-            if (Prefs.DevMode)
+            else
             {
-                Log.Message(
-                    $"Equipment Manager: Pawns: {string.Join("; ", _pawnCache.Select(pc => $"{pc.Pawn.LabelShortCap} ({pc.IsCapable})"))}");
+                while (currentAmmo > targetAmmoCount)
+                {
+                    var ammoStack = pawnAmmo.OrderBy(thing => thing.MarketValue).First();
+                    var countToDrop = Math.Min(ammoStack.stackCount, currentAmmo - targetAmmoCount);
+                    if (countToDrop > 0) { pawn.Pawn.inventory.DropCount(ammoStack.def, countToDrop, unforbid: true); }
+                    currentAmmo -= countToDrop;
+                    EquipmentManager.LogMessage(
+                        $"Dropping {countToDrop} of {ammoStack.LabelShortCap} from {pawn.Pawn.LabelShortCap}'s inventory (ammo count = {currentAmmo})");
+                }
             }
         }
 
@@ -266,14 +367,12 @@ namespace EquipmentManager
             }
             foreach (var pawn in _pawnCache.Where(pc => pc.AutoLoadout && pc.AssignedLoadout != null))
             {
-                if (Prefs.DevMode)
-                {
-                    Log.Message(
-                        $"Equipment Manager: {pawn.Pawn.LabelShortCap} has been assigned a '{pawn.AssignedLoadout.Label}' loadout");
-                }
                 EquipmentManager.SetPawnLoadout(pawn.Pawn, pawn.AssignedLoadout, true);
                 pawn.AssignedWeapons.Clear();
+                pawn.AssignedAmmo.Clear();
             }
+            EquipmentManager.LogMessage(
+                $"Equipment Manager: {string.Join(", ", _pawnCache.Where(pc => pc.AssignedLoadout != null).Select(pc => $"{pc.Pawn.LabelShortCap} = {pc.AssignedLoadout.Label}"))}");
         }
 
         private void UpdateMeleeSidearms()
@@ -284,19 +383,35 @@ namespace EquipmentManager
                 foreach (var rule in pawn.AssignedLoadout.MeleeSidearmRules.Select(EquipmentManager.GetMeleeWeaponRule)
                              .Where(rule => rule != null))
                 {
-                    var availableWeapons = rule.GetCurrentlyAvailableItems(map).ToList();
+                    var availableWeapons = rule.GetCurrentlyAvailableItems(map, _updateTime).ToList();
+                    _ = availableWeapons.RemoveAll(thing =>
+                        !StatCalculator.canCarrySidearmInstance((ThingWithComps) thing, pawn.Pawn, out _));
+                    var carriedWeapons = pawn.Pawn.getCarriedWeapons(true, true)
+                        .Where(weapon => rule.IsAvailable(weapon, _updateTime)).ToList();
+                    availableWeapons.AddRange(carriedWeapons);
                     _ = availableWeapons.RemoveAll(thing =>
                         _pawnCache.Any(pc => pc.AssignedWeapons.ContainsKey(thing)));
-                    var carriedWeapons = pawn.Pawn.getCarriedWeapons(true, true)
-                        .Where(weapon => rule.IsAvailable(weapon)).ToList();
-                    availableWeapons.AddRange(carriedWeapons);
+                    foreach (var thing in availableWeapons.ToList())
+                    {
+                        var biocodable = thing.TryGetComp<CompBiocodable>();
+                        if (biocodable != null && biocodable.Biocoded && biocodable.CodedPawn != pawn.Pawn)
+                        {
+                            _ = availableWeapons.Remove(thing);
+                            continue;
+                        }
+                        var bladelink = thing.TryGetComp<CompBladelinkWeapon>();
+                        if (bladelink != null && bladelink.Biocoded && bladelink.CodedPawn != pawn.Pawn)
+                        {
+                            _ = availableWeapons.Remove(thing);
+                        }
+                    }
                     switch (rule.EquipMode)
                     {
                         case ItemRule.WeaponEquipMode.BestOne:
                             var bestWeapon = availableWeapons
-                                .Where(thing =>
+                                .Where(thing => carriedWeapons.Contains(thing) ||
                                     StatCalculator.canCarrySidearmInstance((ThingWithComps) thing, pawn.Pawn, out _))
-                                .OrderByDescending(thing => rule.GetStatScore(thing))
+                                .OrderByDescending(thing => rule.GetThingScore(thing, _updateTime))
                                 .ThenByDescending(thing =>
                                     sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
                                 .ThenBy(thing => thing.GetHashCode()).FirstOrDefault();
@@ -314,8 +429,9 @@ namespace EquipmentManager
                         case ItemRule.WeaponEquipMode.AllAvailable:
                             foreach (var weapon in availableWeapons.Where(weapon =>
                                          pawn.AssignedWeapons.Keys.All(thing => thing.def != weapon.def) &&
-                                         StatCalculator.canCarrySidearmInstance((ThingWithComps) weapon, pawn.Pawn,
-                                             out _)))
+                                         (carriedWeapons.Contains(weapon) ||
+                                             StatCalculator.canCarrySidearmInstance((ThingWithComps) weapon, pawn.Pawn,
+                                                 out _))))
                             {
                                 pawn.AssignedWeapons.Add(weapon, "melee sidearm");
                                 if (carriedWeapons.Contains(weapon)) { sidearmMemory.InformOfAddedSidearm(weapon); }
@@ -333,6 +449,32 @@ namespace EquipmentManager
                     }
                 }
             }
+        }
+
+        private void UpdatePawnCache()
+        {
+            if (_allPawns == null) { _allPawns = new HashSet<Pawn>(); }
+            _allPawns.Clear();
+            _allPawns.AddRange(map.mapPawns.FreeColonistsSpawned.Where(pawn =>
+                pawn.Faction == Faction.OfPlayer && !pawn.HasExtraHomeFaction() && !pawn.HasExtraMiniFaction() &&
+                pawn.GuestStatus == null));
+            if (_pawnCache == null) { _pawnCache = new HashSet<PawnCache>(); }
+            foreach (var pawn in _pawnCache.Where(pc => !_allPawns.Contains(pc.Pawn)).ToList())
+            {
+                _ = _pawnCache.Remove(pawn);
+            }
+            foreach (var pawn in _allPawns)
+            {
+                var pawnCache = _pawnCache.FirstOrDefault(pc => pc.Pawn == pawn);
+                if (pawnCache == null)
+                {
+                    pawnCache = new PawnCache(pawn);
+                    _ = _pawnCache.Add(pawnCache);
+                }
+                pawnCache.Update(_updateTime);
+            }
+            EquipmentManager.LogMessage(
+                $"Equipment Manager: Pawns: {string.Join("; ", _pawnCache.Select(pc => $"{pc.Pawn.LabelShortCap} ({pc.AssignedLoadout?.Label ?? "None"}, {(pc.AutoLoadout ? "auto" : "manual")}) [{(pc.IsCapable ? "capable" : "incapable")}]"))}");
         }
 
         private void UpdatePrimaryWeapons()
@@ -362,19 +504,33 @@ namespace EquipmentManager
                 foreach (var rule in pawn.AssignedLoadout.RangedSidearmRules
                              .Select(EquipmentManager.GetRangedWeaponRule).Where(rule => rule != null))
                 {
-                    var availableWeapons = rule.GetCurrentlyAvailableItems(map).ToList();
-                    _ = availableWeapons.RemoveAll(thing =>
-                        _pawnCache.Any(pc => pc.AssignedWeapons.ContainsKey(thing)));
+                    var availableWeapons = rule.GetCurrentlyAvailableItems(map, _updateTime).ToList();
                     var carriedWeapons = pawn.Pawn.getCarriedWeapons(true, true)
-                        .Where(weapon => rule.IsAvailable(weapon)).ToList();
+                        .Where(weapon => rule.IsAvailable(weapon, _updateTime)).ToList();
                     availableWeapons.AddRange(carriedWeapons);
+                    _ = availableWeapons.RemoveAll(thing =>
+                        _pawnCache.Any(pc => pc != pawn && pc.AssignedWeapons.ContainsKey(thing)));
+                    foreach (var thing in availableWeapons.ToList())
+                    {
+                        var biocodable = thing.TryGetComp<CompBiocodable>();
+                        if (biocodable != null && biocodable.Biocoded && biocodable.CodedPawn != pawn.Pawn)
+                        {
+                            _ = availableWeapons.Remove(thing);
+                            continue;
+                        }
+                        var bladelink = thing.TryGetComp<CompBladelinkWeapon>();
+                        if (bladelink != null && bladelink.Biocoded && bladelink.CodedPawn != pawn.Pawn)
+                        {
+                            _ = availableWeapons.Remove(thing);
+                        }
+                    }
                     switch (rule.EquipMode)
                     {
                         case ItemRule.WeaponEquipMode.BestOne:
                             var bestWeapon = availableWeapons
-                                .Where(thing =>
+                                .Where(thing => carriedWeapons.Contains(thing) ||
                                     StatCalculator.canCarrySidearmInstance((ThingWithComps) thing, pawn.Pawn, out _))
-                                .OrderByDescending(thing => rule.GetStatScore(thing)).FirstOrDefault();
+                                .OrderByDescending(thing => rule.GetThingScore(thing, _updateTime)).FirstOrDefault();
                             if (bestWeapon == null ||
                                 pawn.AssignedWeapons.Keys.Any(thing => thing.def == bestWeapon.def)) { continue; }
                             pawn.AssignedWeapons.Add(bestWeapon, "ranged sidearm");
@@ -388,13 +544,15 @@ namespace EquipmentManager
                                     JobMaker.MakeJob(SidearmsDefOf.EquipSecondary, (LocalTargetInfo) bestWeapon),
                                     requestQueueing: ShouldRequestQueueing(pawn));
                             }
+                            UpdateAmmo(pawn, bestWeapon, rule);
                             break;
                         case ItemRule.WeaponEquipMode.AllAvailable:
-                            foreach (var weapon in availableWeapons
-                                         .Where(weapon =>
-                                             pawn.AssignedWeapons.Keys.All(thing => thing.def != weapon.def) &&
+                            foreach (var weapon in availableWeapons.Where(weapon =>
+                                         pawn.AssignedWeapons.Keys.All(thing => thing.def != weapon.def) &&
+                                         (carriedWeapons.Contains(weapon) ||
                                              StatCalculator.canCarrySidearmInstance((ThingWithComps) weapon, pawn.Pawn,
-                                                 out _)).OrderByDescending(thing => rule.GetStatScore(thing)))
+                                                 out _))).OrderByDescending(thing =>
+                                         rule.GetThingScore(thing, _updateTime)))
                             {
                                 pawn.AssignedWeapons.Add(weapon, "ranged sidearm");
                                 if (carriedWeapons.Contains(weapon))
@@ -407,12 +565,21 @@ namespace EquipmentManager
                                         JobMaker.MakeJob(SidearmsDefOf.EquipSecondary, (LocalTargetInfo) weapon),
                                         requestQueueing: ShouldRequestQueueing(pawn));
                                 }
+                                UpdateAmmo(pawn, weapon, rule);
                             }
                             break;
                         default:
                             throw new ArgumentOutOfRangeException();
                     }
                 }
+            }
+        }
+
+        private void UpdateStatRanges()
+        {
+            foreach (var weapon in map?.listerThings?.ThingsInGroup(ThingRequestGroup.Weapon) ?? new List<Thing>())
+            {
+                EquipmentManager.UpdateStatRanges(weapon, _updateTime);
             }
         }
 

@@ -18,9 +18,9 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
+    <DebugType>portable</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\1.3\Assemblies\</OutputPath>
+    <OutputPath>D:\Games\RimWorld_debug\Mods\Equipment Manager\1.3\Assemblies\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -39,6 +39,7 @@
     <CodeAnalysisRuleSet>
     </CodeAnalysisRuleSet>
     <PlatformTarget>x64</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony, Version=2.2.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -79,7 +80,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CustomStats.cs" />
+    <Compile Include="CombatExtendedHelper.cs" />
+    <Compile Include="CustomToolStats.cs" />
+    <Compile Include="CustomRangedWeaponStats.cs" />
+    <Compile Include="CustomMeleeWeaponStats.cs" />
     <Compile Include="CustomWidgets\ButtonImageToggle.cs" />
     <Compile Include="CustomWidgets\CheckBox.cs" />
     <Compile Include="CustomWidgets\LabelInput.cs" />
@@ -87,6 +91,7 @@
     <Compile Include="CustomWidgets\UiHelpers.cs" />
     <Compile Include="DefOfs\PawnColumnDefOf.cs" />
     <Compile Include="EquipmentManagerGameComponent.cs" />
+    <Compile Include="EquipmentManagerGameComponent_Log.cs" />
     <Compile Include="EquipmentManagerGameComponent_WorkTypes.cs" />
     <Compile Include="EquipmentManagerGameComponent_ToolRules.cs" />
     <Compile Include="EquipmentManagerGameComponent_RangedWeaponRules .cs" />
@@ -99,6 +104,7 @@
     <Compile Include="ItemRule.cs" />
     <Compile Include="Loadout.cs" />
     <Compile Include="PawnCache.cs" />
+    <Compile Include="MeleeWeaponCache.cs" />
     <Compile Include="RangedWeaponCache.cs" />
     <Compile Include="RangedWeaponRule.cs" />
     <Compile Include="RimworldTime.cs" />
@@ -109,6 +115,7 @@
     <Compile Include="ToolRule.cs" />
     <Compile Include="MeleeWeaponRule.cs" />
     <Compile Include="CustomWidgets\ThingBox.cs" />
+    <Compile Include="Windows\LogDialog.cs" />
     <Compile Include="Windows\ImportLoadoutsDialog.cs" />
     <Compile Include="Windows\ManageLoadoutsDialog.cs" />
     <Compile Include="PawnColumnWorkers\Loadout.cs" />

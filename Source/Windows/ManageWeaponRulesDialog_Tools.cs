@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using EquipmentManager.CustomWidgets;
 using UnityEngine;
 using Verse;
@@ -59,7 +60,7 @@ namespace EquipmentManager.Windows
             }
         }
 
-        private void DoRuleSettings_Tools(Rect rect)
+        private void DoItemProperties_Tools(Rect rect)
         {
             var font = Text.Font;
             var anchor = Text.Anchor;
@@ -69,18 +70,19 @@ namespace EquipmentManager.Windows
             Widgets.Label(labelRect, Strings.ItemProperties);
             Text.Font = font;
             Text.Anchor = anchor;
-            var settingsRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
+            var itemPropertiesRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
                 rect.yMax - (labelRect.yMax + UiHelpers.ElementGap));
-            var columnWidth = (settingsRect.width - (UiHelpers.ElementGap * (UiHelpers.BoolSettingsColumnCount - 1))) /
+            var columnWidth =
+                (itemPropertiesRect.width - (UiHelpers.ElementGap * (UiHelpers.BoolSettingsColumnCount - 1))) /
                 UiHelpers.BoolSettingsColumnCount;
             for (var i = 1; i < UiHelpers.BoolSettingsColumnCount; i++)
             {
                 UiHelpers.DoGapLineVertical(new Rect(
-                    settingsRect.x + (i * (columnWidth + UiHelpers.ElementGap)) - UiHelpers.ElementGap, settingsRect.y,
-                    UiHelpers.ElementGap, settingsRect.height));
+                    itemPropertiesRect.x + (i * (columnWidth + UiHelpers.ElementGap)) - UiHelpers.ElementGap,
+                    itemPropertiesRect.y, UiHelpers.ElementGap, itemPropertiesRect.height));
             }
-            DoRuleSetting(UiHelpers.GetBoolSettingRect(settingsRect, 0, columnWidth), () => SelectedToolRule.Ranged,
-                value =>
+            DoRuleSetting(UiHelpers.GetBoolSettingRect(itemPropertiesRect, 0, columnWidth),
+                () => SelectedToolRule.Ranged, value =>
                 {
                     SelectedToolRule.Ranged = value;
                     UpdateAvailableItems_Tools();
@@ -89,9 +91,11 @@ namespace EquipmentManager.Windows
 
         private void DoTab_Tools(Rect rect)
         {
-            const int settingsCount = 1;
-            GetWeaponRuleTabRects(rect, settingsCount, out var buttonRowRect, out var labelRect, out var equipModeRect,
-                out var settingsRect, out var availableItemsRect, out var exclusiveItemsRect, out var statsRect);
+            const int ruleSettingsCount = 0;
+            const int itemPropertiesCount = 1;
+            GetWeaponRuleTabRects(rect, ruleSettingsCount, itemPropertiesCount, out var buttonRowRect,
+                out var labelRect, out var equipModeRect, out _, out var itemPropertiesRect, out var availableItemsRect,
+                out var exclusiveItemsRect, out var statsRect);
             DoButtonRow_Tools(buttonRowRect);
             UiHelpers.DoGapLineHorizontal(new Rect(rect.x, buttonRowRect.yMax, rect.width, UiHelpers.ElementGap));
             if (SelectedToolRule == null) { LabelInput.DoLabelWithoutInput(labelRect, Strings.NoRuleSelected); }
@@ -103,8 +107,9 @@ namespace EquipmentManager.Windows
                 DoToolRuleEquipMode(equipModeRect, () => SelectedToolRule.EquipMode,
                     mode => SelectedToolRule.EquipMode = mode);
                 UiHelpers.DoGapLineHorizontal(new Rect(rect.x, labelRect.yMax, rect.width, UiHelpers.ElementGap));
-                DoRuleSettings_Tools(settingsRect);
-                UiHelpers.DoGapLineHorizontal(new Rect(rect.x, settingsRect.yMax, rect.width, UiHelpers.ElementGap));
+                DoItemProperties_Tools(itemPropertiesRect);
+                UiHelpers.DoGapLineHorizontal(new Rect(rect.x, itemPropertiesRect.yMax, rect.width,
+                    UiHelpers.ElementGap));
                 DoRuleStats(statsRect, StatHelper.ToolStatDefs, SelectedToolRule.GetStatWeights(), def =>
                 {
                     SelectedToolRule.SetStatWeight(def, 0f, false);
@@ -140,18 +145,18 @@ namespace EquipmentManager.Windows
                     {
                         SelectedToolRule.AddBlacklistedItem(def);
                         UpdateAvailableItems_Tools();
-                    });
+                    }, def => GetToolDefTooltip(def, SelectedToolRule));
                 UiHelpers.DoGapLineHorizontal(new Rect(rect.x, exclusiveItemsRect.yMax, rect.width,
                     UiHelpers.ElementGap));
                 DoAvailableItems(availableItemsRect, _globallyAvailableTools, def =>
                 {
                     SelectedToolRule.AddBlacklistedItem(def);
                     UpdateAvailableItems_Tools();
-                }, _currentlyAvailableTools, thing =>
+                }, def => GetToolDefTooltip(def, SelectedToolRule), _currentlyAvailableTools, thing =>
                 {
                     SelectedToolRule.AddBlacklistedItem(thing.def);
                     UpdateAvailableItems_Tools();
-                }, UpdateAvailableItems_Tools);
+                }, thing => GetToolTooltip(thing, SelectedToolRule), UpdateAvailableItems_Tools);
             }
         }
 
@@ -177,6 +182,40 @@ namespace EquipmentManager.Windows
             Text.Anchor = anchor;
         }
 
+        private string GetToolDefTooltip(ThingDef def, ItemRule rule)
+        {
+            var stringBuilder = new StringBuilder();
+            _ = stringBuilder.AppendLine(def.LabelCap);
+            var stats = rule.GetStatWeights().Where(sw => sw.StatDef != null).Select(sw => sw.StatDef)
+                .Union(rule.GetStatLimits().Where(sl => sl.StatDef != null).Select(sl => sl.StatDef)).ToHashSet();
+            if (!stats.Any()) { return stringBuilder.ToString(); }
+            var cache = EquipmentManager.GetToolDefCache(def, RimworldTime.GetMapTime(Find.CurrentMap));
+            _ = stringBuilder.AppendLine();
+            foreach (var stat in stats)
+            {
+                _ = stringBuilder.AppendLine(
+                    $"- {stat.LabelCap} = {cache.GetStatValue(stat, WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder.ToList()):N2}");
+            }
+            return stringBuilder.ToString();
+        }
+
+        private string GetToolTooltip(Thing thing, ItemRule rule)
+        {
+            var stringBuilder = new StringBuilder();
+            _ = stringBuilder.AppendLine(thing.LabelCapNoCount);
+            var stats = rule.GetStatWeights().Where(sw => sw.StatDef != null).Select(sw => sw.StatDef)
+                .Union(rule.GetStatLimits().Where(sl => sl.StatDef != null).Select(sl => sl.StatDef)).ToHashSet();
+            if (!stats.Any()) { return stringBuilder.ToString(); }
+            var cache = EquipmentManager.GetToolCache(thing, RimworldTime.GetMapTime(Find.CurrentMap));
+            _ = stringBuilder.AppendLine();
+            foreach (var stat in stats)
+            {
+                _ = stringBuilder.AppendLine(
+                    $"- {stat.LabelCap} = {cache.GetStatValue(stat, WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder.ToList()):N2}");
+            }
+            return stringBuilder.ToString();
+        }
+
         private void PreClose_Tools()
         {
             CheckSelectedItemRuleHasName(_selectedToolRule);
@@ -188,12 +227,12 @@ namespace EquipmentManager.Windows
             _globallyAvailableTools.Clear();
             _currentlyAvailableTools.Clear();
             if (SelectedToolRule == null) { return; }
+            var map = Find.CurrentMap;
             SelectedToolRule.UpdateGloballyAvailableItems();
-            _globallyAvailableTools.AddRange(
-                SelectedToolRule.GetGloballyAvailableItemsSorted(
-                    WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder.ToList()));
-            _currentlyAvailableTools.AddRange(SelectedToolRule.GetCurrentlyAvailableItemsSorted(Find.CurrentMap,
-                WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder.ToList()));
+            _globallyAvailableTools.AddRange(SelectedToolRule.GetGloballyAvailableItemsSorted(
+                WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder.ToList(), RimworldTime.GetMapTime(map)));
+            _currentlyAvailableTools.AddRange(SelectedToolRule.GetCurrentlyAvailableItemsSorted(map,
+                WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder.ToList(), RimworldTime.GetMapTime(map)));
         }
     }
 }

@@ -14,7 +14,7 @@ namespace EquipmentManager.Patches
         {
             PawnTableDefOf.Assign.columns.Insert(
                 PawnTableDefOf.Assign.columns.FindIndex(x => x.defName.Equals("Outfit", StringComparison.Ordinal)) + 1,
-                PawnColumnDefOf.Loadout);
+                PawnColumnDefOf.EM_Loadout);
         }
     }
 }

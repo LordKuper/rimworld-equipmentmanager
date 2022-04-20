@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using RimWorld;
 using Verse;
 
 namespace EquipmentManager
@@ -21,25 +22,60 @@ namespace EquipmentManager
 
         private Thing Thing { get; }
 
+        private float GetCustomStatValue([NotNull] StatDef statDef, IReadOnlyCollection<WorkTypeDef> workTypeDefs)
+        {
+            if (Enum.TryParse(CustomToolStats.GetStatName(statDef.defName), out CustomToolStat toolStat))
+            {
+                switch (toolStat)
+                {
+                    case CustomToolStat.WorkType:
+                        if (!workTypeDefs.Any())
+                        {
+                            throw new ArgumentException("At least one work type must be passed", nameof(workTypeDefs));
+                        }
+                        return GetWorkTypesScore(workTypeDefs.Select(workTypeDef => workTypeDef.defName));
+                    case CustomToolStat.TechLevel:
+                        return (float) Thing.def.techLevel;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(statDef));
+                }
+            }
+            Log.Error($"Equipment Manager: Tried to evaluate unknown custom tool stat ({statDef.defName})");
+            return 0f;
+        }
+
+        public float GetStatValue(StatDef statDef, IReadOnlyCollection<WorkTypeDef> workTypeDefs)
+        {
+            if (!StatValues.TryGetValue(statDef, out var value))
+            {
+                value = CustomToolStats.IsCustomStat(statDef.defName)
+                    ? GetCustomStatValue(statDef, workTypeDefs)
+                    : StatHelper.GetStatValue(Thing, statDef);
+                StatValues.Add(statDef, value);
+            }
+            return value;
+        }
+
+        public float GetStatValueDeviation([NotNull] StatDef statDef, IReadOnlyCollection<WorkTypeDef> workTypeDefs)
+        {
+            return statDef == null ? throw new ArgumentNullException(nameof(statDef)) :
+                CustomToolStats.IsCustomStat(statDef.defName) ? GetCustomStatValue(statDef, workTypeDefs) :
+                StatHelper.GetStatValueDeviation(Thing, statDef);
+        }
+
         private float GetWorkTypeScore(string workTypeDefName)
         {
             return _workTypeScores.ContainsKey(workTypeDefName) ? _workTypeScores[workTypeDefName] : 0f;
         }
 
-        public float GetWorkTypesScore(IEnumerable<string> workTypeDefNames)
+        private float GetWorkTypesScore(IEnumerable<string> workTypeDefNames)
         {
             return workTypeDefNames.Average(GetWorkTypeScore);
         }
 
-        public override void Update(RimworldTime time)
+        public override bool Update(RimworldTime time)
         {
-            base.Update(time);
-            var hoursPassed = ((time.Year - UpdateTime.Year) * 60 * 24) + ((time.Day - UpdateTime.Day) * 24) +
-                time.Hour - UpdateTime.Hour;
-            if (hoursPassed < UpdateTimer) { return; }
-            UpdateTime.Year = time.Year;
-            UpdateTime.Day = time.Day;
-            UpdateTime.Hour = time.Hour;
+            if (!base.Update(time)) { return false; }
             try
             {
                 _workTypeScores.Clear();
@@ -48,15 +84,17 @@ namespace EquipmentManager
                     var score = 0f;
                     var workTypeRule = EquipmentManager.GetWorkTypeRules()
                         .FirstOrDefault(rule => rule.WorkTypeDefName == workTypeDef.defName);
-                    if (workTypeRule != null) { score += workTypeRule.GetStatScore(Thing); }
+                    if (workTypeRule != null) { score += workTypeRule.GetThingScore(Thing); }
                     _workTypeScores.Add(workTypeDef.defName, score);
                 }
             }
             catch (Exception exception)
             {
                 Log.Error(
-                    $"Equipment Manager: Could not update cache of '{Thing.LabelCap}' ({Thing.def?.defName}): {exception.Message}");
+                    $"Equipment Manager: Could not update cache of '{Thing.LabelCapNoCount}' ({Thing.def?.defName}): {exception.Message}");
+                throw;
             }
+            return true;
         }
     }
 }

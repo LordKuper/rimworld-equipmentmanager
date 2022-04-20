@@ -68,7 +68,7 @@ namespace EquipmentManager
         public new static IEnumerable<StatWeight> DefaultStatWeights =>
             new[]
             {
-                new StatWeight(StatHelper.GetCustomToolStatDefName(CustomToolStat.WorkType), true) {Weight = 2.0f},
+                new StatWeight(CustomToolStats.GetStatDefName(CustomToolStat.WorkType), true) {Weight = 2.0f},
                 new StatWeight("MoveSpeed", false) {Weight = 1.0f}
             }.Union(ItemRule.DefaultStatWeights);
 
@@ -85,22 +85,21 @@ namespace EquipmentManager
             Scribe_Values.Look(ref _ranged, nameof(Ranged));
         }
 
-        public IEnumerable<Thing> GetCurrentlyAvailableItems(Map map, IReadOnlyCollection<WorkTypeDef> workTypeDefs)
+        public IEnumerable<Thing> GetCurrentlyAvailableItems(Map map, IReadOnlyCollection<WorkTypeDef> workTypeDefs,
+            RimworldTime time)
         {
             Initialize();
-            return !workTypeDefs.Any()
-                ? throw new ArgumentException("At least one work type must be passed", nameof(workTypeDefs))
-                : map?.listerThings?.ThingsInGroup(ThingRequestGroup.Weapon)
-                    .Where(thing => IsAvailable(thing, workTypeDefs));
+            return (map?.listerThings?.ThingsInGroup(ThingRequestGroup.Weapon) ?? new List<Thing>())
+                .Where(thing => IsAvailable(thing, workTypeDefs, time)).ToList();
         }
 
         public IEnumerable<Thing> GetCurrentlyAvailableItemsSorted(Map map,
-            IReadOnlyCollection<WorkTypeDef> workTypeDefs)
+            IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimworldTime time)
         {
             return !workTypeDefs.Any()
                 ? throw new ArgumentException("At least one work type must be passed", nameof(workTypeDefs))
-                : GetCurrentlyAvailableItems(map, workTypeDefs)
-                    .OrderByDescending(thing => GetStatScore(thing, workTypeDefs));
+                : GetCurrentlyAvailableItems(map, workTypeDefs, time)
+                    .OrderByDescending(thing => GetThingScore(thing, workTypeDefs, time));
         }
 
         private IEnumerable<ThingDef> GetGloballyAvailableItems(IReadOnlyCollection<WorkTypeDef> workTypeDefs)
@@ -113,21 +112,72 @@ namespace EquipmentManager
                 .Union(def.equippedStatOffsets ?? new List<StatModifier>()).Any(sm => relevantStats.Contains(sm.stat)));
         }
 
-        public IEnumerable<ThingDef> GetGloballyAvailableItemsSorted(IReadOnlyCollection<WorkTypeDef> workTypeDefs)
+        public IEnumerable<ThingDef> GetGloballyAvailableItemsSorted(IReadOnlyCollection<WorkTypeDef> workTypeDefs,
+            RimworldTime time)
         {
-            return GetGloballyAvailableItems(workTypeDefs).OrderByDescending(def => GetStatScore(def, workTypeDefs));
+            return GetGloballyAvailableItems(workTypeDefs)
+                .OrderByDescending(def => GetThingDefScore(def, workTypeDefs, time));
         }
 
-        public bool IsAvailable(Thing thing, IReadOnlyCollection<WorkTypeDef> workTypeDefs)
+        private static float GetStatValue([NotNull] Thing thing, [NotNull] StatDef statDef,
+            IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimworldTime time)
+        {
+            return thing == null ? throw new ArgumentNullException(nameof(thing)) :
+                statDef == null ? throw new ArgumentNullException(nameof(statDef)) :
+                EquipmentManager.GetToolCache(thing, time).GetStatValue(statDef, workTypeDefs);
+        }
+
+        private float GetThingDefScore([NotNull] ThingDef def, IReadOnlyCollection<WorkTypeDef> workTypeDefs,
+            RimworldTime time)
+        {
+            if (def == null) { throw new ArgumentNullException(nameof(def)); }
+            var cache = EquipmentManager.GetToolDefCache(def, time);
+            return StatWeights.Where(statWeight => statWeight.StatDef != null).Sum(statWeight =>
+                EquipmentManager.NormalizeStatValue(statWeight.StatDef,
+                    cache.GetStatValueDeviation(statWeight.StatDef, workTypeDefs)) * statWeight.Weight);
+        }
+
+        public float GetThingScore([NotNull] Thing thing, IReadOnlyCollection<WorkTypeDef> workTypeDefs,
+            RimworldTime time)
+        {
+            if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
+            var statScores = new Dictionary<StatDef, float>();
+            float score = 0;
+            var cache = EquipmentManager.GetToolCache(thing, time);
+            foreach (var statWeight in StatWeights.Where(sw => sw.StatDef != null))
+            {
+                var statScore = EquipmentManager.NormalizeStatValue(statWeight.StatDef,
+                    cache.GetStatValueDeviation(statWeight.StatDef, workTypeDefs)) * statWeight.Weight;
+                statScores.Add(statWeight.StatDef, statScore);
+                score += statScore;
+            }
+            if (thing.def.useHitPoints)
+            {
+                score *= HitPointsCurve.Evaluate((float) thing.HitPoints / thing.MaxHitPoints);
+            }
+            return score;
+        }
+
+        public bool IsAvailable(Thing thing, IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimworldTime time)
         {
             Initialize();
-            if (!workTypeDefs.Any())
-            {
-                throw new ArgumentException("At least one work type must be passed", nameof(workTypeDefs));
-            }
             var comp = thing.TryGetComp<CompForbiddable>();
             return (comp == null || !comp.Forbidden) && (GetWhitelistedItems().Contains(thing.def) ||
-                (GetGloballyAvailableItems(workTypeDefs).Contains(thing.def) && SatisfiesLimits(thing, workTypeDefs)));
+                (GetGloballyAvailableItems(workTypeDefs).Contains(thing.def) &&
+                    SatisfiesLimits(thing, workTypeDefs, time)));
+        }
+
+        private bool SatisfiesLimits([NotNull] Thing thing, IReadOnlyCollection<WorkTypeDef> workTypeDefs,
+            RimworldTime time)
+        {
+            if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
+            foreach (var statLimit in StatLimits.Where(limit => limit.StatDef != null))
+            {
+                var value = GetStatValue(thing, statLimit.StatDef, workTypeDefs, time);
+                if ((statLimit.MinValue != null && value < statLimit.MinValue) ||
+                    (statLimit.MaxValue != null && value > statLimit.MaxValue)) { return false; }
+            }
+            return true;
         }
 
         public void UpdateGloballyAvailableItems()
@@ -138,6 +188,20 @@ namespace EquipmentManager
             if (Ranged != null) { _ = GloballyAvailableItems.RemoveWhere(def => def.IsRangedWeapon != Ranged); }
             _ = GloballyAvailableItems.RemoveWhere(def => GetBlacklistedItems().Contains(def));
             foreach (var def in GetWhitelistedItems()) { _ = GloballyAvailableItems.Add(def); }
+        }
+
+        public void UpdateStatRanges([NotNull] Thing thing, [NotNull] IReadOnlyCollection<WorkTypeDef> workTypeDefs,
+            RimworldTime time)
+        {
+            if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
+            if (workTypeDefs == null) { throw new ArgumentNullException(nameof(workTypeDefs)); }
+            var cache = EquipmentManager.GetToolCache(thing, time);
+            var stats = StatWeights.Where(sw => sw.StatDef != null).Select(sw => sw.StatDef)
+                .Union(StatLimits.Where(sl => sl.StatDef != null).Select(sl => sl.StatDef));
+            foreach (var stat in stats)
+            {
+                EquipmentManager.UpdateStatRange(stat, cache.GetStatValueDeviation(stat, workTypeDefs));
+            }
         }
     }
 }

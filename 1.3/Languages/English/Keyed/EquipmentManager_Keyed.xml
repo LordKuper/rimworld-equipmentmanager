@@ -6,11 +6,13 @@
 	<EquipmentManager.Loadouts.SelectLoadout>Select loadout</EquipmentManager.Loadouts.SelectLoadout>
 	<EquipmentManager.Loadouts.NoLoadoutSelected>No loadout selected.</EquipmentManager.Loadouts.NoLoadoutSelected>
 	<EquipmentManager.Loadouts.LoadoutLabel>Loadout name:</EquipmentManager.Loadouts.LoadoutLabel>
+	<EquipmentManager.Loadouts.LoadoutSettings>Loadout settings</EquipmentManager.Loadouts.LoadoutSettings>
 	<EquipmentManager.Loadouts.AddLoadout>Add loadout</EquipmentManager.Loadouts.AddLoadout>
 	<EquipmentManager.Loadouts.CopyLoadout>Copy loadout</EquipmentManager.Loadouts.CopyLoadout>
 	<EquipmentManager.Loadouts.DeleteLoadout>Delete loadout</EquipmentManager.Loadouts.DeleteLoadout>
-	<EquipmentManager.Loadouts.ManageWeaponRules>Manage rules...</EquipmentManager.Loadouts.ManageWeaponRules>
-	<EquipmentManager.Loadouts.ImportLoadouts>Import loadouts...</EquipmentManager.Loadouts.ImportLoadouts>
+	<EquipmentManager.Loadouts.ManageWeaponRules>Manage rules</EquipmentManager.Loadouts.ManageWeaponRules>
+	<EquipmentManager.Loadouts.ImportLoadouts>Import loadouts</EquipmentManager.Loadouts.ImportLoadouts>
+	<EquipmentManager.Loadouts.Log>Log</EquipmentManager.Loadouts.Log>
 	<EquipmentManager.Loadouts.SavedGamesListHeader>Saved games</EquipmentManager.Loadouts.SavedGamesListHeader>
 	<EquipmentManager.Loadouts.LoadoutListHeader>Loadouts</EquipmentManager.Loadouts.LoadoutListHeader>
 	<EquipmentManager.Loadouts.ImportData>Import</EquipmentManager.Loadouts.ImportData>
@@ -48,6 +50,7 @@
 	<EquipmentManager.WeaponRules.SelectRule>Select rule</EquipmentManager.WeaponRules.SelectRule>
 	<EquipmentManager.WeaponRules.RuleLabel>Rule name:</EquipmentManager.WeaponRules.RuleLabel>
 	<EquipmentManager.WeaponRules.NoRuleSelected>No rule selected.</EquipmentManager.WeaponRules.NoRuleSelected>
+	<EquipmentManager.WeaponRules.RuleSettings>Rule settings</EquipmentManager.WeaponRules.RuleSettings>
 	<EquipmentManager.WeaponRules.ItemProperties>Item properties</EquipmentManager.WeaponRules.ItemProperties>
 	<EquipmentManager.WeaponRules.StatWeights>Stat weights</EquipmentManager.WeaponRules.StatWeights>
 	<EquipmentManager.WeaponRules.StatLimits>Stat limits</EquipmentManager.WeaponRules.StatLimits>
@@ -75,6 +78,8 @@
 	<EquipmentManager.WeaponRules.MeleeWeapons.Default.HighestDps>Highest DPS</EquipmentManager.WeaponRules.MeleeWeapons.Default.HighestDps>
 	<EquipmentManager.WeaponRules.MeleeWeapons.Default.OneHandHighestDps>1H Highest DPS</EquipmentManager.WeaponRules.MeleeWeapons.Default.OneHandHighestDps>
 	<EquipmentManager.WeaponRules.RangedWeapons.Title>Ranged weapons</EquipmentManager.WeaponRules.RangedWeapons.Title>
+	<EquipmentManager.WeaponRules.RangedWeapons.AmmoCount>Ammo count</EquipmentManager.WeaponRules.RangedWeapons.AmmoCount>
+	<EquipmentManager.WeaponRules.RangedWeapons.AmmoCountTooltip>Target count of ammo to put in inventory alongside every weapon equipped by this rule</EquipmentManager.WeaponRules.RangedWeapons.AmmoCountTooltip>
 	<EquipmentManager.WeaponRules.RangedWeapons.Explosive>Explosive</EquipmentManager.WeaponRules.RangedWeapons.Explosive>
 	<EquipmentManager.WeaponRules.RangedWeapons.ExplosiveTooltip>Ranged weapons with explosive projectiles (e.g. rocket launchers, grenade launchers, mortars)</EquipmentManager.WeaponRules.RangedWeapons.ExplosiveTooltip>
 	<EquipmentManager.WeaponRules.RangedWeapons.ManualCast>Manual cast</EquipmentManager.WeaponRules.RangedWeapons.ManualCast>
@@ -89,6 +94,10 @@
 	<EquipmentManager.WeaponRules.Tools.Default.AllWorkTypes>Tools for every work type</EquipmentManager.WeaponRules.Tools.Default.AllWorkTypes>
 	<EquipmentManager.WeaponRules.Tools.Default.AssignedWorkTypes>Tools for assigned work types</EquipmentManager.WeaponRules.Tools.Default.AssignedWorkTypes>
 	<EquipmentManager.WeaponRules.WorkTypes.Title>Work types</EquipmentManager.WeaponRules.WorkTypes.Title>
+	<EquipmentManager.Stats.EM_MeleeWeapons_ArmorPenetration.Label>Average armor penetration</EquipmentManager.Stats.EM_MeleeWeapons_ArmorPenetration.Label>
+	<EquipmentManager.Stats.EM_MeleeWeapons_ArmorPenetration.Description>The average amount of armor weapon will ignore each time it hits the target</EquipmentManager.Stats.EM_MeleeWeapons_ArmorPenetration.Description>
+	<EquipmentManager.Stats.EM_MeleeWeapons_TechLevel.Label>Tech level</EquipmentManager.Stats.EM_MeleeWeapons_TechLevel.Label>
+	<EquipmentManager.Stats.EM_MeleeWeapons_TechLevel.Description>Weapon's tech level</EquipmentManager.Stats.EM_MeleeWeapons_TechLevel.Description>
 	<EquipmentManager.Stats.EM_RangedWeapons_Dpsa.Label>Average DPSA</EquipmentManager.Stats.EM_RangedWeapons_Dpsa.Label>
 	<EquipmentManager.Stats.EM_RangedWeapons_Dpsa.Description>Average damage per second adjusted for weapon accuracy</EquipmentManager.Stats.EM_RangedWeapons_Dpsa.Description>
 	<EquipmentManager.Stats.EM_RangedWeapons_DpsaClose.Label>DPSA (close)</EquipmentManager.Stats.EM_RangedWeapons_DpsaClose.Label>
@@ -109,10 +118,14 @@
 	<EquipmentManager.Stats.EM_RangedWeapons_BurstShotCount.Description>The amount of shots weapon fires in each burst</EquipmentManager.Stats.EM_RangedWeapons_BurstShotCount.Description>
 	<EquipmentManager.Stats.EM_RangedWeapons_TicksBetweenBurstShots.Label>Ticks between burst shots</EquipmentManager.Stats.EM_RangedWeapons_TicksBetweenBurstShots.Label>
 	<EquipmentManager.Stats.EM_RangedWeapons_TicksBetweenBurstShots.Description>How much game ticks passes between burst shots</EquipmentManager.Stats.EM_RangedWeapons_TicksBetweenBurstShots.Description>
-	<EquipmentManager.Stats.EM_RangedWeapons_ArmorPenetration.Label>Armor penetration</EquipmentManager.Stats.EM_RangedWeapons_ArmorPenetration.Label>
-	<EquipmentManager.Stats.EM_RangedWeapons_ArmorPenetration.Description>The amount of armor weapon will ignore each time it hits the target</EquipmentManager.Stats.EM_RangedWeapons_ArmorPenetration.Description>
+	<EquipmentManager.Stats.EM_RangedWeapons_ArmorPenetration.Label>Average armor penetration</EquipmentManager.Stats.EM_RangedWeapons_ArmorPenetration.Label>
+	<EquipmentManager.Stats.EM_RangedWeapons_ArmorPenetration.Description>The average amount of armor weapon will ignore each time it hits the target</EquipmentManager.Stats.EM_RangedWeapons_ArmorPenetration.Description>
 	<EquipmentManager.Stats.EM_RangedWeapons_StoppingPower.Label>Stopping power</EquipmentManager.Stats.EM_RangedWeapons_StoppingPower.Label>
 	<EquipmentManager.Stats.EM_RangedWeapons_StoppingPower.Description>Hits from a weapon will stagger targets, slowing their movement for several seconds</EquipmentManager.Stats.EM_RangedWeapons_StoppingPower.Description>
+	<EquipmentManager.Stats.EM_RangedWeapons_TechLevel.Label>Tech level</EquipmentManager.Stats.EM_RangedWeapons_TechLevel.Label>
+	<EquipmentManager.Stats.EM_RangedWeapons_TechLevel.Description>Weapon's tech level</EquipmentManager.Stats.EM_RangedWeapons_TechLevel.Description>
 	<EquipmentManager.Stats.EM_Tools_WorkType.Label>Work type related stats</EquipmentManager.Stats.EM_Tools_WorkType.Label>
 	<EquipmentManager.Stats.EM_Tools_WorkType.Description>Item stats that affect performance according to work type rules</EquipmentManager.Stats.EM_Tools_WorkType.Description>
+	<EquipmentManager.Stats.EM_Tools_TechLevel.Label>Tech level</EquipmentManager.Stats.EM_Tools_TechLevel.Label>
+	<EquipmentManager.Stats.EM_Tools_TechLevel.Description>Tool's tech level</EquipmentManager.Stats.EM_Tools_TechLevel.Description>
 </LanguageData>

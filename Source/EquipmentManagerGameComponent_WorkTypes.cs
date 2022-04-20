@@ -6,7 +6,7 @@ namespace EquipmentManager
 {
     internal partial class EquipmentManagerGameComponent
     {
-        private List<WorkTypeRule> _workTypeRules = new List<WorkTypeRule>();
+        private List<WorkTypeRule> _workTypeRules;
 
         public void AddWorkTypeRule(WorkTypeRule workTypeRule)
         {

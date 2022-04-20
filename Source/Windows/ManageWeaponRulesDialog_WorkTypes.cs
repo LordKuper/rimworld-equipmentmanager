@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using EquipmentManager.CustomWidgets;
+using RimWorld;
 using UnityEngine;
 using Verse;
 using Strings = EquipmentManager.Resources.Strings.WeaponRules;
@@ -64,8 +66,40 @@ namespace EquipmentManager.Windows
                 });
                 UiHelpers.DoGapLineHorizontal(new Rect(rect.x, statsRect.yMax, rect.width, UiHelpers.ElementGap));
                 DoAvailableItems(availableItemsRect, _globallyAvailableWorkTypes, def => { },
-                    _currentlyAvailableWorkTypes, thing => { }, UpdateAvailableItems_WorkTypes);
+                    def => GetWorkTypeDefTooltip(def, SelectedWorkTypeRule), _currentlyAvailableWorkTypes, thing => { },
+                    thing => GetWorkTypeTooltip(thing, SelectedWorkTypeRule), UpdateAvailableItems_WorkTypes);
             }
+        }
+
+        private string GetWorkTypeDefTooltip(ThingDef def, WorkTypeRule rule)
+        {
+            var stringBuilder = new StringBuilder();
+            _ = stringBuilder.AppendLine(def.LabelCap);
+            var stats = rule.GetStatWeights().Where(sw => sw.StatDef != null).Select(sw => sw.StatDef).ToHashSet();
+            if (!stats.Any()) { return stringBuilder.ToString(); }
+            _ = stringBuilder.AppendLine();
+            var thing = def.MadeFromStuff
+                ? ThingMaker.MakeThing(def, GenStuff.DefaultStuffFor(def))
+                : ThingMaker.MakeThing(def);
+            foreach (var stat in stats)
+            {
+                _ = stringBuilder.AppendLine($"- {stat.LabelCap} = {StatHelper.GetStatValue(thing, stat):N2}");
+            }
+            return stringBuilder.ToString();
+        }
+
+        private string GetWorkTypeTooltip(Thing thing, WorkTypeRule rule)
+        {
+            var stringBuilder = new StringBuilder();
+            _ = stringBuilder.AppendLine(thing.LabelCapNoCount);
+            var stats = rule.GetStatWeights().Where(sw => sw.StatDef != null).Select(sw => sw.StatDef).ToHashSet();
+            if (!stats.Any()) { return stringBuilder.ToString(); }
+            _ = stringBuilder.AppendLine();
+            foreach (var stat in stats)
+            {
+                _ = stringBuilder.AppendLine($"- {stat.LabelCap} = {StatHelper.GetStatValue(thing, stat):N2}");
+            }
+            return stringBuilder.ToString();
         }
 
         private void UpdateAvailableItems_WorkTypes()
@@ -74,7 +108,8 @@ namespace EquipmentManager.Windows
             _currentlyAvailableWorkTypes.Clear();
             if (SelectedWorkTypeRule == null) { return; }
             _globallyAvailableWorkTypes.AddRange(SelectedWorkTypeRule.GetGloballyAvailableItems());
-            _currentlyAvailableWorkTypes.AddRange(SelectedWorkTypeRule.GetCurrentlyAvailableItems(Find.CurrentMap));
+            _currentlyAvailableWorkTypes.AddRange(
+                SelectedWorkTypeRule.GetCurrentlyAvailableItemsSorted(Find.CurrentMap));
         }
     }
 }

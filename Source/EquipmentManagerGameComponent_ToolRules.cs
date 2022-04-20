@@ -9,7 +9,7 @@ namespace EquipmentManager
     {
         private readonly Dictionary<Thing, ToolCache> _toolCache = new Dictionary<Thing, ToolCache>();
         private readonly Dictionary<ThingDef, ToolCache> _toolDefsCache = new Dictionary<ThingDef, ToolCache>();
-        private List<ToolRule> _toolRules = new List<ToolRule>(ToolRule.DefaultRules);
+        private List<ToolRule> _toolRules;
 
         public ToolRule AddToolRule()
         {
@@ -77,7 +77,7 @@ namespace EquipmentManager
                 cache = new ToolCache(thing);
                 _toolCache[thing] = cache;
             }
-            cache.Update(time);
+            _ = cache.Update(time);
             return cache;
         }
 
@@ -91,7 +91,7 @@ namespace EquipmentManager
                 cache = new ToolCache(thing);
                 _toolDefsCache[thingDef] = cache;
             }
-            cache.Update(time);
+            _ = cache.Update(time);
             return cache;
         }
 

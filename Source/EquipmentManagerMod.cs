@@ -11,21 +11,31 @@ namespace EquipmentManager
     {
         public EquipmentManagerMod(ModContentPack content) : base(content)
         {
-            if (Prefs.DevMode)
-            {
-                Log.Message(
-                    $"Equipment Manager: Initializing (v.{Assembly.GetExecutingAssembly().GetName().Version})...");
-            }
+            Log.Message($"Equipment Manager: Initializing (v.{Assembly.GetExecutingAssembly().GetName().Version})...");
             var harmony = new Harmony("LordKuper.EquipmentManager");
             harmony.PatchAll(Assembly.GetExecutingAssembly());
-            if (LoadedModManager.RunningModsListForReading.Any(m =>
+            DetectVanillaFactionsExpandedCore();
+            DetectCombatExtended();
+        }
+
+        private static void DetectCombatExtended()
+        {
+            if (!LoadedModManager.RunningModsListForReading.Any(m =>
+                    "CETeam.CombatExtended".Equals(m.PackageId, StringComparison.OrdinalIgnoreCase))) { return; }
+            Log.Message("Equipment Manager: CombatExtended detected.");
+            CombatExtendedHelper.CombatExtended = true;
+            CombatExtendedHelper.Initialize();
+        }
+
+        private static void DetectVanillaFactionsExpandedCore()
+        {
+            if (!LoadedModManager.RunningModsListForReading.Any(m =>
                     "OskarPotocki.VanillaFactionsExpanded.Core".Equals(m.PackageId,
-                        StringComparison.OrdinalIgnoreCase)))
-            {
-                if (Prefs.DevMode) { Log.Message("Equipment Manager: VanillaFactionsExpanded.Core detected."); }
-                MeleeWeaponRule.UsableWithShieldsMethod =
-                    AccessTools.Method(AccessTools.TypeByName("VFECore.ShieldUtility"), "UsableWithShields");
-            }
+                        StringComparison.OrdinalIgnoreCase))) { return; }
+            Log.Message("Equipment Manager: VanillaFactionsExpanded.Core detected.");
+            MeleeWeaponRule.UsableWithShieldsMethod =
+                AccessTools.MethodDelegate<MeleeWeaponRule.UsableWithShieldsDelegate>(
+                    AccessTools.Method(AccessTools.TypeByName("VFECore.ShieldUtility"), "UsableWithShields"));
         }
     }
 }

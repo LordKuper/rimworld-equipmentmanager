@@ -34,7 +34,7 @@ namespace EquipmentManager.Windows
             _equipmentManager ?? (_equipmentManager = Current.Game.GetComponent<EquipmentManagerGameComponent>());
 
         public override Vector2 InitialSize =>
-            new Vector2(UiHelpers.GetWindowWidth(1000f), UiHelpers.GetWindowHeight(500f));
+            UiHelpers.GetWindowSize(new Vector2(850f, 500f), new Vector2(1000f, 500f));
 
         private void DoButtonRow(Rect rect)
         {
@@ -61,7 +61,9 @@ namespace EquipmentManager.Windows
                 rect.width, rect.height - Text.LineHeightOf(GameFont.Medium) - (UiHelpers.ElementGap * 2));
             Widgets.DrawBoxSolidWithOutline(listingRect, new Color(1f, 1f, 1f, 0.05f), new Color(1f, 1f, 1f, 0.4f));
             var listing = new Listing_Standard(listingRect, () => _loadoutsListScrollPosition);
-            var viewRect = new Rect(rect.x, rect.y, rect.width, _loadouts.Count * UiHelpers.ListRowHeight);
+            var viewRect = new Rect(rect.x, rect.y,
+                rect.width - GUI.skin.verticalScrollbar.fixedWidth - UiHelpers.ElementGap,
+                _loadouts.Count * UiHelpers.ListRowHeight);
             Widgets.BeginScrollView(listingRect, ref _loadoutsListScrollPosition, viewRect);
             listing.Begin(viewRect);
             Text.Anchor = TextAnchor.MiddleLeft;
@@ -84,15 +86,17 @@ namespace EquipmentManager.Windows
                 rect.width, rect.height - Text.LineHeightOf(GameFont.Medium) - (UiHelpers.ElementGap * 2));
             Widgets.DrawBoxSolidWithOutline(listingRect, new Color(1f, 1f, 1f, 0.05f), new Color(1f, 1f, 1f, 0.4f));
             var listing = new Listing_Standard(listingRect, () => _savedGamesListScrollPosition);
-            var viewRect = new Rect(rect.x, rect.y, rect.width, _savedGames.Count * UiHelpers.ListRowHeight);
+            var viewRect = new Rect(rect.x, rect.y,
+                rect.width - GUI.skin.verticalScrollbar.fixedWidth - UiHelpers.ElementGap,
+                _savedGames.Count * UiHelpers.ListRowHeight * 1.5f);
             Widgets.BeginScrollView(listingRect, ref _savedGamesListScrollPosition, viewRect);
             listing.Begin(viewRect);
             Text.Anchor = TextAnchor.MiddleLeft;
             foreach (var savedGame in _savedGames)
             {
-                var rowRect = listing.GetRect(UiHelpers.ListRowHeight);
+                var rowRect = listing.GetRect(UiHelpers.ListRowHeight * 1.5f);
                 var toggleButtonRect = new Rect(rowRect.x,
-                    rowRect.y + ((UiHelpers.ListRowHeight - Math.Min(32f, UiHelpers.ListRowHeight)) / 2f),
+                    rowRect.y + (((UiHelpers.ListRowHeight * 1.5f) - Math.Min(32f, UiHelpers.ListRowHeight)) / 2f),
                     Math.Min(32f, UiHelpers.ListRowHeight), Math.Min(32f, UiHelpers.ListRowHeight)).ContractedBy(4f);
                 ButtonImageToggle.DoButtonImageToggle(() => savedGame.Key == _selectedSaveGame, newValue =>
                 {
@@ -331,7 +335,7 @@ namespace EquipmentManager.Windows
                         break;
                 }
             }
-            _loadouts.Add(new Loadout(id, label, isProtected, priority, primaryRuleType, primaryRangedWeaponRuleId,
+            _loadouts.Add(new Loadout(id, label, priority, primaryRuleType, primaryRangedWeaponRuleId,
                 primaryMeleeWeaponRuleId, rangedSidearmRules, meleeSidearmRules, toolRuleId, pawnTraits, pawnCapacities,
                 preferredSkills, undesirableSkills, dropUnassignedWeapons));
         }
@@ -611,11 +615,11 @@ namespace EquipmentManager.Windows
                                         if (xmlReader.Value == typeof(EquipmentManagerGameComponent).FullName)
                                         {
                                             _ = xmlReader.MoveToElement();
-                                            ReadLoadoutsData(savedGameFile, xmlReader);
-                                            ReadMeleeWeaponRulesData(savedGameFile, xmlReader);
-                                            ReadRangedWeaponRulesData(savedGameFile, xmlReader);
-                                            ReadToolRulesData(savedGameFile, xmlReader);
-                                            ReadWorkTypeRulesData(savedGameFile, xmlReader);
+                                            ReadWorkTypeRulesData(savedGameFile, xmlReader.ReadSubtree());
+                                            ReadToolRulesData(savedGameFile, xmlReader.ReadSubtree());
+                                            ReadMeleeWeaponRulesData(savedGameFile, xmlReader.ReadSubtree());
+                                            ReadRangedWeaponRulesData(savedGameFile, xmlReader.ReadSubtree());
+                                            ReadLoadoutsData(savedGameFile, xmlReader.ReadSubtree());
                                             xmlReader.Close();
                                             return;
                                         }

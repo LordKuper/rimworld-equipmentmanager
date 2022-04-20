@@ -98,12 +98,12 @@ namespace EquipmentManager
                 ? WorkTypeDef.labelShort.NullOrEmpty() ? WorkTypeDefName : WorkTypeDef.labelShort.CapitalizeFirst()
                 : WorkTypeDefName;
 
-        public HashSet<StatDef> RequiredStats
+        public IEnumerable<StatDef> RequiredStats
         {
             get
             {
                 Initialize();
-                return _requiredStats;
+                return _requiredStats.Intersect(_statWeights.Select(sw => sw.StatDef));
             }
         }
 
@@ -129,7 +129,7 @@ namespace EquipmentManager
             _ = _statWeights.RemoveAll(weight => weight.StatDefName == statDefName);
         }
 
-        public IEnumerable<Thing> GetCurrentlyAvailableItems(Map map)
+        public IEnumerable<Thing> GetCurrentlyAvailableItemsSorted(Map map)
         {
             var items = new List<Thing>();
             var globalItemDefs = new HashSet<ThingDef>(GetGloballyAvailableItems());
@@ -140,7 +140,7 @@ namespace EquipmentManager
                 if (comp != null && comp.Forbidden) { continue; }
                 items.Add(thing);
             }
-            items.SortByDescending(GetStatScore);
+            items.SortByDescending(GetThingScore);
             return items;
         }
 
@@ -149,35 +149,33 @@ namespace EquipmentManager
             var items = new List<ThingDef>();
             items.AddRange(AllRelevantThings.Where(def =>
                 (def.statBases ?? new List<StatModifier>()).Union(def.equippedStatOffsets ?? new List<StatModifier>())
-                .Any(sm => _requiredStats.Any(statDef => statDef == sm.stat))));
-            items.SortByDescending(GetStatScore);
+                .Any(sm => RequiredStats.Any(statDef => statDef == sm.stat))));
+            items.SortByDescending(GetThingDefScore);
             return items;
-        }
-
-        private float GetStatScore([NotNull] ThingDef def)
-        {
-            return def == null
-                ? throw new ArgumentNullException(nameof(def))
-                : _statWeights.Where(statWeight => statWeight.StatDef != null).Sum(statWeight =>
-                    EquipmentManager.NormalizeStatValue(statWeight.StatDef,
-                        StatHelper.GetStatValueDeviation(def, statWeight.StatDef, new RimworldTime(0, 0, 0f),
-                            new[] {WorkTypeDef})) * statWeight.Weight);
-        }
-
-        public float GetStatScore([NotNull] Thing thing)
-        {
-            return thing == null
-                ? throw new ArgumentNullException(nameof(thing))
-                : _statWeights.Where(statWeight => statWeight.StatDef != null).Sum(statWeight =>
-                    EquipmentManager.NormalizeStatValue(statWeight.StatDef,
-                        StatHelper.GetStatValueDeviation(thing, statWeight.StatDef, new RimworldTime(0, 0, 0f),
-                            new[] {WorkTypeDef})) * statWeight.Weight);
         }
 
         public IReadOnlyList<StatWeight> GetStatWeights()
         {
             Initialize();
             return _statWeights;
+        }
+
+        private float GetThingDefScore([NotNull] ThingDef def)
+        {
+            return def == null
+                ? throw new ArgumentNullException(nameof(def))
+                : _statWeights.Where(statWeight => statWeight.StatDef != null).Sum(statWeight =>
+                    EquipmentManager.NormalizeStatValue(statWeight.StatDef,
+                        StatHelper.GetStatValueDeviation(def, statWeight.StatDef)) * statWeight.Weight);
+        }
+
+        public float GetThingScore([NotNull] Thing thing)
+        {
+            return thing == null
+                ? throw new ArgumentNullException(nameof(thing))
+                : _statWeights.Where(statWeight => statWeight.StatDef != null).Sum(statWeight =>
+                    EquipmentManager.NormalizeStatValue(statWeight.StatDef,
+                        StatHelper.GetStatValueDeviation(thing, statWeight.StatDef)) * statWeight.Weight);
         }
 
         private void Initialize()

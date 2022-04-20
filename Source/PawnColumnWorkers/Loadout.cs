@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using EquipmentManager.Windows;
 using JetBrains.Annotations;
@@ -19,20 +20,22 @@ namespace EquipmentManager.PawnColumnWorkers
 
         private static IEnumerable<Widgets.DropdownMenuElement<EquipmentManager.Loadout>> Button_GenerateMenu(Pawn pawn)
         {
-            return new[]
-            {
-                new Widgets.DropdownMenuElement<EquipmentManager.Loadout>
+            var loadouts = EquipmentManager.GetLoadouts().ToList();
+            return loadouts.Any()
+                ? new[]
                 {
-                    option = new FloatMenuOption(Resources.Strings.Loadouts.AutoSelect,
-                        () => EquipmentManager.SetPawnLoadout(pawn, EquipmentManager.GetLoadout(0), true))
-                }
-            }.Union(EquipmentManager.GetLoadouts().Select(currentLoadout =>
-                new Widgets.DropdownMenuElement<EquipmentManager.Loadout>
+                    new Widgets.DropdownMenuElement<EquipmentManager.Loadout>
+                    {
+                        option = new FloatMenuOption($"* {Resources.Strings.Loadouts.AutoSelect}",
+                            () => EquipmentManager.SetPawnLoadout(pawn, EquipmentManager.GetLoadout(0), true))
+                    }
+                }.Union(loadouts.Select(currentLoadout => new Widgets.DropdownMenuElement<EquipmentManager.Loadout>
                 {
                     option = new FloatMenuOption(currentLoadout.Label,
                         () => EquipmentManager.SetPawnLoadout(pawn, currentLoadout, false)),
                     payload = currentLoadout
-                }));
+                }))
+                : Array.Empty<Widgets.DropdownMenuElement<EquipmentManager.Loadout>>();
         }
 
         public override int Compare(Pawn a, Pawn b)
@@ -54,12 +57,11 @@ namespace EquipmentManager.PawnColumnWorkers
             else
             {
                 var pawnLoadout = EquipmentManager.GetPawnLoadout(pawn);
-                var loadout = EquipmentManager.GetLoadout(pawnLoadout.LoadoutId);
-                var label = pawnLoadout.Automatic
-                    ? $"{loadout.Label} (*)".Truncate(loadoutButtonRect.width)
-                    : loadout.Label;
+                var loadout = EquipmentManager.GetLoadout(pawnLoadout?.LoadoutId);
+                var label = loadout != null ? loadout.Label : Resources.Strings.Loadouts.Default.NoLoadout;
+                if (pawnLoadout?.Automatic ?? false) { label = $"* {label}"; }
                 Widgets.Dropdown(loadoutButtonRect, pawn, p => EquipmentManager.GetLoadout(pawn), Button_GenerateMenu,
-                    label, dragLabel: label, paintable: true);
+                    label, dragLabel: label.Truncate(loadoutButtonRect.width), paintable: true);
             }
             var editButtonRect = new Rect(rect.x + loadoutButtonRect.width + 4f, rect.y + 2f,
                 Mathf.FloorToInt((float) ((rect.width - 4.0) * 0.3)), rect.height - 4f);

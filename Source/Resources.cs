@@ -47,6 +47,11 @@ namespace EquipmentManager
                 internal static readonly string LoadoutListHeader =
                     $"EquipmentManager.Loadouts.{nameof(LoadoutListHeader)}".Translate();
 
+                internal static readonly string LoadoutSettings =
+                    $"EquipmentManager.Loadouts.{nameof(LoadoutSettings)}".Translate();
+
+                internal static readonly string Log = $"EquipmentManager.Loadouts.{nameof(Log)}".Translate();
+
                 internal static readonly string ManageLoadouts =
                     $"EquipmentManager.Loadouts.{nameof(ManageLoadouts)}".Translate();
 
@@ -185,6 +190,9 @@ namespace EquipmentManager
                 internal static readonly string RuleLabel =
                     $"EquipmentManager.WeaponRules.{nameof(RuleLabel)}".Translate();
 
+                internal static readonly string RuleSettings =
+                    $"EquipmentManager.WeaponRules.{nameof(RuleSettings)}".Translate();
+
                 internal static readonly string SelectRule =
                     $"EquipmentManager.WeaponRules.{nameof(SelectRule)}".Translate();
 
@@ -240,6 +248,12 @@ namespace EquipmentManager
 
                 internal static class RangedWeapons
                 {
+                    internal static readonly string AmmoCount =
+                        $"EquipmentManager.WeaponRules.RangedWeapons.{nameof(AmmoCount)}".Translate();
+
+                    internal static readonly string AmmoCountTooltip =
+                        $"EquipmentManager.WeaponRules.RangedWeapons.{nameof(AmmoCountTooltip)}".Translate();
+
                     internal static readonly string Explosive =
                         $"EquipmentManager.WeaponRules.RangedWeapons.{nameof(Explosive)}".Translate();
 

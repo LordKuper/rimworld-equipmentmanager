@@ -9,7 +9,8 @@ namespace EquipmentManager.CustomWidgets
     public static class ThingBox
     {
         public static void DoThingBox(Rect rect, Color backgroundColor, Color outlineColor, float iconSize,
-            float iconGap, ref Vector2 scrollPosition, IReadOnlyList<Thing> things, Action<Thing> rightClickAction)
+            float iconGap, ref Vector2 scrollPosition, IReadOnlyList<Thing> things, Action<Thing> rightClickAction,
+            Func<Thing, string> tooltipGetter)
         {
             var horizontalMargin = GUI.skin.verticalScrollbar.fixedWidth + (iconGap * 2);
             var itemsPerRow = (int) Math.Floor((rect.width - horizontalMargin) / (iconSize + iconGap));
@@ -31,7 +32,7 @@ namespace EquipmentManager.CustomWidgets
                 GUI.DrawTexture(thingRect, texture, ScaleMode.ScaleToFit);
                 GUI.color = Color.white;
                 MouseoverSounds.DoRegion(thingRect);
-                TooltipHandler.TipRegion(thingRect, thing.LabelCap);
+                TooltipHandler.TipRegion(thingRect, tooltipGetter(thing));
                 if (Event.current.type == EventType.MouseDown && Mouse.IsOver(thingRect))
                 {
                     switch (Event.current.button)
@@ -50,7 +51,7 @@ namespace EquipmentManager.CustomWidgets
 
         public static void DoThingDefBox(Rect rect, Color backgroundColor, Color outlineColor, float iconSize,
             float iconGap, ref Vector2 scrollPosition, IReadOnlyList<ThingDef> things,
-            Action<ThingDef> rightClickAction)
+            Action<ThingDef> rightClickAction, Func<ThingDef, string> tooltipGetter)
         {
             var horizontalMargin = GUI.skin.verticalScrollbar.fixedWidth + (iconGap * 2);
             var itemsPerRow = (int) Math.Floor((rect.width - horizontalMargin) / (iconSize + iconGap));
@@ -63,22 +64,22 @@ namespace EquipmentManager.CustomWidgets
             Widgets.BeginScrollView(outRect, ref scrollPosition, itemBoxRect);
             for (var i = 0; i < things.Count; i++)
             {
-                var thing = things[i];
+                var thingDef = things[i];
                 var thingRect = GetThingRect(itemBoxRect, iconSize, iconGap, itemsPerRow, i);
                 GUI.color = !Mouse.IsOver(thingRect) ? Color.white : GenUI.MouseoverColor;
-                GUI.DrawTexture(thingRect, thing.uiIcon, ScaleMode.ScaleToFit);
+                GUI.DrawTexture(thingRect, thingDef.uiIcon, ScaleMode.ScaleToFit);
                 GUI.color = Color.white;
                 MouseoverSounds.DoRegion(thingRect);
-                TooltipHandler.TipRegion(thingRect, thing.LabelCap);
+                TooltipHandler.TipRegion(thingRect, tooltipGetter(thingDef));
                 if (Event.current.type == EventType.MouseDown && Mouse.IsOver(thingRect))
                 {
                     switch (Event.current.button)
                     {
                         case 0:
-                            Find.WindowStack.Add(new Dialog_InfoCard(thing));
+                            Find.WindowStack.Add(new Dialog_InfoCard(thingDef));
                             break;
                         case 1:
-                            rightClickAction(thing);
+                            rightClickAction(thingDef);
                             break;
                     }
                 }

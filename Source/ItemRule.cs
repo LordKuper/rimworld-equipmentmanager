@@ -11,7 +11,7 @@ namespace EquipmentManager
     {
         private static EquipmentManagerGameComponent _equipmentManager;
 
-        private static readonly SimpleCurve HitPointsCurve = new SimpleCurve
+        protected static readonly SimpleCurve HitPointsCurve = new SimpleCurve
         {
             new CurvePoint(0f, 0f),
             new CurvePoint(0.25f, 0.1f),
@@ -53,10 +53,17 @@ namespace EquipmentManager
         }
 
         protected static IEnumerable<StatWeight> DefaultStatWeights =>
-            new[]
-            {
-                new StatWeight("Mass", false) {Weight = -0.1f}, new StatWeight("MarketValue", false) {Weight = 0.1f}
-            };
+            CombatExtendedHelper.CombatExtended
+                ? new[]
+                {
+                    new StatWeight("Mass", false) {Weight = -0.1f}, new StatWeight("Bulk", false) {Weight = -0.1f},
+                    new StatWeight("MarketValue", false) {Weight = 0.1f}
+                }
+                : new[]
+                {
+                    new StatWeight("Mass", false) {Weight = -0.1f},
+                    new StatWeight("MarketValue", false) {Weight = 0.1f}
+                };
 
         protected static EquipmentManagerGameComponent EquipmentManager =>
             _equipmentManager ?? (_equipmentManager = Current.Game.GetComponent<EquipmentManagerGameComponent>());
@@ -125,44 +132,6 @@ namespace EquipmentManager
             return StatLimits;
         }
 
-        protected float GetStatScore([NotNull] ThingDef def, IReadOnlyCollection<WorkTypeDef> workTypeDefs = null)
-        {
-            return def == null
-                ? throw new ArgumentNullException(nameof(def))
-                : StatWeights.Where(statWeight => statWeight.StatDef != null).Sum(statWeight =>
-                    EquipmentManager.NormalizeStatValue(statWeight.StatDef,
-                        StatHelper.GetStatValueDeviation(def, statWeight.StatDef, new RimworldTime(0, 0, 0f),
-                            workTypeDefs)) * statWeight.Weight);
-        }
-
-        public float GetStatScore([NotNull] Thing thing, IReadOnlyCollection<WorkTypeDef> workTypeDefs = null)
-        {
-            if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
-            var statScores = new Dictionary<StatDef, float>();
-            float score = 0;
-            foreach (var statWeight in StatWeights)
-            {
-                if (statWeight.StatDef != null)
-                {
-                    var statScore = EquipmentManager.NormalizeStatValue(statWeight.StatDef,
-                        StatHelper.GetStatValueDeviation(thing, statWeight.StatDef, new RimworldTime(0, 0, 0f),
-                            workTypeDefs)) * statWeight.Weight;
-                    statScores.Add(statWeight.StatDef, statScore);
-                    score += statScore;
-                }
-            }
-            if (thing.def.useHitPoints)
-            {
-                score *= HitPointsCurve.Evaluate((float) thing.HitPoints / thing.MaxHitPoints);
-            }
-            if (Prefs.DevMode)
-            {
-                Log.Message(
-                    $"Equipment Manager: Score of '{thing.LabelCap}' = {score:N2} ({string.Join(", ", statScores.Select(pair => $"{pair.Key.LabelCap} = {pair.Value:N2}"))})");
-            }
-            return score;
-        }
-
         public IReadOnlyList<StatWeight> GetStatWeights()
         {
             Initialize();
@@ -187,18 +156,6 @@ namespace EquipmentManager
             if (BlacklistedItemsDefNames == null) { BlacklistedItemsDefNames = new HashSet<string>(); }
             if (GloballyAvailableItems == null) { GloballyAvailableItems = new HashSet<ThingDef>(); }
             UpdateExclusiveItems();
-        }
-
-        protected bool SatisfiesLimits([NotNull] Thing thing, IReadOnlyCollection<WorkTypeDef> workTypeDefs)
-        {
-            if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
-            foreach (var statLimit in StatLimits.Where(limit => limit.StatDef != null))
-            {
-                var value = StatHelper.GetStatValue(thing, statLimit.StatDef, new RimworldTime(0, 0, 0f), workTypeDefs);
-                if ((statLimit.MinValue != null && value < statLimit.MinValue) ||
-                    (statLimit.MaxValue != null && value > statLimit.MaxValue)) { return false; }
-            }
-            return true;
         }
 
         public void SetStatLimit([NotNull] StatDef statDef, float? min, float? max)

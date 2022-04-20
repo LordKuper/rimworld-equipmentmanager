@@ -22,8 +22,6 @@ namespace EquipmentManager.Windows
         private static Vector2 _statLimitsScrollPosition;
         private static Vector2 _statWeightsScrollPosition;
         private static Vector2 _whitelistScrollPosition;
-        private static readonly float WindowHeight = UiHelpers.GetWindowHeight(1000f);
-        private static readonly float WindowWidth = UiHelpers.GetWindowWidth(1000f);
         private readonly List<TabRecord> _tabs = new List<TabRecord>();
         private bool _initialized;
 
@@ -36,13 +34,14 @@ namespace EquipmentManager.Windows
             absorbInputAroundWindow = true;
         }
 
-        private static int AvailableItemIconsRowCount => WindowHeight < 1000f ? 3 : 5;
+        private int AvailableItemIconsRowCount => InitialSize.y < MaxSize.y ? 2 : 5;
 
         private static EquipmentManagerGameComponent EquipmentManager =>
             _equipmentManager ?? (_equipmentManager = Current.Game.GetComponent<EquipmentManagerGameComponent>());
 
-        private static int ExclusiveItemIconsRowCount => WindowHeight < 1000f ? 2 : 3;
-        public override Vector2 InitialSize => new Vector2(WindowWidth, WindowHeight);
+        private int ExclusiveItemIconsRowCount => InitialSize.y < MaxSize.y ? 2 : 3;
+        public override Vector2 InitialSize => UiHelpers.GetWindowSize(new Vector2(850f, 650f), MaxSize);
+        private static Vector2 MaxSize => new Vector2(1000f, 1000f);
 
         private static void CheckSelectedItemRuleHasName(ItemRule rule)
         {
@@ -51,20 +50,23 @@ namespace EquipmentManager.Windows
         }
 
         private static void DoAvailableItems(Rect rect, IReadOnlyList<ThingDef> globalItems,
-            Action<ThingDef> globalItemRightClickAction, IReadOnlyList<Thing> currentItems,
-            Action<Thing> currentItemRightClickAction, Action refreshAction)
+            Action<ThingDef> globalItemRightClickAction, Func<ThingDef, string> globalTooltipGetter,
+            IReadOnlyList<Thing> currentItems, Action<Thing> currentItemRightClickAction,
+            Func<Thing, string> currentTooltipGetter, Action refreshAction)
         {
             var columnWidth = (rect.width - UiHelpers.ElementGap) / 2f;
             var globalRect = new Rect(rect.x, rect.y, columnWidth, rect.height);
             var gapRect = new Rect(globalRect.xMax, rect.y, UiHelpers.ElementGap, rect.height);
             var currentRect = new Rect(gapRect.xMax, rect.y, columnWidth, rect.height);
-            DoGloballyAvailableItems(globalRect, globalItems, globalItemRightClickAction, refreshAction);
+            DoGloballyAvailableItems(globalRect, globalItems, globalItemRightClickAction, refreshAction,
+                globalTooltipGetter);
             UiHelpers.DoGapLineVertical(gapRect);
-            DoCurrentlyAvailableItems(currentRect, currentItems, currentItemRightClickAction, refreshAction);
+            DoCurrentlyAvailableItems(currentRect, currentItems, currentItemRightClickAction, refreshAction,
+                currentTooltipGetter);
         }
 
         private static void DoBlacklist(Rect rect, IReadOnlyCollection<ThingDef> items, IEnumerable<ThingDef> allItems,
-            Action<ThingDef> addAction, Action<ThingDef> rightClickAction)
+            Action<ThingDef> addAction, Action<ThingDef> rightClickAction, Func<ThingDef, string> tooltipGetter)
         {
             var font = Text.Font;
             var anchor = Text.Anchor;
@@ -87,11 +89,11 @@ namespace EquipmentManager.Windows
                 new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
                     rect.yMax - (labelRect.yMax + UiHelpers.ElementGap)), new Color(1f, 0.5f, 0.5f, 0.05f),
                 new Color(1f, 0.5f, 0.5f, 0.4f), ItemIconSize, ItemIconGap, ref _blacklistScrollPosition,
-                items.ToList(), rightClickAction);
+                items.ToList(), rightClickAction, tooltipGetter);
         }
 
         private static void DoCurrentlyAvailableItems(Rect rect, IReadOnlyList<Thing> items,
-            Action<Thing> rightClickAction, Action refreshAction)
+            Action<Thing> rightClickAction, Action refreshAction, Func<Thing, string> tooltipGetter)
         {
             var font = Text.Font;
             var anchor = Text.Anchor;
@@ -110,27 +112,28 @@ namespace EquipmentManager.Windows
                 new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
                     rect.yMax - (labelRect.yMax + UiHelpers.ElementGap)), new Color(1f, 1f, 1f, 0.05f),
                 new Color(1f, 1f, 1f, 0.4f), ItemIconSize, ItemIconGap, ref _currentItemsScrollPosition, items,
-                rightClickAction);
+                rightClickAction, tooltipGetter);
         }
 
         private static void DoExclusiveItems(Rect rect, HashSet<ThingDef> allItems,
             IReadOnlyCollection<ThingDef> whitelistedItems, Action<ThingDef> whitelistedItemsRightClickAction,
             Action<ThingDef> addToWhitelistAction, IReadOnlyCollection<ThingDef> blacklistedItems,
-            Action<ThingDef> blacklistedItemsRightClickAction, Action<ThingDef> addToBlacklistAction)
+            Action<ThingDef> blacklistedItemsRightClickAction, Action<ThingDef> addToBlacklistAction,
+            Func<ThingDef, string> tooltipGetter)
         {
             var columnWidth = (rect.width - UiHelpers.ElementGap) / 2f;
             var whitelistRect = new Rect(rect.x, rect.y, columnWidth, rect.height);
             var gapRect = new Rect(whitelistRect.xMax, rect.y, UiHelpers.ElementGap, rect.height);
             var blacklistRect = new Rect(gapRect.xMax, rect.y, columnWidth, rect.height);
             DoWhitelist(whitelistRect, whitelistedItems, allItems, addToWhitelistAction,
-                whitelistedItemsRightClickAction);
+                whitelistedItemsRightClickAction, tooltipGetter);
             UiHelpers.DoGapLineVertical(gapRect);
             DoBlacklist(blacklistRect, blacklistedItems, allItems, addToBlacklistAction,
-                blacklistedItemsRightClickAction);
+                blacklistedItemsRightClickAction, tooltipGetter);
         }
 
         private static void DoGloballyAvailableItems(Rect rect, IReadOnlyList<ThingDef> items,
-            Action<ThingDef> rightClickAction, Action refreshAction)
+            Action<ThingDef> rightClickAction, Action refreshAction, Func<ThingDef, string> tooltipGetter)
         {
             var font = Text.Font;
             var anchor = Text.Anchor;
@@ -149,7 +152,7 @@ namespace EquipmentManager.Windows
                 new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
                     rect.yMax - (labelRect.yMax + UiHelpers.ElementGap)), new Color(1f, 1f, 1f, 0.05f),
                 new Color(1f, 1f, 1f, 0.4f), ItemIconSize, ItemIconGap, ref _globalItemsScrollPosition, items,
-                rightClickAction);
+                rightClickAction, tooltipGetter);
         }
 
         private static void DoRuleSetting(Rect settingRect, Func<bool?> getter, Action<bool?> setter, string label,
@@ -322,7 +325,7 @@ namespace EquipmentManager.Windows
         }
 
         private static void DoWhitelist(Rect rect, IReadOnlyCollection<ThingDef> items, IEnumerable<ThingDef> allItems,
-            Action<ThingDef> addAction, Action<ThingDef> rightClickAction)
+            Action<ThingDef> addAction, Action<ThingDef> rightClickAction, Func<ThingDef, string> tooltipGetter)
         {
             var font = Text.Font;
             var anchor = Text.Anchor;
@@ -345,7 +348,7 @@ namespace EquipmentManager.Windows
                 new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
                     rect.yMax - (labelRect.yMax + UiHelpers.ElementGap)), new Color(0.5f, 1f, 0.5f, 0.05f),
                 new Color(0.5f, 1f, 0.5f, 0.4f), ItemIconSize, ItemIconGap, ref _whitelistScrollPosition,
-                items.ToList(), rightClickAction);
+                items.ToList(), rightClickAction, tooltipGetter);
         }
 
         public override void DoWindowContents(Rect inRect)
@@ -374,9 +377,9 @@ namespace EquipmentManager.Windows
             }
         }
 
-        private static void GetWeaponRuleTabRects(Rect rect, int settingsCount, out Rect buttonRowRect,
-            out Rect labelRect, out Rect equipModeRect, out Rect settingsRect, out Rect availableItemsRect,
-            out Rect exclusiveItemsRect, out Rect statsRect)
+        private void GetWeaponRuleTabRects(Rect rect, int ruleSettingCount, int itemPropertiesCount,
+            out Rect buttonRowRect, out Rect labelRect, out Rect equipModeRect, out Rect ruleSettingsRect,
+            out Rect itemPropertiesRect, out Rect availableItemsRect, out Rect exclusiveItemsRect, out Rect statsRect)
         {
             var sectionHeaderHeight = Text.LineHeightOf(GameFont.Medium) + UiHelpers.ElementGap;
             buttonRowRect = new Rect(rect.x, rect.y, rect.width, UiHelpers.ButtonHeight);
@@ -385,9 +388,21 @@ namespace EquipmentManager.Windows
             equipModeRect = new Rect(rect.center.x + (UiHelpers.ElementGap / 2f),
                 buttonRowRect.yMax + UiHelpers.ElementGap, (rect.width - UiHelpers.ElementGap) / 2f,
                 UiHelpers.LabelHeight);
-            var settingsRowCount = (int) Math.Ceiling((double) settingsCount / UiHelpers.BoolSettingsColumnCount);
-            settingsRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
-                sectionHeaderHeight + (UiHelpers.ListRowHeight * settingsRowCount));
+            var itemPropertiesRowCount =
+                (int) Math.Ceiling((double) itemPropertiesCount / UiHelpers.BoolSettingsColumnCount);
+            if (ruleSettingCount != 0)
+            {
+                ruleSettingsRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
+                    sectionHeaderHeight + (UiHelpers.ListRowHeight * ruleSettingCount));
+                itemPropertiesRect = new Rect(rect.x, ruleSettingsRect.yMax + UiHelpers.ElementGap, rect.width,
+                    sectionHeaderHeight + (UiHelpers.ListRowHeight * itemPropertiesRowCount));
+            }
+            else
+            {
+                ruleSettingsRect = Rect.zero;
+                itemPropertiesRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
+                    sectionHeaderHeight + (UiHelpers.ListRowHeight * itemPropertiesRowCount));
+            }
             var availableItemsBoxHeight = (ItemIconSize * AvailableItemIconsRowCount) +
                 (ItemIconGap * (AvailableItemIconsRowCount + 1));
             availableItemsRect = new Rect(rect.x, rect.yMax - availableItemsBoxHeight - sectionHeaderHeight, rect.width,
@@ -397,8 +412,8 @@ namespace EquipmentManager.Windows
             exclusiveItemsRect = new Rect(rect.x,
                 availableItemsRect.y - exclusiveItemsBoxHeight - sectionHeaderHeight - UiHelpers.ElementGap, rect.width,
                 exclusiveItemsBoxHeight + sectionHeaderHeight);
-            statsRect = new Rect(rect.x, settingsRect.yMax + UiHelpers.ElementGap, rect.width,
-                exclusiveItemsRect.y - UiHelpers.ElementGap - settingsRect.yMax - UiHelpers.ElementGap);
+            statsRect = new Rect(rect.x, itemPropertiesRect.yMax + UiHelpers.ElementGap, rect.width,
+                exclusiveItemsRect.y - UiHelpers.ElementGap - itemPropertiesRect.yMax - UiHelpers.ElementGap);
         }
 
         private void Initialize()

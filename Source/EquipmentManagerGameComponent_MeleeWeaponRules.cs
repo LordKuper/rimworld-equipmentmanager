@@ -1,12 +1,19 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using RimWorld;
 using Verse;
 
 namespace EquipmentManager
 {
     internal partial class EquipmentManagerGameComponent
     {
-        private List<MeleeWeaponRule> _meleeWeaponRules = new List<MeleeWeaponRule>(MeleeWeaponRule.DefaultRules);
+        private readonly Dictionary<ThingDef, MeleeWeaponCache> _meleeWeaponDefsCache =
+            new Dictionary<ThingDef, MeleeWeaponCache>();
+
+        private readonly Dictionary<Thing, MeleeWeaponCache> _meleeWeaponsCache =
+            new Dictionary<Thing, MeleeWeaponCache>();
+
+        private List<MeleeWeaponRule> _meleeWeaponRules;
 
         public MeleeWeaponRule AddMeleeWeaponRule()
         {
@@ -70,6 +77,31 @@ namespace EquipmentManager
         private void ExposeData_MeleeWeaponRules()
         {
             Scribe_Collections.Look(ref _meleeWeaponRules, "MeleeWeaponRules", LookMode.Deep);
+        }
+
+        public MeleeWeaponCache GetMeleeWeaponCache(Thing thing, RimworldTime time)
+        {
+            if (!_meleeWeaponsCache.TryGetValue(thing, out var cache))
+            {
+                cache = new MeleeWeaponCache(thing);
+                _meleeWeaponsCache[thing] = cache;
+            }
+            _ = cache.Update(time);
+            return cache;
+        }
+
+        public MeleeWeaponCache GetMeleeWeaponDefCache(ThingDef thingDef, RimworldTime time)
+        {
+            if (!_meleeWeaponDefsCache.TryGetValue(thingDef, out var cache))
+            {
+                var thing = thingDef.MadeFromStuff
+                    ? ThingMaker.MakeThing(thingDef, GenStuff.DefaultStuffFor(thingDef))
+                    : ThingMaker.MakeThing(thingDef);
+                cache = new MeleeWeaponCache(thing);
+                _meleeWeaponDefsCache[thingDef] = cache;
+            }
+            _ = cache.Update(time);
+            return cache;
         }
 
         public MeleeWeaponRule GetMeleeWeaponRule(int id)

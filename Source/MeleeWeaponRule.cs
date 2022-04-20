@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using JetBrains.Annotations;
 using RimWorld;
 using Verse;
@@ -10,8 +10,10 @@ namespace EquipmentManager
 {
     internal class MeleeWeaponRule : ItemRule
     {
+        public delegate bool UsableWithShieldsDelegate(ThingDef thing);
+
         private static HashSet<ThingDef> _allRelevantThings;
-        public static MethodInfo UsableWithShieldsMethod = null;
+        public static UsableWithShieldsDelegate UsableWithShieldsMethod;
         private bool? _rottable;
         private bool? _usableWithShields;
         public WeaponEquipMode EquipMode = WeaponEquipMode.BestOne;
@@ -72,7 +74,10 @@ namespace EquipmentManager
             new[]
             {
                 new StatWeight("MeleeWeapon_AverageDPS", false) {Weight = 2.0f},
-                new StatWeight("MeleeWeapon_AverageArmorPenetration", false) {Weight = 0.5f}
+                new StatWeight(CustomMeleeWeaponStats.GetStatDefName(CustomMeleeWeaponStat.ArmorPenetration), false)
+                {
+                    Weight = 0.5f
+                }
             }.Union(ItemRule.DefaultStatWeights);
 
         public bool? Rottable
@@ -95,16 +100,16 @@ namespace EquipmentManager
             Scribe_Values.Look(ref _rottable, nameof(Rottable));
         }
 
-        public IEnumerable<Thing> GetCurrentlyAvailableItems(Map map)
+        public IEnumerable<Thing> GetCurrentlyAvailableItems(Map map, RimworldTime time)
         {
             Initialize();
-            return (map?.listerThings?.ThingsInGroup(ThingRequestGroup.Weapon) ?? new List<Thing>()).Where(IsAvailable)
-                .ToList();
+            return (map?.listerThings?.ThingsInGroup(ThingRequestGroup.Weapon) ?? new List<Thing>())
+                .Where(thing => IsAvailable(thing, time)).ToList();
         }
 
-        public IEnumerable<Thing> GetCurrentlyAvailableItemsSorted(Map map)
+        public IEnumerable<Thing> GetCurrentlyAvailableItemsSorted(Map map, RimworldTime time)
         {
-            return GetCurrentlyAvailableItems(map).OrderByDescending(thing => GetStatScore(thing));
+            return GetCurrentlyAvailableItems(map, time).OrderByDescending(thing => GetThingScore(thing, time));
         }
 
         private IEnumerable<ThingDef> GetGloballyAvailableItems()
@@ -113,17 +118,59 @@ namespace EquipmentManager
             return GloballyAvailableItems;
         }
 
-        public IEnumerable<ThingDef> GetGloballyAvailableItemsSorted()
+        public IEnumerable<ThingDef> GetGloballyAvailableItemsSorted(RimworldTime time)
         {
-            return GetGloballyAvailableItems().OrderByDescending(def => GetStatScore(def));
+            return GetGloballyAvailableItems().OrderByDescending(def => GetThingDefScore(def, time));
         }
 
-        public bool IsAvailable(Thing thing)
+        private static float GetStatValue([NotNull] Thing thing, [NotNull] StatDef statDef, RimworldTime time)
+        {
+            return thing == null ? throw new ArgumentNullException(nameof(thing)) :
+                statDef == null ? throw new ArgumentNullException(nameof(statDef)) :
+                EquipmentManager.GetMeleeWeaponCache(thing, time).GetStatValue(statDef);
+        }
+
+        private float GetThingDefScore([NotNull] ThingDef def, RimworldTime time)
+        {
+            if (def == null) { throw new ArgumentNullException(nameof(def)); }
+            var cache = EquipmentManager.GetMeleeWeaponDefCache(def, time);
+            return StatWeights.Where(statWeight => statWeight.StatDef != null).Sum(statWeight =>
+                EquipmentManager.NormalizeStatValue(statWeight.StatDef,
+                    cache.GetStatValueDeviation(statWeight.StatDef)) * statWeight.Weight);
+        }
+
+        public float GetThingScore([NotNull] Thing thing, RimworldTime time)
+        {
+            if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
+            var cache = EquipmentManager.GetMeleeWeaponCache(thing, time);
+            var score = StatWeights.Where(sw => sw.StatDef != null).Sum(statWeight =>
+                EquipmentManager.NormalizeStatValue(statWeight.StatDef,
+                    cache.GetStatValueDeviation(statWeight.StatDef)) * statWeight.Weight);
+            if (thing.def.useHitPoints)
+            {
+                score *= HitPointsCurve.Evaluate((float) thing.HitPoints / thing.MaxHitPoints);
+            }
+            return score;
+        }
+
+        public bool IsAvailable(Thing thing, RimworldTime time)
         {
             Initialize();
             var comp = thing.TryGetComp<CompForbiddable>();
             return (comp == null || !comp.Forbidden) && (GetWhitelistedItems().Contains(thing.def) ||
-                (GetGloballyAvailableItems().Contains(thing.def) && SatisfiesLimits(thing, null)));
+                (GetGloballyAvailableItems().Contains(thing.def) && SatisfiesLimits(thing, time)));
+        }
+
+        private bool SatisfiesLimits([NotNull] Thing thing, RimworldTime time)
+        {
+            if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
+            foreach (var statLimit in StatLimits.Where(limit => limit.StatDef != null))
+            {
+                var value = GetStatValue(thing, statLimit.StatDef, time);
+                if ((statLimit.MinValue != null && value < statLimit.MinValue) ||
+                    (statLimit.MaxValue != null && value > statLimit.MaxValue)) { return false; }
+            }
+            return true;
         }
 
         public void UpdateGloballyAvailableItems()
@@ -133,8 +180,7 @@ namespace EquipmentManager
             foreach (var def in AllRelevantThings) { _ = GloballyAvailableItems.Add(def); }
             if (UsableWithShields != null && UsableWithShieldsMethod != null)
             {
-                _ = GloballyAvailableItems.RemoveWhere(def =>
-                    (bool) UsableWithShieldsMethod.Invoke(null, new object[] {def}) != UsableWithShields);
+                _ = GloballyAvailableItems.RemoveWhere(def => UsableWithShieldsMethod(def) != UsableWithShields);
             }
             if (Rottable != null)
             {
@@ -143,6 +189,15 @@ namespace EquipmentManager
             }
             _ = GloballyAvailableItems.RemoveWhere(def => GetBlacklistedItems().Contains(def));
             foreach (var def in GetWhitelistedItems()) { _ = GloballyAvailableItems.Add(def); }
+        }
+
+        public void UpdateStatRanges([NotNull] Thing thing, RimworldTime time)
+        {
+            if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
+            var cache = EquipmentManager.GetMeleeWeaponCache(thing, time);
+            var stats = StatWeights.Where(sw => sw.StatDef != null).Select(sw => sw.StatDef)
+                .Union(StatLimits.Where(sl => sl.StatDef != null).Select(sl => sl.StatDef));
+            foreach (var stat in stats) { EquipmentManager.UpdateStatRange(stat, cache.GetStatValueDeviation(stat)); }
         }
     }
 }

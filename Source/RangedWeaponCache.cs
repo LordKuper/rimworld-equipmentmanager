@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using HarmonyLib;
 using JetBrains.Annotations;
 using RimWorld;
 using Verse;
@@ -8,6 +10,10 @@ namespace EquipmentManager
 {
     internal class RangedWeaponCache : ItemCache
     {
+        private AmmoUserPropsDelegate _ammoUserPropsMethod;
+        private bool _initialized;
+        private bool _isAmmo;
+
         public RangedWeaponCache([NotNull] Thing thing)
         {
             Thing = thing ?? throw new ArgumentNullException(nameof(thing));
@@ -17,32 +23,205 @@ namespace EquipmentManager
         private float AccuracyLong { get; set; }
         private float AccuracyMedium { get; set; }
         private float AccuracyShort { get; set; }
-        public float ArmorPenetration { get; private set; }
-        public int BurstShotCount { get; private set; }
-        private float Cooldown { get; set; }
-        public float Damage { get; private set; }
-        private float Dps { get; set; }
-        public float Dpsa { get; private set; }
-        public float DpsaClose { get; private set; }
-        public float DpsaLong { get; private set; }
-        public float DpsaMedium { get; private set; }
-        public float DpsaShort { get; private set; }
-        public float MaxRange { get; private set; }
-        private float MinRange { get; set; }
-        public float StoppingPower { get; private set; }
-        private Thing Thing { get; }
-        public int TicksBetweenBurstShots { get; private set; }
-        public float Warmup { get; private set; }
 
-        public override void Update(RimworldTime time)
+        public IEnumerable<ThingDef> AmmoTypes
         {
-            base.Update(time);
-            var hoursPassed = ((time.Year - UpdateTime.Year) * 60 * 24) + ((time.Day - UpdateTime.Day) * 24) +
-                time.Hour - UpdateTime.Hour;
-            if (hoursPassed < UpdateTimer) { return; }
-            UpdateTime.Year = time.Year;
-            UpdateTime.Day = time.Day;
-            UpdateTime.Hour = time.Hour;
+            get
+            {
+                Initialize();
+                var ammoTypes = new HashSet<ThingDef>();
+                if (_isAmmo)
+                {
+                    _ = ammoTypes.Add(Thing.def);
+                    return ammoTypes;
+                }
+                if (_ammoUserPropsMethod == null) { return ammoTypes; }
+                var ammoUserProps = _ammoUserPropsMethod();
+                if (ammoUserProps == null)
+                {
+                    Log.Error($"Equipment Manager: CompProperties_AmmoUser was not found for {Thing.LabelCapNoCount}");
+                    return ammoTypes;
+                }
+                var ammoSet = CombatExtendedHelper.AmmoSetDelegate(ammoUserProps);
+                if (ammoSet == null)
+                {
+                    Log.Error($"Equipment Manager: Ammo set was not found for {Thing.LabelCapNoCount}");
+                    return ammoTypes;
+                }
+                if (!(CombatExtendedHelper.AmmoTypesDelegate(ammoSet) is IEnumerable<object> ammoLinks))
+                {
+                    Log.Error($"Equipment Manager: Could not get ammo links for {Thing.LabelCapNoCount}");
+                    return ammoTypes;
+                }
+                ammoTypes.AddRange(ammoLinks.Select(ammoLink => CombatExtendedHelper.AmmoDelegate(ammoLink))
+                    .Where(ammoType => ammoType != null));
+                return ammoTypes;
+            }
+        }
+
+        private ThingComp AmmoUserComp =>
+            !(Thing is ThingWithComps thingWithComps)
+                ? null
+                : thingWithComps.AllComps.FirstOrDefault(
+                    comp => comp.GetType() == CombatExtendedHelper.CompAmmoUserType);
+
+        private float ArmorPenetration { get; set; }
+        private int BurstShotCount { get; set; }
+        private float Cooldown { get; set; }
+        private float Damage { get; set; }
+        private float Dps { get; set; }
+        private float Dpsa { get; set; }
+        private float DpsaClose { get; set; }
+        private float DpsaLong { get; set; }
+        private float DpsaMedium { get; set; }
+        private float DpsaShort { get; set; }
+
+        public bool IsAmmo
+        {
+            get
+            {
+                Initialize();
+                return _isAmmo;
+            }
+        }
+
+        private float MaxRange { get; set; }
+        private float MinRange { get; set; }
+        private float SightsEfficiency { get; set; }
+        private float StoppingPower { get; set; }
+        private Thing Thing { get; }
+        private int TicksBetweenBurstShots { get; set; }
+        private float Warmup { get; set; }
+
+        private float GetCustomStatValue([NotNull] StatDef statDef)
+        {
+            if (Enum.TryParse(CustomRangedWeaponStats.GetStatName(statDef.defName),
+                    out CustomRangedWeaponStat rangedWeaponStat))
+            {
+                switch (rangedWeaponStat)
+                {
+                    case CustomRangedWeaponStat.Dpsa:
+                        return Dpsa;
+                    case CustomRangedWeaponStat.DpsaClose:
+                        return DpsaClose;
+                    case CustomRangedWeaponStat.DpsaShort:
+                        return DpsaShort;
+                    case CustomRangedWeaponStat.DpsaMedium:
+                        return DpsaMedium;
+                    case CustomRangedWeaponStat.DpsaLong:
+                        return DpsaLong;
+                    case CustomRangedWeaponStat.Range:
+                        return MaxRange;
+                    case CustomRangedWeaponStat.Warmup:
+                        return Warmup;
+                    case CustomRangedWeaponStat.BurstShotCount:
+                        return BurstShotCount;
+                    case CustomRangedWeaponStat.TicksBetweenBurstShots:
+                        return TicksBetweenBurstShots;
+                    case CustomRangedWeaponStat.ArmorPenetration:
+                        return ArmorPenetration;
+                    case CustomRangedWeaponStat.StoppingPower:
+                        return StoppingPower;
+                    case CustomRangedWeaponStat.Damage:
+                        return Damage;
+                    case CustomRangedWeaponStat.TechLevel:
+                        return (float) Thing.def.techLevel;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(statDef));
+                }
+            }
+            Log.Error($"Equipment Manager: Tried to evaluate unknown custom ranged stat ({statDef.defName})");
+            return 0f;
+        }
+
+        public float GetStatValue(StatDef statDef)
+        {
+            if (!StatValues.TryGetValue(statDef, out var value))
+            {
+                value = CustomRangedWeaponStats.IsCustomStat(statDef.defName)
+                    ? GetCustomStatValue(statDef)
+                    : StatHelper.GetStatValue(Thing, statDef);
+                StatValues.Add(statDef, value);
+            }
+            return value;
+        }
+
+        public float GetStatValueDeviation([NotNull] StatDef statDef)
+        {
+            return statDef == null ? throw new ArgumentNullException(nameof(statDef)) :
+                CustomRangedWeaponStats.IsCustomStat(statDef.defName) ? GetCustomStatValue(statDef) :
+                StatHelper.GetStatValueDeviation(Thing, statDef);
+        }
+
+        private void Initialize()
+        {
+            if (_initialized) { return; }
+            _initialized = true;
+            if (!CombatExtendedHelper.CombatExtended) { return; }
+            try
+            {
+                if (AmmoUserComp == null)
+                {
+                    if (Thing.def.Verbs.Any(properties => string.Equals(properties.verbClass.FullName,
+                            "CombatExtended.Verb_ShootCEOneUse", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        _isAmmo = true;
+                    }
+                }
+                else
+                {
+                    var ammoUserPropsMethod =
+                        AccessTools.PropertyGetter(CombatExtendedHelper.CompAmmoUserType, "Props");
+                    if (ammoUserPropsMethod == null)
+                    {
+                        Log.Error("Equipment Manager: Could not find 'CombatExtended.CompAmmoUser.Props'");
+                    }
+                    else
+                    {
+                        _ammoUserPropsMethod =
+                            AccessTools.MethodDelegate<AmmoUserPropsDelegate>(ammoUserPropsMethod, AmmoUserComp);
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                Log.Error(
+                    $"Equipment Manager: Could not create Combat Extended delegates for {Thing.LabelCapNoCount}: {exception.Message}");
+                _ammoUserPropsMethod = null;
+            }
+        }
+
+        private void ReadProjectileProperties(ProjectileProperties projectileProperties)
+        {
+            Damage = projectileProperties.GetDamageAmount(Thing);
+            StoppingPower = projectileProperties.StoppingPower;
+            ArmorPenetration = projectileProperties.GetArmorPenetration(Thing);
+        }
+
+        private void ReadProjectilePropertiesCombatExtended(ProjectileProperties projectileProperties)
+        {
+            Damage = projectileProperties.GetDamageAmount(Thing);
+            StoppingPower = projectileProperties.StoppingPower;
+            if (projectileProperties.GetType() != CombatExtendedHelper.ProjectilePropertiesType)
+            {
+                Log.Warning(
+                    $"Equipment Manager: {Thing.LabelCapNoCount}'s projectile type is not CombatExtended-compatible");
+                ReadProjectileProperties(projectileProperties);
+            }
+            else
+            {
+                if (CombatExtendedHelper.ArmorPenetrationSharpDelegate != null &&
+                    CombatExtendedHelper.ArmorPenetrationBluntDelegate != null)
+                {
+                    ArmorPenetration = CombatExtendedHelper.ArmorPenetrationSharpDelegate(projectileProperties) +
+                        CombatExtendedHelper.ArmorPenetrationBluntDelegate(projectileProperties);
+                }
+            }
+        }
+
+        public override bool Update(RimworldTime time)
+        {
+            if (!base.Update(time)) { return false; }
             try
             {
                 if (Thing.def?.Verbs != null)
@@ -51,23 +230,31 @@ namespace EquipmentManager
                     if (verb == null)
                     {
                         Log.Warning(
-                            $"Equipment Manager: Could not find correct ranged weapon verb on the first try for weapon '{Thing.LabelCap}' ({Thing.def.defName})");
+                            $"Equipment Manager: Could not find correct ranged weapon verb on the first try for weapon '{Thing.LabelCapNoCount}' ({Thing.def.defName})");
                         verb = Thing.def.Verbs.FirstOrDefault();
                     }
                     if (verb == null)
                     {
                         Log.Error(
-                            $"Equipment Manager: Could not find ranged weapon verb for weapon '{Thing.LabelCap}' ({Thing.def.defName})");
-                        return;
+                            $"Equipment Manager: Could not find ranged weapon verb for weapon '{Thing.LabelCapNoCount}' ({Thing.def.defName})");
+                        return true;
                     }
-                    Warmup = verb.warmupTime;
-                    MaxRange = verb.range;
-                    MinRange = verb.minRange;
-                    Damage = verb.defaultProjectile?.projectile?.GetDamageAmount(Thing) ?? 0f;
-                    ArmorPenetration = verb.defaultProjectile?.projectile?.GetArmorPenetration(Thing) ?? 0f;
+                    if (verb.defaultProjectile?.projectile != null)
+                    {
+                        if (CombatExtendedHelper.CombatExtended)
+                        {
+                            ReadProjectilePropertiesCombatExtended(verb.defaultProjectile.projectile);
+                        }
+                        else { ReadProjectileProperties(verb.defaultProjectile.projectile); }
+                    }
+                    SightsEfficiency = CombatExtendedHelper.CombatExtended
+                        ? Thing.GetStatValue(StatDef.Named("SightsEfficiency"))
+                        : 1f;
                     BurstShotCount = verb.burstShotCount <= 0 ? 1 : verb.burstShotCount;
                     TicksBetweenBurstShots = verb.ticksBetweenBurstShots <= 0 ? 10 : verb.ticksBetweenBurstShots;
-                    StoppingPower = verb.defaultProjectile?.projectile?.StoppingPower ?? 0f;
+                    Warmup = verb.warmupTime;
+                    MinRange = verb.minRange;
+                    MaxRange = verb.range;
                     Cooldown = Thing.GetStatValue(StatDefOf.RangedWeapon_Cooldown);
                     Dps = (float) Math.Round(
                         Damage * (double) BurstShotCount / ((((Cooldown + (double) Warmup) * 60f) +
@@ -115,13 +302,16 @@ namespace EquipmentManager
                     totalAccuracy += AccuracyLong;
                     rangeCount++;
                 }
-                Dpsa = rangeCount == 0 ? 0f : Dps * (totalAccuracy / rangeCount) / 100f;
+                Dpsa = rangeCount == 0 ? 0f : Dps * (totalAccuracy * SightsEfficiency / rangeCount) / 100f;
             }
             catch (Exception exception)
             {
                 Log.Error(
-                    $"Equipment Manager: Could not update cache of '{Thing.LabelCap}' ({Thing.def?.defName}): {exception.Message}");
+                    $"Equipment Manager: Could not update cache of '{Thing.LabelCapNoCount}' ({Thing.def?.defName}): {exception.Message}");
             }
+            return true;
         }
+
+        private delegate CompProperties AmmoUserPropsDelegate();
     }
 }

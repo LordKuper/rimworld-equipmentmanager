@@ -13,10 +13,17 @@
 			<displayName>Harmony</displayName>
 			<steamWorkshopUrl>steam://url/CommunityFilePage/2009463077</steamWorkshopUrl>
 		</li>
+		<li>
+			<packageId>petetimessix.simplesidearms</packageId>
+			<displayName>Simple sidearms</displayName>
+			<steamWorkshopUrl>steam://url/CommunityFilePage/927155256</steamWorkshopUrl>
+		</li>
 	</modDependencies>
 	<loadAfter>
 		<li>brrainz.harmony</li>
+		<li>petetimessix.simplesidearms</li>
 		<li>OskarPotocki.VanillaFactionsExpanded.Core</li>
+		<li>CETeam.CombatExtended</li>
 	</loadAfter>
 	<description>Automatic equipment management mod</description>
 </ModMetaData>

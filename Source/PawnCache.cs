@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using RimWorld;
 using Verse;
 
@@ -9,7 +8,9 @@ namespace EquipmentManager
     {
         private static EquipmentManagerGameComponent _equipmentManager;
         private readonly RimworldTime _updateTime = new RimworldTime(-1, -1, -1);
+        public readonly Dictionary<Thing, int> AssignedAmmo = new Dictionary<Thing, int>();
         public readonly Dictionary<Thing, string> AssignedWeapons = new Dictionary<Thing, string>();
+        public readonly Dictionary<Thing, string> PreviouslyAssignedWeapons = new Dictionary<Thing, string>();
         public Loadout AssignedLoadout;
         public bool AutoLoadout;
         public bool IsCapable;
@@ -49,10 +50,8 @@ namespace EquipmentManager
             IsCapable = !Pawn.Dead && !Pawn.Downed && !Pawn.InMentalState && !Pawn.InContainerEnclosed &&
                 !Pawn.Drafted && !HealthAIUtility.ShouldSeekMedicalRest(Pawn);
             var pawnLoadout = EquipmentManager.GetPawnLoadout(Pawn);
-            AutoLoadout = pawnLoadout.Automatic;
-            AssignedLoadout = !AutoLoadout
-                ? EquipmentManager.GetLoadout(pawnLoadout.LoadoutId) ?? EquipmentManager.GetLoadouts().First()
-                : null;
+            AutoLoadout = pawnLoadout?.Automatic ?? false;
+            AssignedLoadout = AutoLoadout ? null : EquipmentManager.GetLoadout(pawnLoadout?.LoadoutId);
         }
     }
 }

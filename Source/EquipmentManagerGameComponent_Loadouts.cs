@@ -8,13 +8,13 @@ namespace EquipmentManager
 {
     internal partial class EquipmentManagerGameComponent
     {
-        private List<Loadout> _loadouts = new List<Loadout>(Loadout.DefaultLoadouts);
-        private List<PawnLoadout> _pawnLoadouts = new List<PawnLoadout>();
+        private List<Loadout> _loadouts;
+        private List<PawnLoadout> _pawnLoadouts;
 
         public Loadout AddLoadout()
         {
             var id = _loadouts.Any() ? _loadouts.Max(l => l.Id) + 1 : 0;
-            var loadout = new Loadout(id, false) {Label = $"{id}"};
+            var loadout = new Loadout(id) {Label = $"{id}"};
             _loadouts.Add(loadout);
             return loadout;
         }
@@ -47,62 +47,61 @@ namespace EquipmentManager
 
         public void DeleteLoadout(Loadout loadout)
         {
-            foreach (var pawnLoadout in _pawnLoadouts.Where(pl => pl.LoadoutId == loadout.Id).ToList())
+            foreach (var pawnLoadout in _pawnLoadouts.Where(pl => pl.LoadoutId == loadout.Id))
             {
-                _ = _pawnLoadouts.Remove(pawnLoadout);
+                pawnLoadout.LoadoutId = null;
             }
             _ = _loadouts.Remove(loadout);
         }
 
         private void ExposeData_Loadouts()
         {
-            _ = _pawnLoadouts.RemoveAll(pawnLoadout => pawnLoadout.Pawn?.Destroyed ?? true);
+            if (Scribe.mode == LoadSaveMode.Saving) { _ = _pawnLoadouts?.RemoveAll(pl => pl.Pawn?.Destroyed ?? true); }
             Scribe_Collections.Look(ref _loadouts, "Loadouts", LookMode.Deep);
             Scribe_Collections.Look(ref _pawnLoadouts, "PawnLoadouts", LookMode.Deep);
         }
 
-        public Loadout GetLoadout(int id)
+        public Loadout GetLoadout(int? id)
         {
-            return GetLoadouts().FirstOrDefault(loadout => loadout.Id == id);
+            return id == null ? null : GetLoadouts().FirstOrDefault(loadout => loadout.Id == id);
         }
 
         public Loadout GetLoadout([NotNull] Pawn pawn)
         {
-            return pawn == null
-                ? throw new ArgumentNullException(nameof(pawn))
-                : GetLoadout(GetPawnLoadout(pawn).LoadoutId);
+            if (pawn == null) { throw new ArgumentNullException(nameof(pawn)); }
+            if (_pawnLoadouts == null) { _pawnLoadouts = new List<PawnLoadout>(); }
+            return GetLoadout(GetPawnLoadout(pawn)?.LoadoutId);
         }
 
         public IEnumerable<Loadout> GetLoadouts()
         {
-            if (_loadouts == null || _loadouts.Count == 0) { _loadouts = new List<Loadout>(Loadout.DefaultLoadouts); }
-            return _loadouts;
+            return _loadouts ?? (_loadouts = new List<Loadout>(Loadout.DefaultLoadouts));
         }
 
         public PawnLoadout GetPawnLoadout([NotNull] Pawn pawn)
         {
             if (pawn == null) { throw new ArgumentNullException(nameof(pawn)); }
-            var pawnLoadout = _pawnLoadouts.FirstOrDefault(pl => pl.Pawn == pawn);
+            if (_pawnLoadouts == null) { _pawnLoadouts = new List<PawnLoadout>(); }
+            var pawnLoadout =
+                _pawnLoadouts.FirstOrDefault(pl => pl.Pawn != null && pl.Pawn.thingIDNumber == pawn.thingIDNumber);
             if (pawnLoadout != null) { return pawnLoadout; }
-            pawnLoadout = new PawnLoadout {Pawn = pawn, LoadoutId = 0, Automatic = true};
+            pawnLoadout = new PawnLoadout {Pawn = pawn, LoadoutId = null, Automatic = true};
             _pawnLoadouts.Add(pawnLoadout);
             return pawnLoadout;
         }
 
-        public void SetPawnLoadout([NotNull] Pawn pawn, [NotNull] Loadout loadout, bool automatic)
+        public void SetPawnLoadout([NotNull] Pawn pawn, Loadout loadout, bool automatic)
         {
             if (pawn == null) { throw new ArgumentNullException(nameof(pawn)); }
-            if (loadout == null) { throw new ArgumentNullException(nameof(loadout)); }
-            var pawnLoadout = _pawnLoadouts.FirstOrDefault(pl => pl.Pawn == pawn);
-            if (pawnLoadout == null)
+            if (_pawnLoadouts == null) { _pawnLoadouts = new List<PawnLoadout>(); }
+            var pawnLoadout =
+                _pawnLoadouts.FirstOrDefault(pl => pl.Pawn != null && pl.Pawn.thingIDNumber == pawn.thingIDNumber);
+            if (pawnLoadout != null)
             {
-                _pawnLoadouts.Add(new PawnLoadout {Pawn = pawn, LoadoutId = loadout.Id, Automatic = automatic});
-            }
-            else
-            {
-                pawnLoadout.LoadoutId = loadout.Id;
+                pawnLoadout.LoadoutId = loadout?.Id;
                 pawnLoadout.Automatic = automatic;
             }
+            else { _pawnLoadouts.Add(new PawnLoadout {Pawn = pawn, LoadoutId = loadout?.Id, Automatic = automatic}); }
         }
     }
 }

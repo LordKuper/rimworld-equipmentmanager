@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using EquipmentManager.CustomWidgets;
 using UnityEngine;
 using Verse;
@@ -58,7 +59,7 @@ namespace EquipmentManager.Windows
             }
         }
 
-        private void DoRuleSettings_MeleeWeapons(Rect rect)
+        private void DoItemProperties_MeleeWeapons(Rect rect)
         {
             var font = Text.Font;
             var anchor = Text.Anchor;
@@ -68,23 +69,24 @@ namespace EquipmentManager.Windows
             Widgets.Label(labelRect, Strings.ItemProperties);
             Text.Font = font;
             Text.Anchor = anchor;
-            var settingsRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
+            var propertiesRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
                 rect.yMax - (labelRect.yMax + UiHelpers.ElementGap));
-            var columnWidth = (settingsRect.width - (UiHelpers.ElementGap * (UiHelpers.BoolSettingsColumnCount - 1))) /
+            var columnWidth =
+                (propertiesRect.width - (UiHelpers.ElementGap * (UiHelpers.BoolSettingsColumnCount - 1))) /
                 UiHelpers.BoolSettingsColumnCount;
             for (var i = 1; i < UiHelpers.BoolSettingsColumnCount; i++)
             {
                 UiHelpers.DoGapLineVertical(new Rect(
-                    settingsRect.x + (i * (columnWidth + UiHelpers.ElementGap)) - UiHelpers.ElementGap, settingsRect.y,
-                    UiHelpers.ElementGap, settingsRect.height));
+                    propertiesRect.x + (i * (columnWidth + UiHelpers.ElementGap)) - UiHelpers.ElementGap,
+                    propertiesRect.y, UiHelpers.ElementGap, propertiesRect.height));
             }
-            DoRuleSetting(UiHelpers.GetBoolSettingRect(settingsRect, 0, columnWidth),
+            DoRuleSetting(UiHelpers.GetBoolSettingRect(propertiesRect, 0, columnWidth),
                 () => SelectedMeleeWeaponRule.UsableWithShields, value =>
                 {
                     SelectedMeleeWeaponRule.UsableWithShields = value;
                     UpdateAvailableItems_MeleeWeapons();
                 }, Strings.MeleeWeapons.UsableWithShields, Strings.MeleeWeapons.UsableWithShieldsTooltip);
-            DoRuleSetting(UiHelpers.GetBoolSettingRect(settingsRect, 1, columnWidth),
+            DoRuleSetting(UiHelpers.GetBoolSettingRect(propertiesRect, 1, columnWidth),
                 () => SelectedMeleeWeaponRule.Rottable, value =>
                 {
                     SelectedMeleeWeaponRule.Rottable = value;
@@ -94,9 +96,11 @@ namespace EquipmentManager.Windows
 
         private void DoTab_MeleeWeapons(Rect rect)
         {
-            const int settingsCount = 2;
-            GetWeaponRuleTabRects(rect, settingsCount, out var buttonRowRect, out var labelRect, out var equipModeRect,
-                out var settingsRect, out var availableItemsRect, out var exclusiveItemsRect, out var statsRect);
+            const int ruleSettingsCount = 0;
+            const int itemPropertiesCount = 2;
+            GetWeaponRuleTabRects(rect, ruleSettingsCount, itemPropertiesCount, out var buttonRowRect,
+                out var labelRect, out var equipModeRect, out _, out var itemPropertiesRect, out var availableItemsRect,
+                out var exclusiveItemsRect, out var statsRect);
             DoButtonRow_MeleeWeapons(buttonRowRect);
             UiHelpers.DoGapLineHorizontal(new Rect(rect.x, buttonRowRect.yMax, rect.width, UiHelpers.ElementGap));
             if (SelectedMeleeWeaponRule == null) { LabelInput.DoLabelWithoutInput(labelRect, Strings.NoRuleSelected); }
@@ -108,8 +112,9 @@ namespace EquipmentManager.Windows
                 DoWeaponRuleEquipMode(equipModeRect, () => SelectedMeleeWeaponRule.EquipMode,
                     mode => SelectedMeleeWeaponRule.EquipMode = mode);
                 UiHelpers.DoGapLineHorizontal(new Rect(rect.x, labelRect.yMax, rect.width, UiHelpers.ElementGap));
-                DoRuleSettings_MeleeWeapons(settingsRect);
-                UiHelpers.DoGapLineHorizontal(new Rect(rect.x, settingsRect.yMax, rect.width, UiHelpers.ElementGap));
+                DoItemProperties_MeleeWeapons(itemPropertiesRect);
+                UiHelpers.DoGapLineHorizontal(new Rect(rect.x, itemPropertiesRect.yMax, rect.width,
+                    UiHelpers.ElementGap));
                 DoRuleStats(statsRect, StatHelper.MeleeWeaponStatDefs, SelectedMeleeWeaponRule.GetStatWeights(), def =>
                 {
                     SelectedMeleeWeaponRule.SetStatWeight(def, 0f, false);
@@ -145,19 +150,53 @@ namespace EquipmentManager.Windows
                     {
                         SelectedMeleeWeaponRule.AddBlacklistedItem(def);
                         UpdateAvailableItems_MeleeWeapons();
-                    });
+                    }, def => GetMeleeWeaponDefTooltip(def, SelectedMeleeWeaponRule));
                 UiHelpers.DoGapLineHorizontal(new Rect(rect.x, exclusiveItemsRect.yMax, rect.width,
                     UiHelpers.ElementGap));
                 DoAvailableItems(availableItemsRect, _globallyAvailableMeleeWeapons, def =>
-                {
-                    SelectedMeleeWeaponRule.AddBlacklistedItem(def);
-                    UpdateAvailableItems_MeleeWeapons();
-                }, _currentlyAvailableMeleeWeapons, thing =>
-                {
-                    SelectedMeleeWeaponRule.AddBlacklistedItem(thing.def);
-                    UpdateAvailableItems_MeleeWeapons();
-                }, UpdateAvailableItems_MeleeWeapons);
+                    {
+                        SelectedMeleeWeaponRule.AddBlacklistedItem(def);
+                        UpdateAvailableItems_MeleeWeapons();
+                    }, def => GetMeleeWeaponDefTooltip(def, SelectedMeleeWeaponRule), _currentlyAvailableMeleeWeapons,
+                    thing =>
+                    {
+                        SelectedMeleeWeaponRule.AddBlacklistedItem(thing.def);
+                        UpdateAvailableItems_MeleeWeapons();
+                    }, thing => GetMeleeWeaponTooltip(thing, SelectedMeleeWeaponRule),
+                    UpdateAvailableItems_MeleeWeapons);
             }
+        }
+
+        private string GetMeleeWeaponDefTooltip(ThingDef def, ItemRule rule)
+        {
+            var stringBuilder = new StringBuilder();
+            _ = stringBuilder.AppendLine(def.LabelCap);
+            var stats = rule.GetStatWeights().Where(sw => sw.StatDef != null).Select(sw => sw.StatDef)
+                .Union(rule.GetStatLimits().Where(sl => sl.StatDef != null).Select(sl => sl.StatDef)).ToHashSet();
+            if (!stats.Any()) { return stringBuilder.ToString(); }
+            var cache = EquipmentManager.GetMeleeWeaponDefCache(def, RimworldTime.GetMapTime(Find.CurrentMap));
+            _ = stringBuilder.AppendLine();
+            foreach (var stat in stats)
+            {
+                _ = stringBuilder.AppendLine($"- {stat.LabelCap} = {cache.GetStatValue(stat):N2}");
+            }
+            return stringBuilder.ToString();
+        }
+
+        private string GetMeleeWeaponTooltip(Thing thing, ItemRule rule)
+        {
+            var stringBuilder = new StringBuilder();
+            _ = stringBuilder.AppendLine(thing.LabelCapNoCount);
+            var stats = rule.GetStatWeights().Where(sw => sw.StatDef != null).Select(sw => sw.StatDef)
+                .Union(rule.GetStatLimits().Where(sl => sl.StatDef != null).Select(sl => sl.StatDef)).ToHashSet();
+            if (!stats.Any()) { return stringBuilder.ToString(); }
+            var cache = EquipmentManager.GetMeleeWeaponCache(thing, RimworldTime.GetMapTime(Find.CurrentMap));
+            _ = stringBuilder.AppendLine();
+            foreach (var stat in stats)
+            {
+                _ = stringBuilder.AppendLine($"- {stat.LabelCap} = {cache.GetStatValue(stat):N2}");
+            }
+            return stringBuilder.ToString();
         }
 
         private void PreClose_MeleeWeapons()
@@ -171,10 +210,12 @@ namespace EquipmentManager.Windows
             _globallyAvailableMeleeWeapons.Clear();
             _currentlyAvailableMeleeWeapons.Clear();
             if (SelectedMeleeWeaponRule == null) { return; }
+            var map = Find.CurrentMap;
             SelectedMeleeWeaponRule.UpdateGloballyAvailableItems();
-            _globallyAvailableMeleeWeapons.AddRange(SelectedMeleeWeaponRule.GetGloballyAvailableItemsSorted());
+            _globallyAvailableMeleeWeapons.AddRange(
+                SelectedMeleeWeaponRule.GetGloballyAvailableItemsSorted(RimworldTime.GetMapTime(map)));
             _currentlyAvailableMeleeWeapons.AddRange(
-                SelectedMeleeWeaponRule.GetCurrentlyAvailableItemsSorted(Find.CurrentMap));
+                SelectedMeleeWeaponRule.GetCurrentlyAvailableItemsSorted(map, RimworldTime.GetMapTime(map)));
         }
     }
 }

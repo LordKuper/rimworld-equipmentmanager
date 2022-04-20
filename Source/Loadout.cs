@@ -19,14 +19,14 @@ namespace EquipmentManager
 
         public static readonly IEnumerable<Loadout> DefaultLoadouts = new[]
         {
-            new Loadout(0, true)
+            new Loadout(0)
             {
                 Label = Strings.Default.NoLoadout,
                 Priority = 0,
                 _primaryRuleType = PrimaryWeaponType.None,
                 DropUnassignedWeapons = false
             },
-            new Loadout(1, false)
+            new Loadout(1)
             {
                 Label = Strings.Default.Sniper,
                 Priority = 5,
@@ -40,7 +40,7 @@ namespace EquipmentManager
                 PreferredSkills = {"Shooting"},
                 DropUnassignedWeapons = true
             },
-            new Loadout(2, false)
+            new Loadout(2)
             {
                 Label = Strings.Default.Assault,
                 Priority = 5,
@@ -53,7 +53,7 @@ namespace EquipmentManager
                 PawnCapacities = {{"Violent", true}},
                 DropUnassignedWeapons = true
             },
-            new Loadout(3, false)
+            new Loadout(3)
             {
                 Label = Strings.Default.Support,
                 Priority = 5,
@@ -66,7 +66,7 @@ namespace EquipmentManager
                 PawnCapacities = {{"Violent", true}},
                 DropUnassignedWeapons = true
             },
-            new Loadout(4, false)
+            new Loadout(4)
             {
                 Label = Strings.Default.Brawler,
                 Priority = 5,
@@ -77,7 +77,7 @@ namespace EquipmentManager
                 PawnCapacities = {{"Violent", true}},
                 DropUnassignedWeapons = true
             },
-            new Loadout(5, false)
+            new Loadout(5)
             {
                 Label = Strings.Default.Pacifist,
                 Priority = 5,
@@ -95,7 +95,6 @@ namespace EquipmentManager
         private Dictionary<string, bool> _pawnTraits = new Dictionary<string, bool>();
         private HashSet<string> _preferredSkills = new HashSet<string>();
         private PrimaryWeaponType _primaryRuleType = PrimaryWeaponType.None;
-        private bool _protected;
         private List<int> _rangedSidearmRules = new List<int>();
         private HashSet<string> _undesirableSkills = new HashSet<string>();
         public bool DropUnassignedWeapons = true;
@@ -108,13 +107,12 @@ namespace EquipmentManager
         [UsedImplicitly]
         public Loadout() { }
 
-        public Loadout(int id, bool isProtected)
+        public Loadout(int id)
         {
             _id = id;
-            _protected = isProtected;
         }
 
-        public Loadout(int id, string label, bool isProtected, int priority, PrimaryWeaponType primaryRuleType,
+        public Loadout(int id, string label, int priority, PrimaryWeaponType primaryRuleType,
             int? primaryRangedWeaponRuleId, int? primaryMeleeWeaponRuleId, List<int> rangedSidearmRules,
             List<int> meleeSidearmRules, int? toolRuleId, Dictionary<string, bool> pawnTraits,
             Dictionary<string, bool> pawnCapacities, HashSet<string> preferredSkills, HashSet<string> undesirableSkills,
@@ -122,7 +120,6 @@ namespace EquipmentManager
         {
             _id = id;
             Label = label;
-            _protected = isProtected;
             Priority = priority;
             _primaryRuleType = primaryRuleType;
             PrimaryRangedWeaponRuleId = primaryRangedWeaponRuleId;
@@ -199,8 +196,6 @@ namespace EquipmentManager
             }
         }
 
-        public bool Protected => _protected;
-
         public List<int> RangedSidearmRules
         {
             get
@@ -223,7 +218,6 @@ namespace EquipmentManager
         {
             Scribe_Values.Look(ref _id, nameof(Id));
             Scribe_Values.Look(ref Label, nameof(Label));
-            Scribe_Values.Look(ref _protected, nameof(Protected));
             Scribe_Values.Look(ref Priority, nameof(Priority));
             Scribe_Values.Look(ref _primaryRuleType, nameof(PrimaryRuleType));
             Scribe_Values.Look(ref PrimaryRangedWeaponRuleId, nameof(PrimaryRangedWeaponRuleId));
