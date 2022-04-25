@@ -56,16 +56,41 @@ namespace EquipmentManager
                     Label = Strings.Default.HighestDps,
                     EquipMode = WeaponEquipMode.BestOne,
                     Rottable = false,
-                    StatWeights = new List<StatWeight>(DefaultStatWeights),
+                    StatWeights = new List<StatWeight>(DefaultStatWeights
+                        .Where(sw => !new[] {"Mass"}.Contains(sw.StatDefName)).Union(new[]
+                        {
+                            new StatWeight("Mass", false) {Weight = -1.0f}
+                        })),
                     BlacklistedItemsDefNames = new HashSet<string>(DefaultBlacklist)
                 },
                 new MeleeWeaponRule(1, false)
                 {
-                    Label = Strings.Default.OneHandHighestDps,
+                    Label = Strings.Default.Sharpest,
                     EquipMode = WeaponEquipMode.BestOne,
                     Rottable = false,
-                    UsableWithShields = true,
-                    StatWeights = new List<StatWeight>(DefaultStatWeights),
+                    StatWeights = new List<StatWeight>(DefaultStatWeights
+                        .Where(sw => !new[] {"MeleeWeapon_AverageDPS"}.Contains(sw.StatDefName)).Union(new[]
+                        {
+                            new StatWeight(
+                                CustomMeleeWeaponStats.GetStatDefName(CustomMeleeWeaponStat.DpsSharp),
+                                false) {Weight = 2.0f},
+                            new StatWeight("MeleeWeapon_AverageDPS", false) {Weight = 0.5f}
+                        })),
+                    BlacklistedItemsDefNames = new HashSet<string>(DefaultBlacklist)
+                },
+                new MeleeWeaponRule(2, false)
+                {
+                    Label = Strings.Default.Bluntest,
+                    EquipMode = WeaponEquipMode.BestOne,
+                    Rottable = false,
+                    StatWeights = new List<StatWeight>(DefaultStatWeights
+                        .Where(sw => !new[] {"MeleeWeapon_AverageDPS"}.Contains(sw.StatDefName)).Union(new[]
+                        {
+                            new StatWeight(
+                                CustomMeleeWeaponStats.GetStatDefName(CustomMeleeWeaponStat.DpsBlunt),
+                                false) {Weight = 2.0f},
+                            new StatWeight("MeleeWeapon_AverageDPS", false) {Weight = 0.5f}
+                        })),
                     BlacklistedItemsDefNames = new HashSet<string>(DefaultBlacklist)
                 }
             };

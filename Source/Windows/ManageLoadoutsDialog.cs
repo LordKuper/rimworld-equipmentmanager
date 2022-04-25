@@ -4,6 +4,7 @@ using EquipmentManager.CustomWidgets;
 using RimWorld;
 using UnityEngine;
 using Verse;
+using Verse.Sound;
 using Strings = EquipmentManager.Resources.Strings.Loadouts;
 
 namespace EquipmentManager.Windows
@@ -13,6 +14,7 @@ namespace EquipmentManager.Windows
         private static Vector2 _availablePawnsScrollPosition;
         private static EquipmentManagerGameComponent _equipmentManager;
         private static Vector2 _scrollPosition;
+        private float _scrollViewHeight;
         private Loadout _selectedLoadout;
 
         public ManageLoadoutsDialog(Loadout selectedLoadout)
@@ -68,7 +70,7 @@ namespace EquipmentManager.Windows
                 new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
                     rect.yMax - (labelRect.yMax + UiHelpers.ElementGap)), new Color(1f, 1f, 1f, 0.05f),
                 new Color(1f, 1f, 1f, 0.4f), AvailablePawnsColumnCount, UiHelpers.ElementGap,
-                ref _availablePawnsScrollPosition, SelectedLoadout.GetAvailablePawns());
+                ref _availablePawnsScrollPosition, SelectedLoadout.GetAvailablePawnsOrdered());
         }
 
         private void DoButtonRow(Rect rect)
@@ -121,7 +123,7 @@ namespace EquipmentManager.Windows
                         UiHelpers.ButtonHeight), Strings.Log)) { Find.WindowStack.Add(new LogDialog()); }
         }
 
-        private void DoLoadoutSettings(Rect rect)
+        private float DoLoadoutSettings(Rect rect)
         {
             var font = Text.Font;
             var anchor = Text.Anchor;
@@ -159,6 +161,7 @@ namespace EquipmentManager.Windows
             Text.Anchor = TextAnchor.MiddleLeft;
             Widgets.Label(dropUnassignedWeaponsLabelRect, Strings.DropUnassignedWeapons);
             Text.Anchor = anchor;
+            return dropUnassignedWeaponsRect.yMax - rect.yMin;
         }
 
         private void DoMeleeSidearmRules(Rect rect)
@@ -200,38 +203,215 @@ namespace EquipmentManager.Windows
             }
         }
 
-        private void DoPawnCapacities(Rect rect)
+        private float DoPawnCapacities(Rect rect)
+        {
+            var columnWidth = (rect.width - UiHelpers.ElementGap) / 2f;
+            var weightsRect = new Rect(rect.x, rect.y, columnWidth, 1f);
+            var gapRect = new Rect(weightsRect.xMax, rect.y, UiHelpers.ElementGap, 1f);
+            var limitsRect = new Rect(gapRect.xMax, rect.y, columnWidth, 1f);
+            gapRect.height = Math.Max(DoPawnCapacityWeights(weightsRect), DoPawnCapacityLimits(limitsRect));
+            UiHelpers.DoGapLineVertical(gapRect);
+            return gapRect.height;
+        }
+
+        private float DoPawnCapacityLimits(Rect rect)
+        {
+            var font = Text.Font;
+            var anchor = Text.Anchor;
+            Text.Font = GameFont.Medium;
+            Text.Anchor = TextAnchor.MiddleLeft;
+            var labelRect = new Rect(rect.x, rect.y, rect.width * 3f / 4f, Text.LineHeight);
+            Widgets.Label(labelRect, Strings.PawnCapacityLimits);
+            Text.Font = GameFont.Small;
+            var buttonRect = new Rect(labelRect.xMax + UiHelpers.ElementGap, rect.y,
+                rect.width - labelRect.width - UiHelpers.ElementGap, labelRect.height);
+            if (Widgets.ButtonText(buttonRect, Resources.Strings.Add))
+            {
+                Find.WindowStack.Add(new FloatMenu(DefDatabase<PawnCapacityDef>.AllDefs
+                    .Where(def =>
+                        def.showOnHumanlikes &&
+                        SelectedLoadout.PawnCapacityLimits.All(pcl => pcl.PawnCapacityDefName != def.defName))
+                    .OrderBy(def => def.label).Select(def => new FloatMenuOption(def.LabelCap,
+                        () => SelectedLoadout.PawnCapacityLimits.Add(new PawnCapacityLimit(def.defName)))).ToList()));
+            }
+            var rowRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width, 1f);
+            for (var i = 0; i < SelectedLoadout.PawnCapacityLimits.Count; i++)
+            {
+                var limit = SelectedLoadout.PawnCapacityLimits[i];
+                rowRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap + (UiHelpers.ListRowHeight * i),
+                    rect.width, UiHelpers.ListRowHeight).ContractedBy(4f);
+                var deleteButtonRect = new Rect(rowRect.x, rowRect.y, rowRect.height, rowRect.height).ContractedBy(4f);
+                if (Widgets.ButtonImageFitted(deleteButtonRect, Resources.Textures.Delete))
+                {
+                    _ = SelectedLoadout.PawnCapacityLimits.Remove(limit);
+                    break;
+                }
+                var statLabelRect = new Rect(deleteButtonRect.xMax + (UiHelpers.ElementGap / 2f), rowRect.y,
+                    (rowRect.width / 2f) - deleteButtonRect.width - (UiHelpers.ElementGap / 2f), rowRect.height);
+                if (limit.PawnCapacityDef != null && !limit.PawnCapacityDef.description.NullOrEmpty())
+                {
+                    TooltipHandler.TipRegion(statLabelRect, limit.PawnCapacityDef.description);
+                }
+                _ = Widgets.LabelFit(statLabelRect, limit.PawnCapacityDef?.LabelCap ?? limit.PawnCapacityDefName);
+                var statInputRect = new Rect(statLabelRect.xMax + UiHelpers.ElementGap, rowRect.y,
+                    rowRect.xMax - statLabelRect.xMax - UiHelpers.ElementGap, rowRect.height);
+                var limitInputWidth = (statInputRect.width - (UiHelpers.ElementGap * 3)) / 2f;
+                var minValueRect = new Rect(statInputRect.x, statInputRect.y, limitInputWidth, statInputRect.height);
+                limit.MinValueBuffer = Widgets.TextField(minValueRect, limit.MinValueBuffer, 10);
+                limit.MinValue = PawnCapacityLimit.Parse(ref limit.MinValueBuffer);
+                var dashRect = new Rect(minValueRect.xMax, statInputRect.y, UiHelpers.ElementGap * 3,
+                    statInputRect.height);
+                Text.Anchor = TextAnchor.MiddleCenter;
+                Widgets.Label(dashRect, "-");
+                Text.Anchor = TextAnchor.UpperLeft;
+                var maxValueRect = new Rect(dashRect.xMax, statInputRect.y, limitInputWidth, statInputRect.height);
+                limit.MaxValueBuffer = Widgets.TextField(maxValueRect, limit.MaxValueBuffer, 10);
+                limit.MaxValue = PawnCapacityLimit.Parse(ref limit.MaxValueBuffer);
+            }
+            Text.Font = font;
+            Text.Anchor = anchor;
+            return rowRect.yMax - rect.yMin;
+        }
+
+        private float DoPawnCapacityWeights(Rect rect)
+        {
+            var font = Text.Font;
+            var anchor = Text.Anchor;
+            Text.Font = GameFont.Medium;
+            Text.Anchor = TextAnchor.MiddleLeft;
+            var labelRect = new Rect(rect.x, rect.y, rect.width * 3f / 4f, Text.LineHeight);
+            Widgets.Label(labelRect, Strings.PawnCapacityWeights);
+            Text.Font = GameFont.Small;
+            var buttonRect = new Rect(labelRect.xMax + UiHelpers.ElementGap, rect.y,
+                rect.width - labelRect.width - UiHelpers.ElementGap, labelRect.height);
+            if (Widgets.ButtonText(buttonRect, Resources.Strings.Add))
+            {
+                Find.WindowStack.Add(new FloatMenu(DefDatabase<PawnCapacityDef>.AllDefs
+                    .Where(def =>
+                        def.showOnHumanlikes &&
+                        SelectedLoadout.PawnCapacityWeights.All(pcw => pcw.PawnCapacityDefName != def.defName))
+                    .OrderBy(def => def.label).Select(def => new FloatMenuOption(def.LabelCap,
+                        () => SelectedLoadout.PawnCapacityWeights.Add(new PawnCapacityWeight(def.defName)))).ToList()));
+            }
+            var rowRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width, 1f);
+            for (var i = 0; i < SelectedLoadout.PawnCapacityWeights.Count; i++)
+            {
+                var weight = SelectedLoadout.PawnCapacityWeights[i];
+                rowRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap + (UiHelpers.ListRowHeight * i),
+                    rect.width, UiHelpers.ListRowHeight).ContractedBy(4f);
+                var deleteButtonRect = new Rect(rowRect.x, rowRect.y, rowRect.height, rowRect.height).ContractedBy(4f);
+                if (Widgets.ButtonImageFitted(deleteButtonRect, Resources.Textures.Delete))
+                {
+                    _ = SelectedLoadout.PawnCapacityWeights.Remove(weight);
+                    break;
+                }
+                var statLabelRect = new Rect(deleteButtonRect.xMax + (UiHelpers.ElementGap / 2f), rowRect.y,
+                    (rowRect.width / 2f) - deleteButtonRect.width - (UiHelpers.ElementGap / 2f), rowRect.height);
+                if (weight.PawnCapacityDef != null && !weight.PawnCapacityDef.description.NullOrEmpty())
+                {
+                    TooltipHandler.TipRegion(statLabelRect, weight.PawnCapacityDef.description);
+                }
+                _ = Widgets.LabelFit(statLabelRect, weight.PawnCapacityDef?.LabelCap ?? weight.PawnCapacityDefName);
+                var statInputRect = new Rect(statLabelRect.xMax + UiHelpers.ElementGap, rowRect.y,
+                    rowRect.xMax - statLabelRect.xMax - UiHelpers.ElementGap, rowRect.height);
+                weight.Weight = Widgets.HorizontalSlider(statInputRect, weight.Weight,
+                    -1 * PawnCapacityWeight.WeightCap, PawnCapacityWeight.WeightCap, true, $"{weight.Weight:N1}",
+                    roundTo: 0.1f);
+            }
+            Text.Font = font;
+            Text.Anchor = anchor;
+            return rowRect.yMax - rect.yMin;
+        }
+
+        private float DoPawnPassions(Rect rect)
         {
             var font = Text.Font;
             var anchor = Text.Anchor;
             Text.Font = GameFont.Medium;
             Text.Anchor = TextAnchor.MiddleLeft;
             var labelRect = new Rect(rect.x, rect.y, rect.width, Text.LineHeight);
-            Widgets.Label(labelRect, Strings.PawnCapacities);
-            Text.Font = font;
-            Text.Anchor = anchor;
+            Widgets.Label(labelRect, Strings.PawnPassions);
             var settingsRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
                 UiHelpers.ListRowHeight);
             var index = 0;
-            foreach (var pawnCapacity in SelectedLoadout.PawnCapacities.ToList())
+            Text.Font = GameFont.Small;
+            Text.Anchor = TextAnchor.MiddleLeft;
+            foreach (var passionLimit in SelectedLoadout.PassionLimits.Where(pl => pl.SkillDef != null))
             {
-                var tagRect = GetPawnSettingRect(settingsRect, index);
-                var label = Enum.TryParse<WorkTags>(pawnCapacity.Key, out var tag)
-                    ? tag.LabelTranslated().CapitalizeFirst()
-                    : pawnCapacity.Key;
-                DoPawnSetting(tagRect, pawnCapacity.Value,
-                    value => SelectedLoadout.PawnCapacities[pawnCapacity.Key] = value,
-                    () => _ = SelectedLoadout.PawnCapacities.Remove(pawnCapacity.Key), label, null);
+                var passionRect = GetPawnSettingRect(settingsRect, index);
+                var deleteButtonRect = new Rect(passionRect.x, passionRect.y, passionRect.height, passionRect.height)
+                    .ContractedBy(4f);
+                if (Widgets.ButtonImageFitted(deleteButtonRect, Resources.Textures.Delete))
+                {
+                    _ = SelectedLoadout.PassionLimits.Remove(passionLimit);
+                    break;
+                }
+                var passionIconRect = new Rect(deleteButtonRect.xMax + (UiHelpers.ElementGap / 2f), passionRect.y,
+                    passionRect.height, passionRect.height).ContractedBy(4f);
+                switch (passionLimit.Value)
+                {
+                    case PassionValue.None:
+                        GUI.DrawTexture(passionIconRect, Widgets.CheckboxOffTex, ScaleMode.ScaleToFit);
+                        if (Widgets.ButtonInvisible(passionRect))
+                        {
+                            SoundDefOf.Checkbox_TurnedOn.PlayOneShotOnCamera();
+                            passionLimit.Value = PassionValue.Minor;
+                        }
+                        break;
+                    case PassionValue.Minor:
+                        GUI.DrawTexture(passionIconRect, Resources.Textures.PassionMinor, ScaleMode.ScaleToFit);
+                        if (Widgets.ButtonInvisible(passionRect))
+                        {
+                            SoundDefOf.Checkbox_TurnedOn.PlayOneShotOnCamera();
+                            passionLimit.Value = PassionValue.Major;
+                        }
+                        break;
+                    case PassionValue.Major:
+                        GUI.DrawTexture(passionIconRect, Resources.Textures.PassionMajor, ScaleMode.ScaleToFit);
+                        if (Widgets.ButtonInvisible(passionRect))
+                        {
+                            SoundDefOf.Checkbox_TurnedOn.PlayOneShotOnCamera();
+                            passionLimit.Value = PassionValue.Any;
+                        }
+                        break;
+                    case PassionValue.Any:
+                        GUI.DrawTexture(
+                            new Rect(passionIconRect.x, passionIconRect.y + (passionIconRect.height / 4f),
+                                passionIconRect.width * 3f / 4f, passionIconRect.height * 3f / 4f).ContractedBy(2f),
+                            Resources.Textures.PassionMinor, ScaleMode.ScaleToFit);
+                        GUI.DrawTexture(
+                            new Rect(passionIconRect.x + (passionIconRect.width / 4f), passionIconRect.y,
+                                passionIconRect.width * 3 / 4f, passionIconRect.height * 3 / 4f).ContractedBy(2f),
+                            Resources.Textures.PassionMajor, ScaleMode.ScaleToFit);
+                        if (Widgets.ButtonInvisible(passionRect))
+                        {
+                            SoundDefOf.Checkbox_TurnedOn.PlayOneShotOnCamera();
+                            passionLimit.Value = PassionValue.None;
+                        }
+                        break;
+                }
+                var skillLabelRect = new Rect(passionIconRect.xMax + (UiHelpers.ElementGap / 2f), passionRect.y,
+                    passionRect.width - passionIconRect.width - (UiHelpers.ElementGap / 2f), passionRect.height);
+                if (!passionLimit.SkillDef.description.NullOrEmpty())
+                {
+                    TooltipHandler.TipRegion(skillLabelRect, passionLimit.SkillDef.description);
+                }
+                Widgets.Label(skillLabelRect, passionLimit.SkillDef.skillLabel.CapitalizeFirst());
                 index++;
             }
-            if (Widgets.ButtonText(GetPawnSettingRect(settingsRect, index), Resources.Strings.Add))
+            var settingRect = GetPawnSettingRect(settingsRect, index);
+            if (Widgets.ButtonText(settingRect, Resources.Strings.Add))
             {
-                Find.WindowStack.Add(new FloatMenu(Enum.GetValues(typeof(WorkTags)).OfType<WorkTags>()
-                    .Where(tag => !SelectedLoadout.PawnCapacities.ContainsKey(tag.ToString()))
-                    .OrderBy(tag => tag.LabelTranslated().CapitalizeFirst()).Select(tag =>
-                        new FloatMenuOption(tag.LabelTranslated().CapitalizeFirst(),
-                            () => SelectedLoadout.PawnCapacities[tag.ToString()] = true)).ToList()));
+                Find.WindowStack.Add(new FloatMenu(DefDatabase<SkillDef>.AllDefsListForReading
+                    .Where(def => !SelectedLoadout.PassionLimits.Select(pl => pl.SkillDefName).Contains(def.defName))
+                    .OrderBy(def => def.defName).Select(def =>
+                        new FloatMenuOption(
+                            def.skillLabel.NullOrEmpty() ? def.defName : def.skillLabel.CapitalizeFirst(),
+                            () => SelectedLoadout.PassionLimits.Add(new PassionLimit(def.defName)))).ToList()));
             }
+            Text.Font = font;
+            Text.Anchor = anchor;
+            return settingRect.yMax - rect.yMin;
         }
 
         private static void DoPawnSetting(Rect rect, bool value, Action<bool> setter, Action deleteAction, string label,
@@ -252,31 +432,245 @@ namespace EquipmentManager.Windows
             Text.Anchor = anchor;
         }
 
-        private void DoPawnSkills(Rect rect)
+        private float DoPawnSkillLimits(Rect rect)
         {
             var font = Text.Font;
             var anchor = Text.Anchor;
             Text.Font = GameFont.Medium;
             Text.Anchor = TextAnchor.MiddleLeft;
-            var labelRect = new Rect(rect.x, rect.y, rect.width, Text.LineHeight);
-            Widgets.Label(labelRect, Strings.PawnSkills);
+            var labelRect = new Rect(rect.x, rect.y, rect.width * 3f / 4f, Text.LineHeight);
+            Widgets.Label(labelRect, Strings.PawnSkillLimits);
+            Text.Font = GameFont.Small;
+            var buttonRect = new Rect(labelRect.xMax + UiHelpers.ElementGap, rect.y,
+                rect.width - labelRect.width - UiHelpers.ElementGap, labelRect.height);
+            if (Widgets.ButtonText(buttonRect, Resources.Strings.Add))
+            {
+                Find.WindowStack.Add(new FloatMenu(DefDatabase<SkillDef>.AllDefsListForReading
+                    .Where(def => SelectedLoadout.SkillLimits.All(sl => sl.SkillDefName != def.defName)).Select(def =>
+                        new FloatMenuOption(
+                            def.skillLabel.NullOrEmpty() ? def.defName : def.skillLabel.CapitalizeFirst(),
+                            () => SelectedLoadout.SkillLimits.Add(new SkillLimit(def.defName)))).ToList()));
+            }
+            var rowRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width, 1f);
+            for (var i = 0; i < SelectedLoadout.SkillLimits.Count; i++)
+            {
+                var limit = SelectedLoadout.SkillLimits[i];
+                rowRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap + (UiHelpers.ListRowHeight * i),
+                    rect.width, UiHelpers.ListRowHeight).ContractedBy(4f);
+                var deleteButtonRect = new Rect(rowRect.x, rowRect.y, rowRect.height, rowRect.height).ContractedBy(4f);
+                if (Widgets.ButtonImageFitted(deleteButtonRect, Resources.Textures.Delete))
+                {
+                    _ = SelectedLoadout.SkillLimits.Remove(limit);
+                    break;
+                }
+                var skillLabelRect = new Rect(deleteButtonRect.xMax + (UiHelpers.ElementGap / 2f), rowRect.y,
+                    (rowRect.width / 2f) - deleteButtonRect.width - (UiHelpers.ElementGap / 2f), rowRect.height);
+                if (limit.SkillDef != null && !limit.SkillDef.description.NullOrEmpty())
+                {
+                    TooltipHandler.TipRegion(skillLabelRect, limit.SkillDef?.description);
+                }
+                _ = Widgets.LabelFit(skillLabelRect,
+                    limit.SkillDef?.skillLabel.NullOrEmpty() ?? true
+                        ? limit.SkillDefName
+                        : limit.SkillDef.skillLabel.CapitalizeFirst());
+                var skillInputRect = new Rect(skillLabelRect.xMax + UiHelpers.ElementGap, rowRect.y,
+                    rowRect.xMax - skillLabelRect.xMax - UiHelpers.ElementGap, rowRect.height);
+                var limitInputWidth = (skillInputRect.width - (UiHelpers.ElementGap * 3)) / 2f;
+                var minValueRect = new Rect(skillInputRect.x, skillInputRect.y, limitInputWidth, skillInputRect.height);
+                limit.MinValueBuffer = Widgets.TextField(minValueRect, limit.MinValueBuffer, 10);
+                limit.MinValue = SkillLimit.Parse(ref limit.MinValueBuffer);
+                var dashRect = new Rect(minValueRect.xMax, skillInputRect.y, UiHelpers.ElementGap * 3,
+                    skillInputRect.height);
+                Text.Anchor = TextAnchor.MiddleCenter;
+                Widgets.Label(dashRect, "-");
+                Text.Anchor = TextAnchor.UpperLeft;
+                var maxValueRect = new Rect(dashRect.xMax, skillInputRect.y, limitInputWidth, skillInputRect.height);
+                limit.MaxValueBuffer = Widgets.TextField(maxValueRect, limit.MaxValueBuffer, 10);
+                limit.MaxValue = SkillLimit.Parse(ref limit.MaxValueBuffer);
+            }
             Text.Font = font;
             Text.Anchor = anchor;
-            var preferredSkillsRowCount =
-                (int) Math.Ceiling((SelectedLoadout.PreferredSkills.Count + 1f) / LabeledButtonListColumnCount);
-            var preferredSkillsRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
-                (UiHelpers.ButtonHeight * preferredSkillsRowCount) +
-                (UiHelpers.ButtonGap * (preferredSkillsRowCount - 1)));
-            DoPreferredSkills(preferredSkillsRect);
-            var undesirableSkillsRowCount =
-                (int) Math.Ceiling((SelectedLoadout.UndesirableSkills.Count + 1f) / LabeledButtonListColumnCount);
-            var undesirableSkillsRect = new Rect(rect.x, preferredSkillsRect.yMax + UiHelpers.ElementGap, rect.width,
-                (UiHelpers.ButtonHeight * undesirableSkillsRowCount) +
-                (UiHelpers.ButtonGap * (undesirableSkillsRowCount - 1)));
-            DoUndesirableSkills(undesirableSkillsRect);
+            return rowRect.yMax - rect.yMin;
         }
 
-        private void DoPawnTraits(Rect rect)
+        private float DoPawnSkills(Rect rect)
+        {
+            var columnWidth = (rect.width - UiHelpers.ElementGap) / 2f;
+            var weightsRect = new Rect(rect.x, rect.y, columnWidth, 1f);
+            var gapRect = new Rect(weightsRect.xMax, rect.y, UiHelpers.ElementGap, 1f);
+            var limitsRect = new Rect(gapRect.xMax, rect.y, columnWidth, 1f);
+            gapRect.height = Math.Max(DoPawnSkillWeights(weightsRect), DoPawnSkillLimits(limitsRect));
+            UiHelpers.DoGapLineVertical(gapRect);
+            return gapRect.height;
+        }
+
+        private float DoPawnSkillWeights(Rect rect)
+        {
+            var font = Text.Font;
+            var anchor = Text.Anchor;
+            Text.Font = GameFont.Medium;
+            Text.Anchor = TextAnchor.MiddleLeft;
+            var labelRect = new Rect(rect.x, rect.y, rect.width * 3f / 4f, Text.LineHeight);
+            Widgets.Label(labelRect, Strings.PawnSkillWeights);
+            Text.Font = GameFont.Small;
+            var buttonRect = new Rect(labelRect.xMax + UiHelpers.ElementGap, rect.y,
+                rect.width - labelRect.width - UiHelpers.ElementGap, labelRect.height);
+            if (Widgets.ButtonText(buttonRect, Resources.Strings.Add))
+            {
+                Find.WindowStack.Add(new FloatMenu(DefDatabase<SkillDef>.AllDefsListForReading
+                    .Where(def => SelectedLoadout.SkillWeights.All(sw => sw.SkillDefName != def.defName)).Select(def =>
+                        new FloatMenuOption(
+                            def.skillLabel.NullOrEmpty() ? def.defName : def.skillLabel.CapitalizeFirst(),
+                            () => SelectedLoadout.SkillWeights.Add(new SkillWeight(def.defName)))).ToList()));
+            }
+            var rowRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width, 1f);
+            for (var i = 0; i < SelectedLoadout.SkillWeights.Count; i++)
+            {
+                var weight = SelectedLoadout.SkillWeights[i];
+                rowRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap + (UiHelpers.ListRowHeight * i),
+                    rect.width, UiHelpers.ListRowHeight).ContractedBy(4f);
+                var deleteButtonRect = new Rect(rowRect.x, rowRect.y, rowRect.height, rowRect.height).ContractedBy(4f);
+                if (Widgets.ButtonImageFitted(deleteButtonRect, Resources.Textures.Delete))
+                {
+                    _ = SelectedLoadout.SkillWeights.Remove(weight);
+                    break;
+                }
+                var skillLabelRect = new Rect(deleteButtonRect.xMax + (UiHelpers.ElementGap / 2f), rowRect.y,
+                    (rowRect.width / 2f) - deleteButtonRect.width - (UiHelpers.ElementGap / 2f), rowRect.height);
+                if (weight.SkillDef != null && !weight.SkillDef.description.NullOrEmpty())
+                {
+                    TooltipHandler.TipRegion(skillLabelRect, weight.SkillDef?.description);
+                }
+                _ = Widgets.LabelFit(skillLabelRect, weight.SkillDef?.LabelCap ?? weight.SkillDefName);
+                var skillInputRect = new Rect(skillLabelRect.xMax + UiHelpers.ElementGap, rowRect.y,
+                    rowRect.xMax - skillLabelRect.xMax - UiHelpers.ElementGap, rowRect.height);
+                weight.Weight = Widgets.HorizontalSlider(skillInputRect, weight.Weight, -1 * SkillWeight.WeightCap,
+                    SkillWeight.WeightCap, true, $"{weight.Weight:N1}", roundTo: 0.1f);
+            }
+            Text.Font = font;
+            Text.Anchor = anchor;
+            return rowRect.yMax - rect.yMin;
+        }
+
+        private float DoPawnStatLimits(Rect rect)
+        {
+            var font = Text.Font;
+            var anchor = Text.Anchor;
+            Text.Font = GameFont.Medium;
+            Text.Anchor = TextAnchor.MiddleLeft;
+            var labelRect = new Rect(rect.x, rect.y, rect.width * 3f / 4f, Text.LineHeight);
+            Widgets.Label(labelRect, Strings.PawnStatLimits);
+            Text.Font = GameFont.Small;
+            var buttonRect = new Rect(labelRect.xMax + UiHelpers.ElementGap, rect.y,
+                rect.width - labelRect.width - UiHelpers.ElementGap, labelRect.height);
+            if (Widgets.ButtonText(buttonRect, Resources.Strings.Add))
+            {
+                Find.WindowStack.Add(new FloatMenu(StatHelper.DefaultPawnStatDefs
+                    .Where(def => SelectedLoadout.StatLimits.All(sl => sl.StatDefName != def.defName)).Select(def =>
+                        new FloatMenuOption($"{def.LabelCap} [{def.category?.LabelCap ?? "No category"}]",
+                            () => SelectedLoadout.StatLimits.Add(new StatLimit(def.defName)))).ToList()));
+            }
+            var rowRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width, 1f);
+            for (var i = 0; i < SelectedLoadout.StatLimits.Count; i++)
+            {
+                var limit = SelectedLoadout.StatLimits[i];
+                rowRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap + (UiHelpers.ListRowHeight * i),
+                    rect.width, UiHelpers.ListRowHeight).ContractedBy(4f);
+                var deleteButtonRect = new Rect(rowRect.x, rowRect.y, rowRect.height, rowRect.height).ContractedBy(4f);
+                if (Widgets.ButtonImageFitted(deleteButtonRect, Resources.Textures.Delete))
+                {
+                    _ = SelectedLoadout.StatLimits.Remove(limit);
+                    break;
+                }
+                var statLabelRect = new Rect(deleteButtonRect.xMax + (UiHelpers.ElementGap / 2f), rowRect.y,
+                    (rowRect.width / 2f) - deleteButtonRect.width - (UiHelpers.ElementGap / 2f), rowRect.height);
+                if (limit.StatDef != null && !limit.StatDef.description.NullOrEmpty())
+                {
+                    TooltipHandler.TipRegion(statLabelRect, limit.StatDef?.description);
+                }
+                _ = Widgets.LabelFit(statLabelRect, limit.StatDef?.LabelCap ?? limit.StatDefName);
+                var statInputRect = new Rect(statLabelRect.xMax + UiHelpers.ElementGap, rowRect.y,
+                    rowRect.xMax - statLabelRect.xMax - UiHelpers.ElementGap, rowRect.height);
+                var limitInputWidth = (statInputRect.width - (UiHelpers.ElementGap * 3)) / 2f;
+                var minValueRect = new Rect(statInputRect.x, statInputRect.y, limitInputWidth, statInputRect.height);
+                limit.MinValueBuffer = Widgets.TextField(minValueRect, limit.MinValueBuffer, 10);
+                limit.MinValue = StatLimit.Parse(ref limit.MinValueBuffer);
+                var dashRect = new Rect(minValueRect.xMax, statInputRect.y, UiHelpers.ElementGap * 3,
+                    statInputRect.height);
+                Text.Anchor = TextAnchor.MiddleCenter;
+                Widgets.Label(dashRect, "-");
+                Text.Anchor = TextAnchor.UpperLeft;
+                var maxValueRect = new Rect(dashRect.xMax, statInputRect.y, limitInputWidth, statInputRect.height);
+                limit.MaxValueBuffer = Widgets.TextField(maxValueRect, limit.MaxValueBuffer, 10);
+                limit.MaxValue = StatLimit.Parse(ref limit.MaxValueBuffer);
+            }
+            Text.Font = font;
+            Text.Anchor = anchor;
+            return rowRect.yMax - rect.yMin;
+        }
+
+        private float DoPawnStats(Rect rect)
+        {
+            var columnWidth = (rect.width - UiHelpers.ElementGap) / 2f;
+            var weightsRect = new Rect(rect.x, rect.y, columnWidth, 1f);
+            var gapRect = new Rect(weightsRect.xMax, rect.y, UiHelpers.ElementGap, 1f);
+            var limitsRect = new Rect(gapRect.xMax, rect.y, columnWidth, 1f);
+            gapRect.height = Math.Max(DoPawnStatWeights(weightsRect), DoPawnStatLimits(limitsRect));
+            UiHelpers.DoGapLineVertical(gapRect);
+            return gapRect.height;
+        }
+
+        private float DoPawnStatWeights(Rect rect)
+        {
+            var font = Text.Font;
+            var anchor = Text.Anchor;
+            Text.Font = GameFont.Medium;
+            Text.Anchor = TextAnchor.MiddleLeft;
+            var labelRect = new Rect(rect.x, rect.y, rect.width * 3f / 4f, Text.LineHeight);
+            Widgets.Label(labelRect, Strings.PawnStatWeights);
+            Text.Font = GameFont.Small;
+            var buttonRect = new Rect(labelRect.xMax + UiHelpers.ElementGap, rect.y,
+                rect.width - labelRect.width - UiHelpers.ElementGap, labelRect.height);
+            if (Widgets.ButtonText(buttonRect, Resources.Strings.Add))
+            {
+                Find.WindowStack.Add(new FloatMenu(StatHelper.DefaultPawnStatDefs
+                    .Where(def => SelectedLoadout.StatWeights.All(sw => sw.StatDefName != def.defName)).Select(def =>
+                        new FloatMenuOption($"{def.LabelCap} [{def.category?.LabelCap ?? "No category"}]",
+                            () => SelectedLoadout.StatWeights.Add(new StatWeight(def.defName, false)))).ToList()));
+            }
+            var rowRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width, 1f);
+            for (var i = 0; i < SelectedLoadout.StatWeights.Count; i++)
+            {
+                var weight = SelectedLoadout.StatWeights[i];
+                rowRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap + (UiHelpers.ListRowHeight * i),
+                    rect.width, UiHelpers.ListRowHeight).ContractedBy(4f);
+                var deleteButtonRect = new Rect(rowRect.x, rowRect.y, rowRect.height, rowRect.height).ContractedBy(4f);
+                if (!weight.Protected)
+                {
+                    if (Widgets.ButtonImageFitted(deleteButtonRect, Resources.Textures.Delete))
+                    {
+                        _ = SelectedLoadout.StatWeights.Remove(weight);
+                        break;
+                    }
+                }
+                var statLabelRect = new Rect(deleteButtonRect.xMax + (UiHelpers.ElementGap / 2f), rowRect.y,
+                    (rowRect.width / 2f) - deleteButtonRect.width - (UiHelpers.ElementGap / 2f), rowRect.height);
+                if (weight.StatDef != null && !weight.StatDef.description.NullOrEmpty())
+                {
+                    TooltipHandler.TipRegion(statLabelRect, weight.StatDef?.description);
+                }
+                _ = Widgets.LabelFit(statLabelRect, weight.StatDef?.LabelCap ?? weight.StatDefName);
+                var statInputRect = new Rect(statLabelRect.xMax + UiHelpers.ElementGap, rowRect.y,
+                    rowRect.xMax - statLabelRect.xMax - UiHelpers.ElementGap, rowRect.height);
+                weight.Weight = Widgets.HorizontalSlider(statInputRect, weight.Weight, -1 * StatWeight.WeightCap,
+                    StatWeight.WeightCap, true, $"{weight.Weight:N1}", roundTo: 0.1f);
+            }
+            Text.Font = font;
+            Text.Anchor = anchor;
+            return rowRect.yMax - rect.yMin;
+        }
+
+        private float DoPawnTraits(Rect rect)
         {
             var font = Text.Font;
             var anchor = Text.Anchor;
@@ -298,7 +692,7 @@ namespace EquipmentManager.Windows
                 if (traitDef == null) { label = description = pawnTrait.Key; }
                 else
                 {
-                    label = traitDef.LabelCap.ToString();
+                    label = traitDef.label.CapitalizeFirst();
                     if (label.NullOrEmpty()) { label = pawnTrait.Key; }
                     description = traitDef.description;
                     if (description.NullOrEmpty()) { description = pawnTrait.Key; }
@@ -307,58 +701,53 @@ namespace EquipmentManager.Windows
                     () => _ = SelectedLoadout.PawnTraits.Remove(pawnTrait.Key), label, description);
                 index++;
             }
-            if (Widgets.ButtonText(GetPawnSettingRect(settingsRect, index), Resources.Strings.Add))
+            var settingRect = GetPawnSettingRect(settingsRect, index);
+            if (Widgets.ButtonText(settingRect, Resources.Strings.Add))
             {
                 Find.WindowStack.Add(new FloatMenu(DefDatabase<TraitDef>.AllDefsListForReading
                     .Where(traitDef => !SelectedLoadout.PawnTraits.ContainsKey(traitDef.defName))
                     .OrderBy(traitDef => traitDef.defName).Select(traitDef =>
                         new FloatMenuOption(
-                            traitDef.LabelCap.NullOrEmpty() ? traitDef.defName : traitDef.LabelCap.ToString(),
+                            traitDef.label.NullOrEmpty() ? traitDef.defName : traitDef.label.CapitalizeFirst(),
                             () => SelectedLoadout.PawnTraits[traitDef.defName] = true)).ToList()));
             }
+            return settingRect.yMax - rect.yMin;
         }
 
-        private void DoPreferredSkills(Rect rect)
+        private float DoPawnWorkCapacities(Rect rect)
         {
-            var skillsRect =
-                LabelInput.DoLabeledRect(rect, Strings.PreferredSkillsLabel, Strings.PreferredSkillsTooltip);
+            var font = Text.Font;
+            var anchor = Text.Anchor;
+            Text.Font = GameFont.Medium;
+            Text.Anchor = TextAnchor.MiddleLeft;
+            var labelRect = new Rect(rect.x, rect.y, rect.width, Text.LineHeight);
+            Widgets.Label(labelRect, Strings.PawnWorkCapacities);
+            Text.Font = font;
+            Text.Anchor = anchor;
+            var settingsRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
+                UiHelpers.ListRowHeight);
             var index = 0;
-            foreach (var skill in SelectedLoadout.PreferredSkills)
+            foreach (var pawnCapacity in SelectedLoadout.PawnWorkCapacities.ToList())
             {
-                var skillDef = DefDatabase<SkillDef>.GetNamedSilentFail(skill);
-                var skillRect = GetLabeledButtonListItemRect(skillsRect, index);
-                var deleteButtonRect =
-                    new Rect(skillRect.x, skillRect.y, skillRect.height, skillRect.height).ContractedBy(4f);
-                if (Widgets.ButtonImageFitted(deleteButtonRect, Resources.Textures.Delete))
-                {
-                    _ = SelectedLoadout.PreferredSkills.Remove(skill);
-                    break;
-                }
-                var buttonRect = new Rect(deleteButtonRect.xMax + (UiHelpers.ElementGap / 2f), skillRect.y,
-                    skillRect.width - deleteButtonRect.width - (UiHelpers.ElementGap / 2f), skillRect.height);
-                if (Widgets.ButtonText(buttonRect, skillDef == null ? skill : skillDef.LabelCap.ToString()))
-                {
-                    Find.WindowStack.Add(new FloatMenu(DefDatabase<SkillDef>.AllDefs
-                        .Where(def =>
-                            !SelectedLoadout.PreferredSkills.Union(SelectedLoadout.UndesirableSkills)
-                                .Contains(def.defName)).Select(def => new FloatMenuOption(def.LabelCap, () =>
-                        {
-                            _ = SelectedLoadout.PreferredSkills.Add(def.defName);
-                            _ = SelectedLoadout.PreferredSkills.Remove(skill);
-                        })).ToList()));
-                }
+                var tagRect = GetPawnSettingRect(settingsRect, index);
+                var label = Enum.TryParse<WorkTags>(pawnCapacity.Key, out var tag)
+                    ? tag.LabelTranslated().CapitalizeFirst()
+                    : pawnCapacity.Key;
+                DoPawnSetting(tagRect, pawnCapacity.Value,
+                    value => SelectedLoadout.PawnWorkCapacities[pawnCapacity.Key] = value,
+                    () => _ = SelectedLoadout.PawnWorkCapacities.Remove(pawnCapacity.Key), label, null);
                 index++;
             }
-            var newSkill = DefDatabase<SkillDef>.AllDefs.FirstOrDefault(def =>
-                !SelectedLoadout.PreferredSkills.Union(SelectedLoadout.UndesirableSkills).Contains(def.defName));
-            if (newSkill != null)
+            var settingRect = GetPawnSettingRect(settingsRect, index);
+            if (Widgets.ButtonText(settingRect, Resources.Strings.Add))
             {
-                var addButtonRect = GetLabeledButtonListItemRect(skillsRect, index);
-                if (Widgets.ButtonText(addButtonRect, Resources.Strings.Add))
-                {
-                    _ = SelectedLoadout.PreferredSkills.Add(newSkill.defName);
-                }
+                Find.WindowStack.Add(new FloatMenu(Enum.GetValues(typeof(WorkTags)).OfType<WorkTags>()
+                    .Where(tag => !SelectedLoadout.PawnWorkCapacities.ContainsKey(tag.ToString()))
+                    .OrderBy(tag => tag.LabelTranslated().CapitalizeFirst()).Select(tag =>
+                        new FloatMenuOption(tag.LabelTranslated().CapitalizeFirst(),
+                            () => SelectedLoadout.PawnWorkCapacities[tag.ToString()] = true)).ToList()));
             }
+            return settingRect.yMax - rect.yMin;
         }
 
         private void DoPrimaryWeaponRule(Rect rect)
@@ -449,7 +838,7 @@ namespace EquipmentManager.Windows
             }
         }
 
-        private void DoRules(Rect rect)
+        private float DoRules(Rect rect)
         {
             var font = Text.Font;
             var anchor = Text.Anchor;
@@ -476,6 +865,7 @@ namespace EquipmentManager.Windows
             var toolRect = new Rect(rect.x, meleeSidearmsRect.yMax + UiHelpers.ElementGap, rect.width,
                 UiHelpers.ListRowHeight);
             DoToolRule(toolRect);
+            return toolRect.yMax - rect.yMin;
         }
 
         private void DoToolRule(Rect rect)
@@ -488,49 +878,6 @@ namespace EquipmentManager.Windows
             {
                 Find.WindowStack.Add(new FloatMenu(EquipmentManager.GetToolRules().Select(rule =>
                     new FloatMenuOption(rule.Label, () => SelectedLoadout.ToolRuleId = rule.Id)).ToList()));
-            }
-        }
-
-        private void DoUndesirableSkills(Rect rect)
-        {
-            var skillsRect =
-                LabelInput.DoLabeledRect(rect, Strings.UndesirableSkillsLabel, Strings.UndesirableSkillsTooltip);
-            var index = 0;
-            foreach (var skill in SelectedLoadout.UndesirableSkills)
-            {
-                var skillDef = DefDatabase<SkillDef>.GetNamedSilentFail(skill);
-                var skillRect = GetLabeledButtonListItemRect(skillsRect, index);
-                var deleteButtonRect =
-                    new Rect(skillRect.x, skillRect.y, skillRect.height, skillRect.height).ContractedBy(4f);
-                if (Widgets.ButtonImageFitted(deleteButtonRect, Resources.Textures.Delete))
-                {
-                    _ = SelectedLoadout.UndesirableSkills.Remove(skill);
-                    break;
-                }
-                var buttonRect = new Rect(deleteButtonRect.xMax + (UiHelpers.ElementGap / 2f), skillRect.y,
-                    skillRect.width - deleteButtonRect.width - (UiHelpers.ElementGap / 2f), skillRect.height);
-                if (Widgets.ButtonText(buttonRect, skillDef == null ? skill : skillDef.LabelCap.ToString()))
-                {
-                    Find.WindowStack.Add(new FloatMenu(DefDatabase<SkillDef>.AllDefs
-                        .Where(def =>
-                            !SelectedLoadout.PreferredSkills.Union(SelectedLoadout.UndesirableSkills)
-                                .Contains(def.defName)).Select(def => new FloatMenuOption(def.LabelCap, () =>
-                        {
-                            _ = SelectedLoadout.UndesirableSkills.Add(def.defName);
-                            _ = SelectedLoadout.UndesirableSkills.Remove(skill);
-                        })).ToList()));
-                }
-                index++;
-            }
-            var newSkill = DefDatabase<SkillDef>.AllDefs.FirstOrDefault(def =>
-                !SelectedLoadout.PreferredSkills.Union(SelectedLoadout.UndesirableSkills).Contains(def.defName));
-            if (newSkill != null)
-            {
-                var addButtonRect = GetLabeledButtonListItemRect(skillsRect, index);
-                if (Widgets.ButtonText(addButtonRect, Resources.Strings.Add))
-                {
-                    _ = SelectedLoadout.UndesirableSkills.Add(newSkill.defName);
-                }
             }
         }
 
@@ -554,65 +901,40 @@ namespace EquipmentManager.Windows
                     availablePawnsHeight);
                 var outerRect = new Rect(inRect.x, labelRect.yMax + UiHelpers.ElementGap, inRect.width,
                     availablePawnsRect.y - UiHelpers.ElementGap - (labelRect.yMax + UiHelpers.ElementGap));
-                const int settingsRowCount = 2;
-                var settingsHeight = sectionHeaderHeight + (UiHelpers.ListRowHeight * settingsRowCount) +
-                    (UiHelpers.ElementGap * (settingsRowCount - 1));
-                var rangedSidearmsRowCount =
-                    (int) Math.Ceiling((SelectedLoadout.RangedSidearmRules.Count + 1f) / LabeledButtonListColumnCount);
-                var meleeSidearmsRowCount =
-                    (int) Math.Ceiling((SelectedLoadout.MeleeSidearmRules.Count + 1f) / LabeledButtonListColumnCount);
-                var rulesHeight = sectionHeaderHeight //header
-                    + UiHelpers.ListRowHeight //primary weapon rule
-                    + UiHelpers.ElementGap + (UiHelpers.ButtonHeight * rangedSidearmsRowCount) +
-                    (UiHelpers.ButtonGap * (rangedSidearmsRowCount - 1)) //ranged sidearms
-                    + UiHelpers.ElementGap + (UiHelpers.ButtonHeight * meleeSidearmsRowCount) +
-                    (UiHelpers.ButtonGap * (meleeSidearmsRowCount - 1)) //melee sidearms
-                    + UiHelpers.ElementGap + UiHelpers.ListRowHeight; //tool rule
-                var pawnTraitsRowCount =
-                    (int) Math.Ceiling((SelectedLoadout.PawnTraits.Count + 1f) / PawnSettingsColumnCount);
-                var pawnTraitsHeight = sectionHeaderHeight + (UiHelpers.ListRowHeight * pawnTraitsRowCount) +
-                    (UiHelpers.ElementGap * (pawnTraitsRowCount - 1));
-                var pawnCapacitiesRowCount =
-                    (int) Math.Ceiling((SelectedLoadout.PawnCapacities.Count + 1f) / PawnSettingsColumnCount);
-                var pawnCapacitiesHeight = sectionHeaderHeight + (UiHelpers.ListRowHeight * pawnCapacitiesRowCount) +
-                    (UiHelpers.ElementGap * (pawnCapacitiesRowCount - 1));
-                var preferredSkillsRowCount = (int) Math.Ceiling(
-                    (SelectedLoadout.PreferredSkills.Count + 1f) / LabeledButtonListColumnCount);
-                var undesirableSkillsRowCount = (int) Math.Ceiling(
-                    (SelectedLoadout.UndesirableSkills.Count + 1f) / LabeledButtonListColumnCount);
-                var pawnSkillsHeight = sectionHeaderHeight //header
-                    + (UiHelpers.ButtonHeight * preferredSkillsRowCount) +
-                    (UiHelpers.ButtonGap * (preferredSkillsRowCount - 1)) //preferred skills
-                    + UiHelpers.ElementGap + (UiHelpers.ButtonHeight * undesirableSkillsRowCount) +
-                    (UiHelpers.ButtonGap * (undesirableSkillsRowCount - 1)); //undesirable skills
-                var scrollViewContentHeight = settingsHeight + UiHelpers.ElementGap + rulesHeight +
-                    UiHelpers.ElementGap + pawnTraitsHeight + UiHelpers.ElementGap + pawnCapacitiesHeight +
-                    UiHelpers.ElementGap + pawnSkillsHeight;
                 var scrollViewRect = new Rect(outerRect.x, outerRect.y,
-                    outerRect.width - GUI.skin.verticalScrollbar.fixedWidth - 4f, scrollViewContentHeight);
+                    outerRect.width - GUI.skin.verticalScrollbar.fixedWidth - 4f, _scrollViewHeight);
+                var y = 0f;
                 Widgets.BeginScrollView(outerRect, ref _scrollPosition, scrollViewRect);
-                var settingsRect = new Rect(scrollViewRect.x, scrollViewRect.y, scrollViewRect.width, settingsHeight);
-                DoLoadoutSettings(settingsRect);
-                UiHelpers.DoGapLineHorizontal(new Rect(scrollViewRect.x, settingsRect.yMax, scrollViewRect.width,
+                y += DoLoadoutSettings(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width, 1f));
+                UiHelpers.DoGapLineHorizontal(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width,
                     UiHelpers.ElementGap));
-                var rulesRect = new Rect(scrollViewRect.x, settingsRect.yMax + UiHelpers.ElementGap,
-                    scrollViewRect.width, rulesHeight);
-                DoRules(rulesRect);
-                UiHelpers.DoGapLineHorizontal(new Rect(scrollViewRect.x, rulesRect.yMax, scrollViewRect.width,
+                y += UiHelpers.ElementGap;
+                y += DoRules(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width, 1f));
+                UiHelpers.DoGapLineHorizontal(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width,
                     UiHelpers.ElementGap));
-                var pawnTraitsRect = new Rect(scrollViewRect.x, rulesRect.yMax + UiHelpers.ElementGap,
-                    scrollViewRect.width, pawnTraitsHeight);
-                DoPawnTraits(pawnTraitsRect);
-                UiHelpers.DoGapLineHorizontal(new Rect(scrollViewRect.x, pawnTraitsRect.yMax, scrollViewRect.width,
+                y += UiHelpers.ElementGap;
+                y += DoPawnTraits(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width, 1f));
+                UiHelpers.DoGapLineHorizontal(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width,
                     UiHelpers.ElementGap));
-                var pawnCapacitiesRect = new Rect(scrollViewRect.x, pawnTraitsRect.yMax + UiHelpers.ElementGap,
-                    scrollViewRect.width, pawnCapacitiesHeight);
-                DoPawnCapacities(pawnCapacitiesRect);
-                UiHelpers.DoGapLineHorizontal(new Rect(scrollViewRect.x, pawnCapacitiesRect.yMax, scrollViewRect.width,
+                y += UiHelpers.ElementGap;
+                y += DoPawnCapacities(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width, 1f));
+                UiHelpers.DoGapLineHorizontal(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width,
                     UiHelpers.ElementGap));
-                var pawnSkillsRect = new Rect(scrollViewRect.x, pawnCapacitiesRect.yMax + UiHelpers.ElementGap,
-                    scrollViewRect.width, pawnCapacitiesHeight);
-                DoPawnSkills(pawnSkillsRect);
+                y += UiHelpers.ElementGap;
+                y += DoPawnWorkCapacities(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width, 1f));
+                UiHelpers.DoGapLineHorizontal(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width,
+                    UiHelpers.ElementGap));
+                y += UiHelpers.ElementGap;
+                y += DoPawnSkills(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width, 1f));
+                UiHelpers.DoGapLineHorizontal(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width,
+                    UiHelpers.ElementGap));
+                y += UiHelpers.ElementGap;
+                y += DoPawnPassions(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width, 1f));
+                UiHelpers.DoGapLineHorizontal(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width,
+                    UiHelpers.ElementGap));
+                y += UiHelpers.ElementGap;
+                y += DoPawnStats(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width, 1f));
+                if (Event.current.type == EventType.Layout) { _scrollViewHeight = y; }
                 Widgets.EndScrollView();
                 UiHelpers.DoGapLineHorizontal(new Rect(inRect.x, outerRect.yMax, inRect.width, UiHelpers.ElementGap));
                 DoAvailablePawns(availablePawnsRect);

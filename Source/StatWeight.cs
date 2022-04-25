@@ -6,7 +6,7 @@ namespace EquipmentManager
 {
     internal class StatWeight : IExposable
     {
-        public const float StatWeightCap = 2f;
+        public const float WeightCap = 2f;
         private bool _isInitialized;
         private bool _protected;
         private StatDef _statDef;

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using EquipmentManager.CustomWidgets;
 using RimWorld;
@@ -218,7 +217,7 @@ namespace EquipmentManager.Windows
                 var limitInputWidth = (statInputRect.width - (UiHelpers.ElementGap * 3)) / 2f;
                 var minValueRect = new Rect(statInputRect.x, statInputRect.y, limitInputWidth, statInputRect.height);
                 statLimit.MinValueBuffer = Widgets.TextField(minValueRect, statLimit.MinValueBuffer, 10);
-                statLimit.MinValue = ParseStatLimit(ref statLimit.MinValueBuffer);
+                statLimit.MinValue = StatLimit.Parse(ref statLimit.MinValueBuffer);
                 var dashRect = new Rect(minValueRect.xMax, statInputRect.y, UiHelpers.ElementGap * 3,
                     statInputRect.height);
                 Text.Anchor = TextAnchor.MiddleCenter;
@@ -226,7 +225,7 @@ namespace EquipmentManager.Windows
                 Text.Anchor = TextAnchor.UpperLeft;
                 var maxValueRect = new Rect(dashRect.xMax, statInputRect.y, limitInputWidth, statInputRect.height);
                 statLimit.MaxValueBuffer = Widgets.TextField(maxValueRect, statLimit.MaxValueBuffer, 10);
-                statLimit.MaxValue = ParseStatLimit(ref statLimit.MaxValueBuffer);
+                statLimit.MaxValue = StatLimit.Parse(ref statLimit.MaxValueBuffer);
             }
             Widgets.EndScrollView();
             Text.Font = font;
@@ -294,8 +293,7 @@ namespace EquipmentManager.Windows
                 var statInputRect = new Rect(statLabelRect.xMax + UiHelpers.ElementGap, rowRect.y,
                     rowRect.xMax - statLabelRect.xMax - UiHelpers.ElementGap, rowRect.height);
                 statWeight.Weight = Widgets.HorizontalSlider(statInputRect, statWeight.Weight,
-                    -1 * StatWeight.StatWeightCap, StatWeight.StatWeightCap, true, $"{statWeight.Weight:N1}",
-                    roundTo: 0.1f);
+                    -1 * StatWeight.WeightCap, StatWeight.WeightCap, true, $"{statWeight.Weight:N1}", roundTo: 0.1f);
             }
             Widgets.EndScrollView();
             Text.Font = font;
@@ -444,17 +442,6 @@ namespace EquipmentManager.Windows
                 ResetScrollPositions();
             }, () => _currentTab == DialogTab.WorkTypes));
             _initialized = true;
-        }
-
-        private static float? ParseStatLimit(ref string buffer)
-        {
-            if (!float.TryParse(buffer, NumberStyles.Float, CultureInfo.InvariantCulture, out var limit))
-            {
-                return null;
-            }
-            var value = Mathf.Clamp(limit, -1 * StatLimit.StatLimitCap, StatLimit.StatLimitCap);
-            buffer = $"{value:N2}";
-            return value;
         }
 
         public override void PreClose()

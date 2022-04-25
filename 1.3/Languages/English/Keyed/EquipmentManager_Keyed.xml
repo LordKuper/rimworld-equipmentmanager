@@ -25,8 +25,14 @@
 	<EquipmentManager.Loadouts.Rules>Rules</EquipmentManager.Loadouts.Rules>
 	<EquipmentManager.Loadouts.AvailablePawns>Available pawns</EquipmentManager.Loadouts.AvailablePawns>
 	<EquipmentManager.Loadouts.PawnTraits>Pawn traits</EquipmentManager.Loadouts.PawnTraits>
-	<EquipmentManager.Loadouts.PawnCapacities>Pawn capacities</EquipmentManager.Loadouts.PawnCapacities>
-	<EquipmentManager.Loadouts.PawnSkills>Pawn skills</EquipmentManager.Loadouts.PawnSkills>
+	<EquipmentManager.Loadouts.PawnPassions>Pawn passions</EquipmentManager.Loadouts.PawnPassions>
+	<EquipmentManager.Loadouts.PawnCapacityLimits>Pawn capacity limits</EquipmentManager.Loadouts.PawnCapacityLimits>
+	<EquipmentManager.Loadouts.PawnCapacityWeights>Pawn capacity weights</EquipmentManager.Loadouts.PawnCapacityWeights>
+	<EquipmentManager.Loadouts.PawnWorkCapacities>Pawn work capacities</EquipmentManager.Loadouts.PawnWorkCapacities>
+	<EquipmentManager.Loadouts.PawnSkillWeights>Pawn skill weights</EquipmentManager.Loadouts.PawnSkillWeights>
+	<EquipmentManager.Loadouts.PawnSkillLimits>Pawn skill limits</EquipmentManager.Loadouts.PawnSkillLimits>
+	<EquipmentManager.Loadouts.PawnStatWeights>Pawn stat weights</EquipmentManager.Loadouts.PawnStatWeights>
+	<EquipmentManager.Loadouts.PawnStatLimits>Pawn stat limits</EquipmentManager.Loadouts.PawnStatLimits>
 	<EquipmentManager.Loadouts.PrimaryWeaponLabel>Primary weapon:</EquipmentManager.Loadouts.PrimaryWeaponLabel>
 	<EquipmentManager.Loadouts.PrimaryWeaponTypes.None>None</EquipmentManager.Loadouts.PrimaryWeaponTypes.None>
 	<EquipmentManager.Loadouts.PrimaryWeaponTypes.RangedWeapon>Ranged weapon</EquipmentManager.Loadouts.PrimaryWeaponTypes.RangedWeapon>
@@ -34,15 +40,12 @@
 	<EquipmentManager.Loadouts.RangedSidearmRulesLabel>Ranged sidearm rules:</EquipmentManager.Loadouts.RangedSidearmRulesLabel>
 	<EquipmentManager.Loadouts.MeleeSidearmRulesLabel>Melee sidearm rules:</EquipmentManager.Loadouts.MeleeSidearmRulesLabel>
 	<EquipmentManager.Loadouts.ToolsLabel>Tools:</EquipmentManager.Loadouts.ToolsLabel>
-	<EquipmentManager.Loadouts.PreferredSkillsLabel>Preferred skills:</EquipmentManager.Loadouts.PreferredSkillsLabel>
-	<EquipmentManager.Loadouts.PreferredSkillsTooltip>Pawns with higher values of these skills will be prioritized for this loadout during automatic assignment</EquipmentManager.Loadouts.PreferredSkillsTooltip>
-	<EquipmentManager.Loadouts.UndesirableSkillsLabel>Undesirable skills:</EquipmentManager.Loadouts.UndesirableSkillsLabel>
-	<EquipmentManager.Loadouts.UndesirableSkillsTooltip>Pawns with higher values of these skills will be deprioritized for this loadout during automatic assignment</EquipmentManager.Loadouts.UndesirableSkillsTooltip>
 	<EquipmentManager.Loadouts.Default.NoLoadout>No loadout</EquipmentManager.Loadouts.Default.NoLoadout>
 	<EquipmentManager.Loadouts.Default.Sniper>Sniper</EquipmentManager.Loadouts.Default.Sniper>
 	<EquipmentManager.Loadouts.Default.Assault>Assault</EquipmentManager.Loadouts.Default.Assault>
 	<EquipmentManager.Loadouts.Default.Support>Support</EquipmentManager.Loadouts.Default.Support>
-	<EquipmentManager.Loadouts.Default.Brawler>Brawler</EquipmentManager.Loadouts.Default.Brawler>
+	<EquipmentManager.Loadouts.Default.Crusher>Crusher</EquipmentManager.Loadouts.Default.Crusher>
+	<EquipmentManager.Loadouts.Default.Slasher>Slasher</EquipmentManager.Loadouts.Default.Slasher>
 	<EquipmentManager.Loadouts.Default.Pacifist>Pacifist</EquipmentManager.Loadouts.Default.Pacifist>
 	<EquipmentManager.WeaponRules.AddRule>Add rule</EquipmentManager.WeaponRules.AddRule>
 	<EquipmentManager.WeaponRules.CopyRule>Copy rule</EquipmentManager.WeaponRules.CopyRule>
@@ -76,7 +79,8 @@
 	<EquipmentManager.WeaponRules.MeleeWeapons.Rottable>Rottable</EquipmentManager.WeaponRules.MeleeWeapons.Rottable>
 	<EquipmentManager.WeaponRules.MeleeWeapons.RottableTooltip>Melee weapons that are capable of rotting (e.g. fish)</EquipmentManager.WeaponRules.MeleeWeapons.RottableTooltip>
 	<EquipmentManager.WeaponRules.MeleeWeapons.Default.HighestDps>Highest DPS</EquipmentManager.WeaponRules.MeleeWeapons.Default.HighestDps>
-	<EquipmentManager.WeaponRules.MeleeWeapons.Default.OneHandHighestDps>1H Highest DPS</EquipmentManager.WeaponRules.MeleeWeapons.Default.OneHandHighestDps>
+	<EquipmentManager.WeaponRules.MeleeWeapons.Default.Sharpest>Sharpest</EquipmentManager.WeaponRules.MeleeWeapons.Default.Sharpest>
+	<EquipmentManager.WeaponRules.MeleeWeapons.Default.Bluntest>Bluntest</EquipmentManager.WeaponRules.MeleeWeapons.Default.Bluntest>
 	<EquipmentManager.WeaponRules.RangedWeapons.Title>Ranged weapons</EquipmentManager.WeaponRules.RangedWeapons.Title>
 	<EquipmentManager.WeaponRules.RangedWeapons.AmmoCount>Ammo count</EquipmentManager.WeaponRules.RangedWeapons.AmmoCount>
 	<EquipmentManager.WeaponRules.RangedWeapons.AmmoCountTooltip>Target count of ammo to put in inventory alongside every weapon equipped by this rule</EquipmentManager.WeaponRules.RangedWeapons.AmmoCountTooltip>
@@ -96,6 +100,10 @@
 	<EquipmentManager.WeaponRules.WorkTypes.Title>Work types</EquipmentManager.WeaponRules.WorkTypes.Title>
 	<EquipmentManager.Stats.EM_MeleeWeapons_ArmorPenetration.Label>Average armor penetration</EquipmentManager.Stats.EM_MeleeWeapons_ArmorPenetration.Label>
 	<EquipmentManager.Stats.EM_MeleeWeapons_ArmorPenetration.Description>The average amount of armor weapon will ignore each time it hits the target</EquipmentManager.Stats.EM_MeleeWeapons_ArmorPenetration.Description>
+	<EquipmentManager.Stats.EM_MeleeWeapons_DpsSharp.Label>DPS (Sharp)</EquipmentManager.Stats.EM_MeleeWeapons_DpsSharp.Label>
+	<EquipmentManager.Stats.EM_MeleeWeapons_DpsSharp.Description>Average sharp damage per second</EquipmentManager.Stats.EM_MeleeWeapons_DpsSharp.Description>
+	<EquipmentManager.Stats.EM_MeleeWeapons_DpsBlunt.Label>DPS (Blunt)</EquipmentManager.Stats.EM_MeleeWeapons_DpsBlunt.Label>
+	<EquipmentManager.Stats.EM_MeleeWeapons_DpsBlunt.Description>Average blunt damage per second</EquipmentManager.Stats.EM_MeleeWeapons_DpsBlunt.Description>
 	<EquipmentManager.Stats.EM_MeleeWeapons_TechLevel.Label>Tech level</EquipmentManager.Stats.EM_MeleeWeapons_TechLevel.Label>
 	<EquipmentManager.Stats.EM_MeleeWeapons_TechLevel.Description>Weapon's tech level</EquipmentManager.Stats.EM_MeleeWeapons_TechLevel.Description>
 	<EquipmentManager.Stats.EM_RangedWeapons_Dpsa.Label>Average DPSA</EquipmentManager.Stats.EM_RangedWeapons_Dpsa.Label>

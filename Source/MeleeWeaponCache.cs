@@ -59,6 +59,30 @@ namespace EquipmentManager
                 {
                     case CustomMeleeWeaponStat.ArmorPenetration:
                         return ArmorPenetration;
+                    case CustomMeleeWeaponStat.DpsSharp:
+                        var sharpVerbs = VerbUtility.GetAllVerbProperties(Thing.def.Verbs, Thing.def.tools)
+                            .Where(vp => vp.verbProps.IsMeleeAttack).Where(vp =>
+                                vp.maneuver.verb.meleeDamageDef.armorCategory.defName == "Sharp").ToList();
+                        if (!sharpVerbs.Any()) { return 0f; }
+                        var sharpDamage = sharpVerbs.AverageWeighted(
+                            vp => vp.verbProps.AdjustedMeleeSelectionWeight(vp.tool, null, Thing, null, false),
+                            vp => vp.verbProps.AdjustedMeleeDamageAmount(vp.tool, null, Thing, null));
+                        var sharpCooldown = sharpVerbs.AverageWeighted(
+                            vp => vp.verbProps.AdjustedMeleeSelectionWeight(vp.tool, null, Thing, null, false),
+                            vp => vp.verbProps.AdjustedCooldown(vp.tool, null, Thing));
+                        return sharpCooldown == 0f ? 0f : sharpDamage / sharpCooldown;
+                    case CustomMeleeWeaponStat.DpsBlunt:
+                        var bluntVerbs = VerbUtility.GetAllVerbProperties(Thing.def.Verbs, Thing.def.tools)
+                            .Where(vp => vp.verbProps.IsMeleeAttack).Where(vp =>
+                                vp.maneuver.verb.meleeDamageDef.armorCategory.defName == "Blunt").ToList();
+                        if (!bluntVerbs.Any()) { return 0f; }
+                        var bluntDamage = bluntVerbs.AverageWeighted(
+                            vp => vp.verbProps.AdjustedMeleeSelectionWeight(vp.tool, null, Thing, null, false),
+                            vp => vp.verbProps.AdjustedMeleeDamageAmount(vp.tool, null, Thing, null));
+                        var bluntCooldown = bluntVerbs.AverageWeighted(
+                            vp => vp.verbProps.AdjustedMeleeSelectionWeight(vp.tool, null, Thing, null, false),
+                            vp => vp.verbProps.AdjustedCooldown(vp.tool, null, Thing));
+                        return bluntCooldown == 0f ? 0f : bluntDamage / bluntCooldown;
                     case CustomMeleeWeaponStat.TechLevel:
                         return (float) Thing.def.techLevel;
                     default:

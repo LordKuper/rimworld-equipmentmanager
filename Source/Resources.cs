@@ -64,20 +64,32 @@ namespace EquipmentManager
                 internal static readonly string NoLoadoutSelected =
                     $"EquipmentManager.Loadouts.{nameof(NoLoadoutSelected)}".Translate();
 
-                internal static readonly string PawnCapacities =
-                    $"EquipmentManager.Loadouts.{nameof(PawnCapacities)}".Translate();
+                internal static readonly string PawnCapacityLimits =
+                    $"EquipmentManager.Loadouts.{nameof(PawnCapacityLimits)}".Translate();
 
-                internal static readonly string PawnSkills =
-                    $"EquipmentManager.Loadouts.{nameof(PawnSkills)}".Translate();
+                internal static readonly string PawnCapacityWeights =
+                    $"EquipmentManager.Loadouts.{nameof(PawnCapacityWeights)}".Translate();
+
+                internal static readonly string PawnPassions =
+                    $"EquipmentManager.Loadouts.{nameof(PawnPassions)}".Translate();
+
+                internal static readonly string PawnSkillLimits =
+                    $"EquipmentManager.Loadouts.{nameof(PawnSkillLimits)}".Translate();
+
+                internal static readonly string PawnSkillWeights =
+                    $"EquipmentManager.Loadouts.{nameof(PawnSkillWeights)}".Translate();
+
+                internal static readonly string PawnStatLimits =
+                    $"EquipmentManager.Loadouts.{nameof(PawnStatLimits)}".Translate();
+
+                internal static readonly string PawnStatWeights =
+                    $"EquipmentManager.Loadouts.{nameof(PawnStatWeights)}".Translate();
 
                 internal static readonly string PawnTraits =
                     $"EquipmentManager.Loadouts.{nameof(PawnTraits)}".Translate();
 
-                internal static readonly string PreferredSkillsLabel =
-                    $"EquipmentManager.Loadouts.{nameof(PreferredSkillsLabel)}".Translate();
-
-                internal static readonly string PreferredSkillsTooltip =
-                    $"EquipmentManager.Loadouts.{nameof(PreferredSkillsTooltip)}".Translate();
+                internal static readonly string PawnWorkCapacities =
+                    $"EquipmentManager.Loadouts.{nameof(PawnWorkCapacities)}".Translate();
 
                 internal static readonly string PrimaryWeaponLabel =
                     $"EquipmentManager.Loadouts.{nameof(PrimaryWeaponLabel)}".Translate();
@@ -102,12 +114,6 @@ namespace EquipmentManager
                 internal static readonly string ToolsLabel =
                     $"EquipmentManager.Loadouts.{nameof(ToolsLabel)}".Translate();
 
-                internal static readonly string UndesirableSkillsLabel =
-                    $"EquipmentManager.Loadouts.{nameof(UndesirableSkillsLabel)}".Translate();
-
-                internal static readonly string UndesirableSkillsTooltip =
-                    $"EquipmentManager.Loadouts.{nameof(UndesirableSkillsTooltip)}".Translate();
-
                 internal static string GetPrimaryWeaponTypeLabel(Loadout.PrimaryWeaponType primaryWeaponType)
                 {
                     return $"EquipmentManager.Loadouts.PrimaryWeaponTypes.{primaryWeaponType}".Translate();
@@ -118,14 +124,17 @@ namespace EquipmentManager
                     internal static readonly string Assault =
                         $"EquipmentManager.Loadouts.Default.{nameof(Assault)}".Translate();
 
-                    internal static readonly string Brawler =
-                        $"EquipmentManager.Loadouts.Default.{nameof(Brawler)}".Translate();
+                    internal static readonly string Crusher =
+                        $"EquipmentManager.Loadouts.Default.{nameof(Crusher)}".Translate();
 
                     internal static readonly string NoLoadout =
                         $"EquipmentManager.Loadouts.Default.{nameof(NoLoadout)}".Translate();
 
                     internal static readonly string Pacifist =
                         $"EquipmentManager.Loadouts.Default.{nameof(Pacifist)}".Translate();
+
+                    internal static readonly string Slasher =
+                        $"EquipmentManager.Loadouts.Default.{nameof(Slasher)}".Translate();
 
                     internal static readonly string Sniper =
                         $"EquipmentManager.Loadouts.Default.{nameof(Sniper)}".Translate();
@@ -237,12 +246,14 @@ namespace EquipmentManager
 
                     internal static class Default
                     {
+                        internal static readonly string Bluntest =
+                            $"EquipmentManager.WeaponRules.MeleeWeapons.Default.{nameof(Bluntest)}".Translate();
+
                         internal static readonly string HighestDps =
                             $"EquipmentManager.WeaponRules.MeleeWeapons.Default.{nameof(HighestDps)}".Translate();
 
-                        internal static readonly string OneHandHighestDps =
-                            $"EquipmentManager.WeaponRules.MeleeWeapons.Default.{nameof(OneHandHighestDps)}"
-                                .Translate();
+                        internal static readonly string Sharpest =
+                            $"EquipmentManager.WeaponRules.MeleeWeapons.Default.{nameof(Sharpest)}".Translate();
                     }
                 }
 
@@ -319,6 +330,8 @@ namespace EquipmentManager
         internal static class Textures
         {
             internal static readonly Texture2D Delete = ContentFinder<Texture2D>.Get("equipment-manager-delete");
+            internal static readonly Texture2D PassionMajor = ContentFinder<Texture2D>.Get("UI/Icons/PassionMajor");
+            internal static readonly Texture2D PassionMinor = ContentFinder<Texture2D>.Get("UI/Icons/PassionMinor");
         }
     }
 }

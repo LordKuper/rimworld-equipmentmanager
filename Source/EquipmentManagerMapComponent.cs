@@ -254,7 +254,6 @@ namespace EquipmentManager
             EquipmentManager.LogMessage(
                 $"Updating equipment at year={_updateTime.Year}, day={_updateTime.Day}, hour={_updateTime.Hour:N1} ====================");
             UpdatePawnCache();
-            UpdateStatRanges();
             UpdateLoadouts();
             UpdatePrimaryWeapons();
             UpdateRangedSidearms();
@@ -271,7 +270,7 @@ namespace EquipmentManager
         private void RemoveUnassignedWeapons()
         {
             foreach (var pawn in _pawnCache.Where(pc =>
-                         pc.IsCapable && (pc.AssignedLoadout?.DropUnassignedWeapons ?? false)))
+                         pc.ShouldUpdateEquipment && (pc.AssignedLoadout?.DropUnassignedWeapons ?? false)))
             {
                 var unassignedWeapons = pawn.Pawn.getCarriedWeapons(true, true)
                     .Where(weapon => !pawn.AssignedWeapons.ContainsKey(weapon)).ToList();
@@ -347,8 +346,11 @@ namespace EquipmentManager
         private void UpdateLoadouts()
         {
             foreach (var loadout in EquipmentManager.GetLoadouts().Where(loadout => loadout.Priority > 0)
-                         .OrderByDescending(loadout => loadout.Priority).ThenByDescending(loadout =>
-                             loadout.PreferredSkills.Count + loadout.UndesirableSkills.Count))
+                         .OrderByDescending(loadout => loadout.PassionLimits.Count + loadout.PawnCapacityLimits.Count +
+                             loadout.PawnCapacityWeights.Count + loadout.PawnTraits.Count +
+                             loadout.PawnWorkCapacities.Count + loadout.SkillLimits.Count + loadout.SkillWeights.Count +
+                             loadout.StatLimits.Count + loadout.StatWeights.Count)
+                         .ThenByDescending(loadout => loadout.Priority))
             {
                 var availablePawns = _pawnCache.Where(pc => pc.IsAvailable(loadout)).ToList();
                 var prioritySum = availablePawns.Sum(pawn => pawn.AvailableLoadouts.Keys.Sum(l => l.Priority));
@@ -378,7 +380,7 @@ namespace EquipmentManager
 
         private void UpdateMeleeSidearms()
         {
-            foreach (var pawn in _pawnCache.Where(pc => pc.IsCapable))
+            foreach (var pawn in _pawnCache.Where(pc => pc.ShouldUpdateEquipment))
             {
                 var sidearmMemory = CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn);
                 foreach (var rule in pawn.AssignedLoadout.MeleeSidearmRules.Select(EquipmentManager.GetMeleeWeaponRule)
@@ -476,12 +478,12 @@ namespace EquipmentManager
                 pawnCache.Update(_updateTime);
             }
             EquipmentManager.LogMessage(
-                $"Equipment Manager: Pawns: {string.Join("; ", _pawnCache.Select(pc => $"{pc.Pawn.LabelShortCap} ({pc.AssignedLoadout?.Label ?? "None"}, {(pc.AutoLoadout ? "auto" : "manual")}) [{(pc.IsCapable ? "capable" : "incapable")}]"))}");
+                $"Equipment Manager: Pawns: {string.Join("; ", _pawnCache.Select(pc => $"{pc.Pawn.LabelShortCap} ({pc.AssignedLoadout?.Label ?? "None"}, {(pc.AutoLoadout ? "auto" : "manual")}) [{(pc.ShouldUpdateEquipment ? "updating" : "not updating")}]"))}");
         }
 
         private void UpdatePrimaryWeapons()
         {
-            foreach (var pawn in _pawnCache.Where(pc => pc.IsCapable))
+            foreach (var pawn in _pawnCache.Where(pc => pc.ShouldUpdateEquipment))
             {
                 switch (pawn.AssignedLoadout.PrimaryRuleType)
                 {
@@ -501,7 +503,7 @@ namespace EquipmentManager
 
         private void UpdateRangedSidearms()
         {
-            foreach (var pawn in _pawnCache.Where(pc => pc.IsCapable))
+            foreach (var pawn in _pawnCache.Where(pc => pc.ShouldUpdateEquipment))
             {
                 foreach (var rule in pawn.AssignedLoadout.RangedSidearmRules
                              .Select(EquipmentManager.GetRangedWeaponRule).Where(rule => rule != null))
@@ -576,17 +578,9 @@ namespace EquipmentManager
             }
         }
 
-        private void UpdateStatRanges()
-        {
-            foreach (var weapon in map?.listerThings?.ThingsInGroup(ThingRequestGroup.Weapon) ?? new List<Thing>())
-            {
-                EquipmentManager.UpdateStatRanges(weapon, _updateTime);
-            }
-        }
-
         private void UpdateTools()
         {
-            foreach (var pawn in _pawnCache.Where(pc => pc.IsCapable))
+            foreach (var pawn in _pawnCache.Where(pc => pc.ShouldUpdateEquipment))
             {
                 if (pawn.AssignedLoadout.ToolRuleId == null) { continue; }
                 var rule = EquipmentManager.GetToolRule((int) pawn.AssignedLoadout.ToolRuleId);

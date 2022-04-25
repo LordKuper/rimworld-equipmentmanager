@@ -8,6 +8,8 @@ namespace EquipmentManager
     internal enum CustomMeleeWeaponStat
     {
         ArmorPenetration,
+        DpsSharp,
+        DpsBlunt,
         TechLevel
     }
 

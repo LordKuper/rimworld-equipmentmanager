@@ -19,28 +19,7 @@ namespace EquipmentManager
 
         public static readonly IEnumerable<Loadout> DefaultLoadouts = new[]
         {
-            new Loadout(0)
-            {
-                Label = Strings.Default.NoLoadout,
-                Priority = 0,
-                _primaryRuleType = PrimaryWeaponType.None,
-                DropUnassignedWeapons = false
-            },
             new Loadout(1)
-            {
-                Label = Strings.Default.Sniper,
-                Priority = 5,
-                PrimaryRuleType = PrimaryWeaponType.RangedWeapon,
-                PrimaryRangedWeaponRuleId = 3,
-                RangedSidearmRules = {1},
-                MeleeSidearmRules = {0},
-                ToolRuleId = 0,
-                PawnTraits = {{"Brawler", false}},
-                PawnCapacities = {{"Violent", true}},
-                PreferredSkills = {"Shooting"},
-                DropUnassignedWeapons = true
-            },
-            new Loadout(2)
             {
                 Label = Strings.Default.Assault,
                 Priority = 5,
@@ -50,40 +29,68 @@ namespace EquipmentManager
                 MeleeSidearmRules = {0},
                 ToolRuleId = 0,
                 PawnTraits = {{"Brawler", false}},
-                PawnCapacities = {{"Violent", true}},
+                PawnWorkCapacities = {{"Violent", true}},
                 DropUnassignedWeapons = true
+            },
+            new Loadout(2)
+            {
+                Label = Strings.Default.Sniper,
+                Priority = 3,
+                PrimaryRuleType = PrimaryWeaponType.RangedWeapon,
+                PrimaryRangedWeaponRuleId = 3,
+                RangedSidearmRules = {1},
+                MeleeSidearmRules = {0},
+                ToolRuleId = 0,
+                PawnTraits = {{"Brawler", false}},
+                PawnWorkCapacities = {{"Violent", true}},
+                DropUnassignedWeapons = true,
+                SkillWeights = {new SkillWeight("Shooting", 1f)},
+                StatWeights = {new StatWeight("ShootingAccuracyPawn", 2f, false)}
             },
             new Loadout(3)
             {
                 Label = Strings.Default.Support,
-                Priority = 5,
+                Priority = 2,
                 PrimaryRuleType = PrimaryWeaponType.RangedWeapon,
                 PrimaryRangedWeaponRuleId = 2,
                 RangedSidearmRules = {1},
                 MeleeSidearmRules = {0},
                 ToolRuleId = 0,
                 PawnTraits = {{"Brawler", false}},
-                PawnCapacities = {{"Violent", true}},
-                DropUnassignedWeapons = true
+                PawnWorkCapacities = {{"Violent", true}},
+                DropUnassignedWeapons = true,
+                SkillWeights = {new SkillWeight("Shooting", -1f)},
+                StatWeights = {new StatWeight("ShootingAccuracyPawn", -2f, false)}
             },
             new Loadout(4)
             {
-                Label = Strings.Default.Brawler,
+                Label = Strings.Default.Slasher,
                 Priority = 5,
                 PrimaryRuleType = PrimaryWeaponType.MeleeWeapon,
-                PrimaryMeleeWeaponRuleId = 0,
+                PrimaryMeleeWeaponRuleId = 1,
                 ToolRuleId = 0,
                 PawnTraits = {{"Brawler", true}},
-                PawnCapacities = {{"Violent", true}},
+                PawnWorkCapacities = {{"Violent", true}},
                 DropUnassignedWeapons = true
             },
             new Loadout(5)
+            {
+                Label = Strings.Default.Crusher,
+                Priority = 5,
+                PrimaryRuleType = PrimaryWeaponType.MeleeWeapon,
+                PrimaryMeleeWeaponRuleId = 2,
+                ToolRuleId = 0,
+                PawnTraits = {{"Brawler", true}},
+                PawnWorkCapacities = {{"Violent", true}},
+                DropUnassignedWeapons = true
+            },
+            new Loadout(6)
             {
                 Label = Strings.Default.Pacifist,
                 Priority = 5,
                 PrimaryRuleType = PrimaryWeaponType.None,
                 ToolRuleId = 0,
-                PawnCapacities = {{"Violent", false}},
+                PawnWorkCapacities = {{"Violent", false}},
                 DropUnassignedWeapons = true
             }
         };
@@ -91,12 +98,17 @@ namespace EquipmentManager
         private int _id;
         private bool _initialized;
         private List<int> _meleeSidearmRules = new List<int>();
-        private Dictionary<string, bool> _pawnCapacities = new Dictionary<string, bool>();
+        private List<PassionLimit> _passionLimits = new List<PassionLimit>();
+        private List<PawnCapacityLimit> _pawnCapacityLimits = new List<PawnCapacityLimit>();
+        private List<PawnCapacityWeight> _pawnCapacityWeights = new List<PawnCapacityWeight>();
         private Dictionary<string, bool> _pawnTraits = new Dictionary<string, bool>();
-        private HashSet<string> _preferredSkills = new HashSet<string>();
+        private Dictionary<string, bool> _pawnWorkCapacities = new Dictionary<string, bool>();
         private PrimaryWeaponType _primaryRuleType = PrimaryWeaponType.None;
         private List<int> _rangedSidearmRules = new List<int>();
-        private HashSet<string> _undesirableSkills = new HashSet<string>();
+        private List<SkillLimit> _skillLimits = new List<SkillLimit>();
+        private List<SkillWeight> _skillWeights = new List<SkillWeight>();
+        private List<StatLimit> _statLimits = new List<StatLimit>();
+        private List<StatWeight> _statWeights = new List<StatWeight>();
         public bool DropUnassignedWeapons = true;
         public string Label;
         public int? PrimaryMeleeWeaponRuleId;
@@ -115,8 +127,7 @@ namespace EquipmentManager
         public Loadout(int id, string label, int priority, PrimaryWeaponType primaryRuleType,
             int? primaryRangedWeaponRuleId, int? primaryMeleeWeaponRuleId, List<int> rangedSidearmRules,
             List<int> meleeSidearmRules, int? toolRuleId, Dictionary<string, bool> pawnTraits,
-            Dictionary<string, bool> pawnCapacities, HashSet<string> preferredSkills, HashSet<string> undesirableSkills,
-            bool dropUnassignedWeapons)
+            Dictionary<string, bool> pawnWorkCapacities, bool dropUnassignedWeapons)
         {
             _id = id;
             Label = label;
@@ -128,9 +139,7 @@ namespace EquipmentManager
             _meleeSidearmRules = meleeSidearmRules;
             ToolRuleId = toolRuleId;
             _pawnTraits = pawnTraits;
-            _pawnCapacities = pawnCapacities;
-            _preferredSkills = preferredSkills;
-            _undesirableSkills = undesirableSkills;
+            _pawnWorkCapacities = pawnWorkCapacities;
             DropUnassignedWeapons = dropUnassignedWeapons;
         }
 
@@ -145,12 +154,30 @@ namespace EquipmentManager
             }
         }
 
-        public Dictionary<string, bool> PawnCapacities
+        public List<PassionLimit> PassionLimits
         {
             get
             {
                 Initialize();
-                return _pawnCapacities;
+                return _passionLimits;
+            }
+        }
+
+        public List<PawnCapacityLimit> PawnCapacityLimits
+        {
+            get
+            {
+                Initialize();
+                return _pawnCapacityLimits;
+            }
+        }
+
+        public List<PawnCapacityWeight> PawnCapacityWeights
+        {
+            get
+            {
+                Initialize();
+                return _pawnCapacityWeights;
             }
         }
 
@@ -163,12 +190,12 @@ namespace EquipmentManager
             }
         }
 
-        public HashSet<string> PreferredSkills
+        public Dictionary<string, bool> PawnWorkCapacities
         {
             get
             {
                 Initialize();
-                return _preferredSkills;
+                return _pawnWorkCapacities;
             }
         }
 
@@ -205,12 +232,39 @@ namespace EquipmentManager
             }
         }
 
-        public HashSet<string> UndesirableSkills
+        public List<SkillLimit> SkillLimits
         {
             get
             {
                 Initialize();
-                return _undesirableSkills;
+                return _skillLimits;
+            }
+        }
+
+        public List<SkillWeight> SkillWeights
+        {
+            get
+            {
+                Initialize();
+                return _skillWeights;
+            }
+        }
+
+        public List<StatLimit> StatLimits
+        {
+            get
+            {
+                Initialize();
+                return _statLimits;
+            }
+        }
+
+        public List<StatWeight> StatWeights
+        {
+            get
+            {
+                Initialize();
+                return _statWeights;
             }
         }
 
@@ -226,33 +280,51 @@ namespace EquipmentManager
             Scribe_Collections.Look(ref _meleeSidearmRules, nameof(MeleeSidearmRules));
             Scribe_Values.Look(ref ToolRuleId, nameof(ToolRuleId));
             Scribe_Collections.Look(ref _pawnTraits, nameof(PawnTraits));
-            Scribe_Collections.Look(ref _pawnCapacities, nameof(PawnCapacities));
-            Scribe_Collections.Look(ref _preferredSkills, nameof(PreferredSkills));
-            Scribe_Collections.Look(ref _undesirableSkills, nameof(UndesirableSkills));
-            Scribe_Values.Look(ref DropUnassignedWeapons, nameof(DropUnassignedWeapons), true);
+            Scribe_Collections.Look(ref _pawnWorkCapacities, nameof(PawnWorkCapacities));
+            Scribe_Values.Look(ref DropUnassignedWeapons, nameof(DropUnassignedWeapons));
+            Scribe_Collections.Look(ref _passionLimits, nameof(PassionLimits), LookMode.Deep);
+            Scribe_Collections.Look(ref _pawnCapacityLimits, nameof(PawnCapacityLimits), LookMode.Deep);
+            Scribe_Collections.Look(ref _pawnCapacityWeights, nameof(PawnCapacityWeights), LookMode.Deep);
+            Scribe_Collections.Look(ref _skillLimits, nameof(SkillLimits), LookMode.Deep);
+            Scribe_Collections.Look(ref _skillWeights, nameof(SkillWeights), LookMode.Deep);
+            Scribe_Collections.Look(ref _statLimits, nameof(StatLimits), LookMode.Deep);
+            Scribe_Collections.Look(ref _statWeights, nameof(StatWeights), LookMode.Deep);
         }
 
-        public IReadOnlyList<Pawn> GetAvailablePawns()
+        public IReadOnlyList<Pawn> GetAvailablePawnsOrdered()
         {
             Initialize();
-            return new List<Pawn>(PawnsFinder.AllMaps_FreeColonistsSpawned.Where(IsAvailable));
+            return new List<Pawn>(PawnsFinder.AllMaps_FreeColonistsSpawned.Where(IsAvailable)
+                .OrderByDescending(GetScore));
         }
 
         public float GetScore(Pawn pawn)
         {
             Initialize();
+            var pawns = PawnsFinder.AllMaps_FreeColonistsSpawned;
             var score = 0f;
-            foreach (var preferredSkill in _preferredSkills)
+            foreach (var statWeight in _statWeights.Where(sw => sw.StatDef != null))
             {
-                var skill = DefDatabase<SkillDef>.GetNamedSilentFail(preferredSkill);
-                if (skill == null) { continue; }
-                score += pawn.skills.GetSkill(skill).Level;
+                var pawnValues = pawns.Select(p => p.GetStatValue(statWeight.StatDef)).ToList();
+                var normalizedValue = StatHelper.NormalizeValue(pawn.GetStatValue(statWeight.StatDef),
+                    new FloatRange(pawnValues.Min(), pawnValues.Max()));
+                score += normalizedValue * statWeight.Weight;
             }
-            foreach (var undesirableSkill in _undesirableSkills)
+            foreach (var skillWeight in _skillWeights.Where(sw => sw.SkillDef != null))
             {
-                var skill = DefDatabase<SkillDef>.GetNamedSilentFail(undesirableSkill);
-                if (skill == null) { continue; }
-                score -= pawn.skills.GetSkill(skill).Level;
+                var pawnValues = pawns.Select(p => p.skills.GetSkill(skillWeight.SkillDef).Level).ToList();
+                var normalizedValue = StatHelper.NormalizeValue(pawn.skills.GetSkill(skillWeight.SkillDef).Level,
+                    new FloatRange(pawnValues.Min(), pawnValues.Max()));
+                score += normalizedValue * skillWeight.Weight;
+            }
+            foreach (var pawnCapacityWeight in _pawnCapacityWeights.Where(pcw => pcw.PawnCapacityDef != null))
+            {
+                var pawnValues = pawns.Select(p => p.health.capacities.GetLevel(pawnCapacityWeight.PawnCapacityDef))
+                    .ToList();
+                var normalizedValue = StatHelper.NormalizeValue(
+                    pawn.health.capacities.GetLevel(pawnCapacityWeight.PawnCapacityDef),
+                    new FloatRange(pawnValues.Min(), pawnValues.Max()));
+                score += normalizedValue * pawnCapacityWeight.Weight;
             }
             return score;
         }
@@ -264,9 +336,14 @@ namespace EquipmentManager
             if (_meleeSidearmRules == null) { _meleeSidearmRules = new List<int>(); }
             if (_rangedSidearmRules == null) { _rangedSidearmRules = new List<int>(); }
             if (_pawnTraits == null) { _pawnTraits = new Dictionary<string, bool>(); }
-            if (_pawnCapacities == null) { _pawnCapacities = new Dictionary<string, bool>(); }
-            if (_preferredSkills == null) { _preferredSkills = new HashSet<string>(); }
-            if (_undesirableSkills == null) { _undesirableSkills = new HashSet<string>(); }
+            if (_pawnWorkCapacities == null) { _pawnWorkCapacities = new Dictionary<string, bool>(); }
+            if (_passionLimits == null) { _passionLimits = new List<PassionLimit>(); }
+            if (_pawnCapacityLimits == null) { _pawnCapacityLimits = new List<PawnCapacityLimit>(); }
+            if (_pawnCapacityWeights == null) { _pawnCapacityWeights = new List<PawnCapacityWeight>(); }
+            if (_skillLimits == null) { _skillLimits = new List<SkillLimit>(); }
+            if (_skillWeights == null) { _skillWeights = new List<SkillWeight>(); }
+            if (_statLimits == null) { _statLimits = new List<StatLimit>(); }
+            if (_statWeights == null) { _statWeights = new List<StatWeight>(); }
         }
 
         public bool IsAvailable(Pawn pawn)
@@ -278,10 +355,47 @@ namespace EquipmentManager
                 if (trait == null) { continue; }
                 if (pawn.story.traits.HasTrait(trait) != pawnTrait.Value) { return false; }
             }
-            foreach (var pawnCapacity in _pawnCapacities)
+            foreach (var pawnCapacity in _pawnWorkCapacities)
             {
                 if (!Enum.TryParse<WorkTags>(pawnCapacity.Key, out var tag)) { continue; }
                 if (pawn.WorkTagIsDisabled(tag) == pawnCapacity.Value) { return false; }
+            }
+            foreach (var passionLimit in _passionLimits.Where(pl => pl.SkillDef != null))
+            {
+                var passion = pawn.skills.GetSkill(passionLimit.SkillDef).passion;
+                switch (passionLimit.Value)
+                {
+                    case PassionValue.None:
+                        if (passion != Passion.None) { return false; }
+                        break;
+                    case PassionValue.Minor:
+                        if (passion != Passion.Minor) { return false; }
+                        break;
+                    case PassionValue.Major:
+                        if (passion != Passion.Major) { return false; }
+                        break;
+                    case PassionValue.Any:
+                        if (passion == Passion.None) { return false; }
+                        break;
+                }
+            }
+            foreach (var pawnCapacityLimit in _pawnCapacityLimits.Where(pcl => pcl.PawnCapacityDef != null))
+            {
+                var capacity = pawn.health.capacities.GetLevel(pawnCapacityLimit.PawnCapacityDef);
+                if ((pawnCapacityLimit.MinValue != null && capacity < pawnCapacityLimit.MinValue) ||
+                    (pawnCapacityLimit.MaxValue != null && capacity > pawnCapacityLimit.MaxValue)) { return false; }
+            }
+            foreach (var statLimit in _statLimits.Where(sl => sl.StatDef != null))
+            {
+                var statValue = pawn.GetStatValue(statLimit.StatDef);
+                if ((statLimit.MinValue != null && statValue < statLimit.MinValue) ||
+                    (statLimit.MaxValue != null && statValue > statLimit.MaxValue)) { return false; }
+            }
+            foreach (var skillLimit in _skillLimits.Where(sl => sl.SkillDef != null))
+            {
+                var skillValue = pawn.skills.GetSkill(skillLimit.SkillDef).Level;
+                if ((skillLimit.MinValue != null && skillValue < skillLimit.MinValue) ||
+                    (skillLimit.MaxValue != null && skillValue > skillLimit.MaxValue)) { return false; }
             }
             return true;
         }

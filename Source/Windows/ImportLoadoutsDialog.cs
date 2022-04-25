@@ -233,7 +233,6 @@ namespace EquipmentManager.Windows
             if (!xmlReader.ReadToFollowing("li") || !xmlReader.Read()) { return; }
             var id = 0;
             var label = string.Empty;
-            var isProtected = false;
             var priority = 0;
             var primaryRuleType = Loadout.PrimaryWeaponType.None;
             int? primaryRangedWeaponRuleId = null;
@@ -243,8 +242,6 @@ namespace EquipmentManager.Windows
             int? toolRuleId = null;
             Dictionary<string, bool> pawnTraits = null;
             Dictionary<string, bool> pawnCapacities = null;
-            HashSet<string> preferredSkills = null;
-            HashSet<string> undesirableSkills = null;
             var dropUnassignedWeapons = true;
             while (true)
             {
@@ -260,9 +257,6 @@ namespace EquipmentManager.Windows
                         break;
                     case "Label":
                         label = xmlReader.ReadElementContentAsString();
-                        break;
-                    case "Protected":
-                        isProtected = bool.Parse(xmlReader.ReadElementContentAsString());
                         break;
                     case "Priority":
                         priority = xmlReader.ReadElementContentAsInt();
@@ -309,24 +303,6 @@ namespace EquipmentManager.Windows
                             .ToDictionary(pair => pair.Key, pair => bool.Parse(pair.Value));
                         xmlReader.ReadEndElement();
                         break;
-                    case "PreferredSkills":
-                        _ = xmlReader.Read();
-                        preferredSkills = new HashSet<string>();
-                        while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
-                        {
-                            _ = preferredSkills.Add(xmlReader.ReadElementContentAsString());
-                        }
-                        xmlReader.ReadEndElement();
-                        break;
-                    case "UndesirableSkills":
-                        _ = xmlReader.Read();
-                        undesirableSkills = new HashSet<string>();
-                        while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
-                        {
-                            _ = undesirableSkills.Add(xmlReader.ReadElementContentAsString());
-                        }
-                        xmlReader.ReadEndElement();
-                        break;
                     case "DropUnassignedWeapons":
                         dropUnassignedWeapons = bool.Parse(xmlReader.ReadElementContentAsString());
                         break;
@@ -337,7 +313,7 @@ namespace EquipmentManager.Windows
             }
             _loadouts.Add(new Loadout(id, label, priority, primaryRuleType, primaryRangedWeaponRuleId,
                 primaryMeleeWeaponRuleId, rangedSidearmRules, meleeSidearmRules, toolRuleId, pawnTraits, pawnCapacities,
-                preferredSkills, undesirableSkills, dropUnassignedWeapons));
+                dropUnassignedWeapons));
         }
 
         private void ReadLoadoutsData(string savedGameFile, XmlReader xmlReader)

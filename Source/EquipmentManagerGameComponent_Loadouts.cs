@@ -29,7 +29,7 @@ namespace EquipmentManager
         public Loadout CopyLoadout(Loadout loadout)
         {
             var newLoadout = AddLoadout();
-            newLoadout.Label = $"{loadout.Label} (copy)";
+            newLoadout.Label = $"{loadout.Label} 2";
             newLoadout.Priority = loadout.Priority;
             newLoadout.PrimaryRuleType = loadout.PrimaryRuleType;
             newLoadout.PrimaryMeleeWeaponRuleId = loadout.PrimaryMeleeWeaponRuleId;
@@ -37,11 +37,44 @@ namespace EquipmentManager
             newLoadout.RangedSidearmRules.AddRange(loadout.RangedSidearmRules);
             newLoadout.MeleeSidearmRules.AddRange(loadout.MeleeSidearmRules);
             newLoadout.ToolRuleId = loadout.ToolRuleId;
-            newLoadout.PawnTraits.AddRange(loadout.PawnTraits);
-            newLoadout.PawnCapacities.AddRange(loadout.PawnCapacities);
-            newLoadout.PreferredSkills.AddRange(loadout.PreferredSkills);
-            newLoadout.UndesirableSkills.AddRange(loadout.UndesirableSkills);
             newLoadout.DropUnassignedWeapons = loadout.DropUnassignedWeapons;
+            foreach (var passionLimit in loadout.PassionLimits)
+            {
+                newLoadout.PassionLimits.Add(new PassionLimit(passionLimit.SkillDefName) {Value = passionLimit.Value});
+            }
+            foreach (var pawnCapacityLimit in loadout.PawnCapacityLimits)
+            {
+                newLoadout.PawnCapacityLimits.Add(new PawnCapacityLimit(pawnCapacityLimit.PawnCapacityDefName,
+                    pawnCapacityLimit.MinValue, pawnCapacityLimit.MaxValue));
+            }
+            foreach (var pawnCapacityWeight in loadout.PawnCapacityWeights)
+            {
+                newLoadout.PawnCapacityWeights.Add(new PawnCapacityWeight(pawnCapacityWeight.PawnCapacityDefName,
+                    pawnCapacityWeight.Weight));
+            }
+            foreach (var pawnTrait in loadout.PawnTraits) { newLoadout.PawnTraits.Add(pawnTrait.Key, pawnTrait.Value); }
+            foreach (var pawnWorkCapacity in loadout.PawnWorkCapacities)
+            {
+                newLoadout.PawnWorkCapacities.Add(pawnWorkCapacity.Key, pawnWorkCapacity.Value);
+            }
+            foreach (var skillLimit in loadout.SkillLimits)
+            {
+                newLoadout.SkillLimits.Add(new SkillLimit(skillLimit.SkillDefName, skillLimit.MinValue,
+                    skillLimit.MaxValue));
+            }
+            foreach (var skillWeight in loadout.SkillWeights)
+            {
+                newLoadout.SkillWeights.Add(new SkillWeight(skillWeight.SkillDefName, skillWeight.Weight));
+            }
+            foreach (var statLimit in loadout.StatLimits)
+            {
+                newLoadout.StatLimits.Add(new StatLimit(statLimit.StatDefName, statLimit.MinValue, statLimit.MaxValue));
+            }
+            foreach (var statWeight in loadout.StatWeights)
+            {
+                newLoadout.StatWeights.Add(new StatWeight(statWeight.StatDefName, statWeight.Weight,
+                    statWeight.Protected));
+            }
             return newLoadout;
         }
 

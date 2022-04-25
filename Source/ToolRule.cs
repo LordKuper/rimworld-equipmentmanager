@@ -141,16 +141,10 @@ namespace EquipmentManager
             RimworldTime time)
         {
             if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
-            var statScores = new Dictionary<StatDef, float>();
-            float score = 0;
             var cache = EquipmentManager.GetToolCache(thing, time);
-            foreach (var statWeight in StatWeights.Where(sw => sw.StatDef != null))
-            {
-                var statScore = EquipmentManager.NormalizeStatValue(statWeight.StatDef,
-                    cache.GetStatValueDeviation(statWeight.StatDef, workTypeDefs)) * statWeight.Weight;
-                statScores.Add(statWeight.StatDef, statScore);
-                score += statScore;
-            }
+            var score = StatWeights.Where(sw => sw.StatDef != null).Sum(statWeight =>
+                EquipmentManager.NormalizeStatValue(statWeight.StatDef,
+                    cache.GetStatValueDeviation(statWeight.StatDef, workTypeDefs)) * statWeight.Weight);
             if (thing.def.useHitPoints)
             {
                 score *= HitPointsCurve.Evaluate((float) thing.HitPoints / thing.MaxHitPoints);

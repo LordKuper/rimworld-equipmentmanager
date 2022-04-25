@@ -10,10 +10,9 @@ namespace EquipmentManager
         private readonly RimworldTime _updateTime = new RimworldTime(-1, -1, -1);
         public readonly Dictionary<Thing, int> AssignedAmmo = new Dictionary<Thing, int>();
         public readonly Dictionary<Thing, string> AssignedWeapons = new Dictionary<Thing, string>();
-        public readonly Dictionary<Thing, string> PreviouslyAssignedWeapons = new Dictionary<Thing, string>();
         public Loadout AssignedLoadout;
         public bool AutoLoadout;
-        public bool IsCapable;
+        public bool ShouldUpdateEquipment;
 
         public PawnCache(Pawn pawn)
         {
@@ -34,24 +33,23 @@ namespace EquipmentManager
 
         public void Update(RimworldTime time)
         {
-            var hoursPassed = ((time.Year - _updateTime.Year) * 60 * 24) + ((time.Day - _updateTime.Day) * 24) +
-                time.Hour - _updateTime.Hour;
-            _updateTime.Year = time.Year;
-            _updateTime.Day = time.Day;
-            _updateTime.Hour = time.Hour;
-            if (hoursPassed > 24f)
-            {
-                AvailableLoadouts.Clear();
-                foreach (var loadout in EquipmentManager.GetLoadouts())
-                {
-                    if (loadout.IsAvailable(Pawn)) { AvailableLoadouts.Add(loadout, loadout.GetScore(Pawn)); }
-                }
-            }
-            IsCapable = !Pawn.Dead && !Pawn.Downed && !Pawn.InMentalState && !Pawn.InContainerEnclosed &&
+            var capable = !Pawn.Dead && !Pawn.Downed && !Pawn.InMentalState && !Pawn.InContainerEnclosed &&
                 !Pawn.Drafted && !HealthAIUtility.ShouldSeekMedicalRest(Pawn);
             var pawnLoadout = EquipmentManager.GetPawnLoadout(Pawn);
             AutoLoadout = pawnLoadout?.Automatic ?? false;
             AssignedLoadout = AutoLoadout ? null : EquipmentManager.GetLoadout(pawnLoadout?.LoadoutId);
+            var hoursPassed = ((time.Year - _updateTime.Year) * 60 * 24) + ((time.Day - _updateTime.Day) * 24) +
+                time.Hour - _updateTime.Hour;
+            ShouldUpdateEquipment = capable && hoursPassed > 6f;
+            if (!ShouldUpdateEquipment) { return; }
+            _updateTime.Year = time.Year;
+            _updateTime.Day = time.Day;
+            _updateTime.Hour = time.Hour;
+            AvailableLoadouts.Clear();
+            foreach (var loadout in EquipmentManager.GetLoadouts())
+            {
+                if (loadout.IsAvailable(Pawn)) { AvailableLoadouts.Add(loadout, loadout.GetScore(Pawn)); }
+            }
         }
     }
 }

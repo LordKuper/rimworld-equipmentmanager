@@ -6,46 +6,46 @@ using Verse;
 
 namespace EquipmentManager
 {
-    internal class StatLimit : IExposable
+    internal class SkillLimit : IExposable
     {
-        private const float ValueCap = 1000f;
+        private const float ValueCap = 20f;
         private bool _isInitialized;
-        private StatDef _statDef;
-        private string _statDefName;
+        private SkillDef _skillDef;
+        private string _skillDefName;
         public float? MaxValue;
         public string MaxValueBuffer;
         public float? MinValue;
         public string MinValueBuffer;
 
         [UsedImplicitly]
-        public StatLimit() { }
+        public SkillLimit() { }
 
-        public StatLimit(string statDefName)
+        public SkillLimit(string skillDefName)
         {
-            _statDefName = statDefName;
+            _skillDefName = skillDefName;
         }
 
-        public StatLimit(string statDefName, float? minValue, float? maxValue)
+        public SkillLimit(string skillDefName, float? minValue, float? maxValue)
         {
-            _statDefName = statDefName;
+            _skillDefName = skillDefName;
             MinValue = minValue;
             MaxValue = maxValue;
         }
 
-        public StatDef StatDef
+        public SkillDef SkillDef
         {
             get
             {
                 Initialize();
-                return _statDef;
+                return _skillDef;
             }
         }
 
-        public string StatDefName => _statDefName;
+        public string SkillDefName => _skillDefName;
 
         public void ExposeData()
         {
-            Scribe_Values.Look(ref _statDefName, nameof(StatDefName));
+            Scribe_Values.Look(ref _skillDefName, nameof(SkillDefName));
             Scribe_Values.Look(ref MinValue, nameof(MinValue));
             Scribe_Values.Look(ref MaxValue, nameof(MaxValue));
         }
@@ -54,7 +54,7 @@ namespace EquipmentManager
         {
             if (_isInitialized) { return; }
             _isInitialized = true;
-            _statDef = StatHelper.GetStatDef(_statDefName);
+            _skillDef = DefDatabase<SkillDef>.GetNamedSilentFail(_skillDefName);
         }
 
         public static float? Parse(ref string buffer)
