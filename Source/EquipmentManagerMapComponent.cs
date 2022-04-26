@@ -45,6 +45,10 @@ namespace EquipmentManager
                 {
                     _ = availableWeapons.Remove(thing);
                 }
+                if (EquipmentUtility.RolePreventsFromUsing(pawn.Pawn, thing, out _))
+                {
+                    _ = availableWeapons.Remove(thing);
+                }
             }
             foreach (var weapon in availableWeapons.Where(weapon =>
                          pawn.AssignedWeapons.Keys.All(thing => thing.def != weapon.def) &&
@@ -85,6 +89,10 @@ namespace EquipmentManager
                 }
                 var bladelink = thing.TryGetComp<CompBladelinkWeapon>();
                 if (bladelink != null && bladelink.Biocoded && bladelink.CodedPawn != pawn.Pawn)
+                {
+                    _ = availableWeapons.Remove(thing);
+                }
+                if (EquipmentUtility.RolePreventsFromUsing(pawn.Pawn, thing, out _))
                 {
                     _ = availableWeapons.Remove(thing);
                 }
@@ -134,6 +142,10 @@ namespace EquipmentManager
                 {
                     _ = availableWeapons.Remove(thing);
                 }
+                if (EquipmentUtility.RolePreventsFromUsing(pawn.Pawn, thing, out _))
+                {
+                    _ = availableWeapons.Remove(thing);
+                }
             }
             var bestWeapon = availableWeapons.OrderByDescending(thing => rule.GetThingScore(thing, _updateTime))
                 .ThenByDescending(thing => sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
@@ -172,6 +184,10 @@ namespace EquipmentManager
                 }
                 var bladelink = thing.TryGetComp<CompBladelinkWeapon>();
                 if (bladelink != null && bladelink.Biocoded && bladelink.CodedPawn != pawn.Pawn)
+                {
+                    _ = availableWeapons.Remove(thing);
+                }
+                if (EquipmentUtility.RolePreventsFromUsing(pawn.Pawn, thing, out _))
                 {
                     _ = availableWeapons.Remove(thing);
                 }
@@ -214,6 +230,10 @@ namespace EquipmentManager
                 }
                 var bladelink = thing.TryGetComp<CompBladelinkWeapon>();
                 if (bladelink != null && bladelink.Biocoded && bladelink.CodedPawn != pawn.Pawn)
+                {
+                    _ = availableWeapons.Remove(thing);
+                }
+                if (EquipmentUtility.RolePreventsFromUsing(pawn.Pawn, thing, out _))
                 {
                     _ = availableWeapons.Remove(thing);
                 }
@@ -407,6 +427,10 @@ namespace EquipmentManager
                         {
                             _ = availableWeapons.Remove(thing);
                         }
+                        if (EquipmentUtility.RolePreventsFromUsing(pawn.Pawn, thing, out _))
+                        {
+                            _ = availableWeapons.Remove(thing);
+                        }
                     }
                     switch (rule.EquipMode)
                     {
@@ -525,6 +549,10 @@ namespace EquipmentManager
                         }
                         var bladelink = thing.TryGetComp<CompBladelinkWeapon>();
                         if (bladelink != null && bladelink.Biocoded && bladelink.CodedPawn != pawn.Pawn)
+                        {
+                            _ = availableWeapons.Remove(thing);
+                        }
+                        if (EquipmentUtility.RolePreventsFromUsing(pawn.Pawn, thing, out _))
                         {
                             _ = availableWeapons.Remove(thing);
                         }

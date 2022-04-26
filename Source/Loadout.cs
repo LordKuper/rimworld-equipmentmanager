@@ -349,6 +349,17 @@ namespace EquipmentManager
         public bool IsAvailable(Pawn pawn)
         {
             Initialize();
+            if (ModsConfig.IdeologyActive && pawn.Ideo != null)
+            {
+                var role = pawn.Ideo.GetRole(pawn);
+                if (role != null)
+                {
+                    if (PrimaryRuleType == PrimaryWeaponType.RangedWeapon && PrimaryRangedWeaponRuleId != null &&
+                        role.def.roleEffects.Any(effect => effect is RoleEffect_NoRangedWeapons)) { return false; }
+                    if (PrimaryRuleType == PrimaryWeaponType.MeleeWeapon && PrimaryMeleeWeaponRuleId != null &&
+                        role.def.roleEffects.Any(effect => effect is RoleEffect_NoMeleeWeapons)) { return false; }
+                }
+            }
             foreach (var pawnTrait in _pawnTraits)
             {
                 var trait = DefDatabase<TraitDef>.GetNamedSilentFail(pawnTrait.Key);
