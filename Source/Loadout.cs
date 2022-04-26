@@ -352,7 +352,7 @@ namespace EquipmentManager
             if (ModsConfig.IdeologyActive && pawn.Ideo != null)
             {
                 var role = pawn.Ideo.GetRole(pawn);
-                if (role != null)
+                if (role?.def?.roleEffects != null)
                 {
                     if (PrimaryRuleType == PrimaryWeaponType.RangedWeapon && PrimaryRangedWeaponRuleId != null &&
                         role.def.roleEffects.Any(effect => effect is RoleEffect_NoRangedWeapons)) { return false; }
