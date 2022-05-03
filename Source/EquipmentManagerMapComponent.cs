@@ -32,23 +32,13 @@ namespace EquipmentManager
             var carriedWeapons = pawn.Pawn.getCarriedWeapons(true, true)
                 .Where(thing => rule.IsAvailable(thing, workTypes, _updateTime)).ToList();
             availableWeapons.AddRange(carriedWeapons);
-            foreach (var thing in availableWeapons.ToList())
+            _ = availableWeapons.RemoveAll(thing =>
+                !EquipmentUtility.CanEquip(thing, pawn.Pawn) ||
+                (pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap != null &&
+                    !pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap[thing.Position]));
+            if (pawn.Pawn.story.traits.HasTrait(TraitDefOf.Brawler))
             {
-                var biocodable = thing.TryGetComp<CompBiocodable>();
-                if (biocodable != null && biocodable.Biocoded && biocodable.CodedPawn != pawn.Pawn)
-                {
-                    _ = availableWeapons.Remove(thing);
-                    continue;
-                }
-                var bladelink = thing.TryGetComp<CompBladelinkWeapon>();
-                if (bladelink != null && bladelink.Biocoded && bladelink.CodedPawn != pawn.Pawn)
-                {
-                    _ = availableWeapons.Remove(thing);
-                }
-                if (EquipmentUtility.RolePreventsFromUsing(pawn.Pawn, thing, out _))
-                {
-                    _ = availableWeapons.Remove(thing);
-                }
+                _ = availableWeapons.RemoveAll(thing => thing.def.IsRangedWeapon);
             }
             foreach (var weapon in availableWeapons.Where(weapon =>
                          pawn.AssignedWeapons.Keys.All(thing => thing.def != weapon.def) &&
@@ -79,24 +69,14 @@ namespace EquipmentManager
             var carriedWeapons = pawn.Pawn.getCarriedWeapons(true, true)
                 .Where(thing => rule.IsAvailable(thing, workTypes, _updateTime)).ToList();
             availableWeapons.AddRange(carriedWeapons);
-            foreach (var thing in availableWeapons.ToList())
+            if (pawn.Pawn.story.traits.HasTrait(TraitDefOf.Brawler))
             {
-                var biocodable = thing.TryGetComp<CompBiocodable>();
-                if (biocodable != null && biocodable.Biocoded && biocodable.CodedPawn != pawn.Pawn)
-                {
-                    _ = availableWeapons.Remove(thing);
-                    continue;
-                }
-                var bladelink = thing.TryGetComp<CompBladelinkWeapon>();
-                if (bladelink != null && bladelink.Biocoded && bladelink.CodedPawn != pawn.Pawn)
-                {
-                    _ = availableWeapons.Remove(thing);
-                }
-                if (EquipmentUtility.RolePreventsFromUsing(pawn.Pawn, thing, out _))
-                {
-                    _ = availableWeapons.Remove(thing);
-                }
+                _ = availableWeapons.RemoveAll(thing => thing.def.IsRangedWeapon);
             }
+            _ = availableWeapons.RemoveAll(thing =>
+                !EquipmentUtility.CanEquip(thing, pawn.Pawn) ||
+                (pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap != null &&
+                    !pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap[thing.Position]));
             var bestWeapon = availableWeapons
                 .Where(thing =>
                     carriedWeapons.Contains(thing) ||
@@ -129,24 +109,10 @@ namespace EquipmentManager
             availableWeapons.AddRange(carriedWeapons);
             _ = availableWeapons.RemoveAll(thing =>
                 _pawnCache.Any(pc => pc != pawn && pc.AssignedWeapons.ContainsKey(thing)));
-            foreach (var thing in availableWeapons.ToList())
-            {
-                var biocodable = thing.TryGetComp<CompBiocodable>();
-                if (biocodable != null && biocodable.Biocoded && biocodable.CodedPawn != pawn.Pawn)
-                {
-                    _ = availableWeapons.Remove(thing);
-                    continue;
-                }
-                var bladelink = thing.TryGetComp<CompBladelinkWeapon>();
-                if (bladelink != null && bladelink.Biocoded && bladelink.CodedPawn != pawn.Pawn)
-                {
-                    _ = availableWeapons.Remove(thing);
-                }
-                if (EquipmentUtility.RolePreventsFromUsing(pawn.Pawn, thing, out _))
-                {
-                    _ = availableWeapons.Remove(thing);
-                }
-            }
+            _ = availableWeapons.RemoveAll(thing =>
+                !EquipmentUtility.CanEquip(thing, pawn.Pawn) ||
+                (pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap != null &&
+                    !pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap[thing.Position]));
             var bestWeapon = availableWeapons.OrderByDescending(thing => rule.GetThingScore(thing, _updateTime))
                 .ThenByDescending(thing => sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
                 .ThenByDescending(thing => carriedWeapons.Contains(thing)).ThenBy(thing => thing.GetHashCode())
@@ -174,24 +140,10 @@ namespace EquipmentManager
             availableWeapons.AddRange(carriedWeapons);
             _ = availableWeapons.RemoveAll(thing =>
                 _pawnCache.Any(pc => pc != pawn && pc.AssignedWeapons.ContainsKey(thing)));
-            foreach (var thing in availableWeapons.ToList())
-            {
-                var biocodable = thing.TryGetComp<CompBiocodable>();
-                if (biocodable != null && biocodable.Biocoded && biocodable.CodedPawn != pawn.Pawn)
-                {
-                    _ = availableWeapons.Remove(thing);
-                    continue;
-                }
-                var bladelink = thing.TryGetComp<CompBladelinkWeapon>();
-                if (bladelink != null && bladelink.Biocoded && bladelink.CodedPawn != pawn.Pawn)
-                {
-                    _ = availableWeapons.Remove(thing);
-                }
-                if (EquipmentUtility.RolePreventsFromUsing(pawn.Pawn, thing, out _))
-                {
-                    _ = availableWeapons.Remove(thing);
-                }
-            }
+            _ = availableWeapons.RemoveAll(thing =>
+                !EquipmentUtility.CanEquip(thing, pawn.Pawn) ||
+                (pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap != null &&
+                    !pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap[thing.Position]));
             var weaponScores =
                 availableWeapons.ToDictionary(thing => thing, thing => rule.GetThingScore(thing, _updateTime));
             var bestWeapon = availableWeapons.OrderByDescending(thing => weaponScores[thing])
@@ -220,24 +172,14 @@ namespace EquipmentManager
             var carriedWeapons = pawn.Pawn.getCarriedWeapons(true, true)
                 .Where(thing => rule.IsAvailable(thing, workTypes, _updateTime)).ToList();
             availableWeapons.AddRange(carriedWeapons);
-            foreach (var thing in availableWeapons.ToList())
+            if (pawn.Pawn.story.traits.HasTrait(TraitDefOf.Brawler))
             {
-                var biocodable = thing.TryGetComp<CompBiocodable>();
-                if (biocodable != null && biocodable.Biocoded && biocodable.CodedPawn != pawn.Pawn)
-                {
-                    _ = availableWeapons.Remove(thing);
-                    continue;
-                }
-                var bladelink = thing.TryGetComp<CompBladelinkWeapon>();
-                if (bladelink != null && bladelink.Biocoded && bladelink.CodedPawn != pawn.Pawn)
-                {
-                    _ = availableWeapons.Remove(thing);
-                }
-                if (EquipmentUtility.RolePreventsFromUsing(pawn.Pawn, thing, out _))
-                {
-                    _ = availableWeapons.Remove(thing);
-                }
+                _ = availableWeapons.RemoveAll(thing => thing.def.IsRangedWeapon);
             }
+            _ = availableWeapons.RemoveAll(thing =>
+                !EquipmentUtility.CanEquip(thing, pawn.Pawn) ||
+                (pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap != null &&
+                    !pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap[thing.Position]));
             foreach (var workType in workTypes)
             {
                 var things = availableWeapons.Where(thing => carriedWeapons.Contains(thing) ||
@@ -414,24 +356,10 @@ namespace EquipmentManager
                     availableWeapons.AddRange(carriedWeapons);
                     _ = availableWeapons.RemoveAll(thing =>
                         _pawnCache.Any(pc => pc.AssignedWeapons.ContainsKey(thing)));
-                    foreach (var thing in availableWeapons.ToList())
-                    {
-                        var biocodable = thing.TryGetComp<CompBiocodable>();
-                        if (biocodable != null && biocodable.Biocoded && biocodable.CodedPawn != pawn.Pawn)
-                        {
-                            _ = availableWeapons.Remove(thing);
-                            continue;
-                        }
-                        var bladelink = thing.TryGetComp<CompBladelinkWeapon>();
-                        if (bladelink != null && bladelink.Biocoded && bladelink.CodedPawn != pawn.Pawn)
-                        {
-                            _ = availableWeapons.Remove(thing);
-                        }
-                        if (EquipmentUtility.RolePreventsFromUsing(pawn.Pawn, thing, out _))
-                        {
-                            _ = availableWeapons.Remove(thing);
-                        }
-                    }
+                    _ = availableWeapons.RemoveAll(thing =>
+                        !EquipmentUtility.CanEquip(thing, pawn.Pawn) ||
+                        (pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap != null &&
+                            !pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap[thing.Position]));
                     switch (rule.EquipMode)
                     {
                         case ItemRule.WeaponEquipMode.BestOne:
@@ -539,24 +467,10 @@ namespace EquipmentManager
                     availableWeapons.AddRange(carriedWeapons);
                     _ = availableWeapons.RemoveAll(thing =>
                         _pawnCache.Any(pc => pc != pawn && pc.AssignedWeapons.ContainsKey(thing)));
-                    foreach (var thing in availableWeapons.ToList())
-                    {
-                        var biocodable = thing.TryGetComp<CompBiocodable>();
-                        if (biocodable != null && biocodable.Biocoded && biocodable.CodedPawn != pawn.Pawn)
-                        {
-                            _ = availableWeapons.Remove(thing);
-                            continue;
-                        }
-                        var bladelink = thing.TryGetComp<CompBladelinkWeapon>();
-                        if (bladelink != null && bladelink.Biocoded && bladelink.CodedPawn != pawn.Pawn)
-                        {
-                            _ = availableWeapons.Remove(thing);
-                        }
-                        if (EquipmentUtility.RolePreventsFromUsing(pawn.Pawn, thing, out _))
-                        {
-                            _ = availableWeapons.Remove(thing);
-                        }
-                    }
+                    _ = availableWeapons.RemoveAll(thing =>
+                        !EquipmentUtility.CanEquip(thing, pawn.Pawn) ||
+                        (pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap != null &&
+                            !pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap[thing.Position]));
                     switch (rule.EquipMode)
                     {
                         case ItemRule.WeaponEquipMode.BestOne:
