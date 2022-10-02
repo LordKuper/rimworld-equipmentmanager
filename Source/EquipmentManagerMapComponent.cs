@@ -330,9 +330,12 @@ namespace EquipmentManager
                     assignedPawnsCount++;
                 }
             }
-            foreach (var pawn in _pawnCache.Where(pc => pc.AutoLoadout && pc.AssignedLoadout != null))
+            foreach (var pawn in _pawnCache)
             {
-                EquipmentManager.SetPawnLoadout(pawn.Pawn, pawn.AssignedLoadout, true);
+                if (pawn.AutoLoadout && pawn.AssignedLoadout != null)
+                {
+                    EquipmentManager.SetPawnLoadout(pawn.Pawn, pawn.AssignedLoadout, true);
+                }
                 pawn.AssignedWeapons.Clear();
                 pawn.AssignedAmmo.Clear();
             }
