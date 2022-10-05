@@ -17,13 +17,13 @@ namespace EquipmentManager
             CustomMeleeWeaponStats.StatDefs.Union(CustomRangedWeaponStats.StatDefs).Union(CustomToolStats.StatDefs);
 
         public static IEnumerable<StatDef> DefaultPawnStatDefs =>
-            DefaultStatDefs.Where(def => PawnCategories.Contains(def.category.defName))
+            DefaultStatDefs.Where(def => PawnCategories.Contains(def.category?.defName ?? string.Empty))
                 .OrderBy(def => def.category?.defName ?? string.Empty).ThenBy(def => def.label);
 
         private static IEnumerable<StatDef> DefaultStatDefs => DefDatabase<StatDef>.AllDefs;
 
         private static IEnumerable<StatDef> DefaultWeaponStatDefs =>
-            DefaultStatDefs.Where(def => WeaponCategories.Contains(def.category.defName));
+            DefaultStatDefs.Where(def => WeaponCategories.Contains(def.category?.defName ?? string.Empty));
 
         public static IReadOnlyList<StatDef> MeleeWeaponStatDefs { get; } = new List<StatDef>(CustomMeleeWeaponStats
             .StatDefs.Union(DefaultWeaponStatDefs).OrderBy(def => def.category?.defName ?? string.Empty)
@@ -51,10 +51,10 @@ namespace EquipmentManager
                 "Weapon_Melee", "PawnWork"
             };
 
-        private static IEnumerable<string> WorkCategories => new[] {"PawnWork"};
+        private static IEnumerable<string> WorkCategories => new[] {"PawnWork", "PawnSocial"};
 
         public static IEnumerable<StatDef> WorkTypeStatDefs { get; } = DefaultStatDefs
-            .Where(def => WorkCategories.Contains(def.category.defName))
+            .Where(def => WorkCategories.Contains(def.category?.defName ?? string.Empty))
             .OrderBy(def => def.category?.defName ?? string.Empty).ThenBy(def => def.label);
 
         public static StatDef GetStatDef(string defName)

@@ -246,6 +246,8 @@ namespace EquipmentManager
                     }
                 }
             }
+            _ = _defaultStatWeights.RemoveAll(sw => !StatHelper.WorkTypeStatDefs.Contains(sw.StatDef));
+            _ = _requiredStats.RemoveWhere(statDef => !StatHelper.WorkTypeStatDefs.Contains(statDef));
         }
 
         public void SetStatWeight([NotNull] StatDef statDef, float weight)
