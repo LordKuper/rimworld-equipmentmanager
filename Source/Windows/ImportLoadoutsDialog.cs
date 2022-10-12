@@ -237,12 +237,19 @@ namespace EquipmentManager.Windows
             var primaryRuleType = Loadout.PrimaryWeaponType.None;
             int? primaryRangedWeaponRuleId = null;
             int? primaryMeleeWeaponRuleId = null;
-            List<int> rangedSidearmRules = null;
-            List<int> meleeSidearmRules = null;
+            var rangedSidearmRules = new List<int>();
+            var meleeSidearmRules = new List<int>();
             int? toolRuleId = null;
-            Dictionary<string, bool> pawnTraits = null;
-            Dictionary<string, bool> pawnCapacities = null;
+            var pawnTraits = new Dictionary<string, bool>();
+            var pawnWorkCapacities = new Dictionary<string, bool>();
             var dropUnassignedWeapons = true;
+            var passionLimits = new List<PassionLimit>();
+            var pawnCapacityLimits = new List<PawnCapacityLimit>();
+            var pawnCapacityWeights = new List<PawnCapacityWeight>();
+            var skillLimits = new List<SkillLimit>();
+            var skillWeights = new List<SkillWeight>();
+            var statLimits = new List<StatLimit>();
+            var statWeights = new List<StatWeight>();
             while (true)
             {
                 if (xmlReader.NodeType != XmlNodeType.Element || xmlReader.IsEmptyElement)
@@ -272,7 +279,6 @@ namespace EquipmentManager.Windows
                         break;
                     case "RangedSidearmRules":
                         _ = xmlReader.Read();
-                        rangedSidearmRules = new List<int>();
                         while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
                         {
                             rangedSidearmRules.Add(xmlReader.ReadElementContentAsInt());
@@ -281,7 +287,6 @@ namespace EquipmentManager.Windows
                         break;
                     case "MeleeSidearmRules":
                         _ = xmlReader.Read();
-                        meleeSidearmRules = new List<int>();
                         while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
                         {
                             meleeSidearmRules.Add(xmlReader.ReadElementContentAsInt());
@@ -297,14 +302,84 @@ namespace EquipmentManager.Windows
                             .ToDictionary(pair => pair.Key, pair => bool.Parse(pair.Value));
                         xmlReader.ReadEndElement();
                         break;
-                    case "PawnCapacities":
+                    case "PawnWorkCapacities":
                         _ = xmlReader.Read();
-                        pawnCapacities = ReadDictionary(xmlReader)
+                        pawnWorkCapacities = ReadDictionary(xmlReader)
                             .ToDictionary(pair => pair.Key, pair => bool.Parse(pair.Value));
                         xmlReader.ReadEndElement();
                         break;
                     case "DropUnassignedWeapons":
                         dropUnassignedWeapons = bool.Parse(xmlReader.ReadElementContentAsString());
+                        break;
+                    case "PassionLimits":
+                        _ = xmlReader.Read();
+                        while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
+                        {
+                            _ = xmlReader.Read();
+                            passionLimits.Add(ReadPassionLimitData(xmlReader));
+                            xmlReader.ReadEndElement();
+                        }
+                        xmlReader.ReadEndElement();
+                        break;
+                    case "PawnCapacityLimits":
+                        _ = xmlReader.Read();
+                        while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
+                        {
+                            _ = xmlReader.Read();
+                            pawnCapacityLimits.Add(ReadPawnCapacityLimitData(xmlReader));
+                            xmlReader.ReadEndElement();
+                        }
+                        xmlReader.ReadEndElement();
+                        break;
+                    case "PawnCapacityWeights":
+                        _ = xmlReader.Read();
+                        while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
+                        {
+                            _ = xmlReader.Read();
+                            pawnCapacityWeights.Add(ReadPawnCapacityWeightData(xmlReader));
+                            xmlReader.ReadEndElement();
+                        }
+                        xmlReader.ReadEndElement();
+                        break;
+                    case "SkillLimits":
+                        _ = xmlReader.Read();
+                        while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
+                        {
+                            _ = xmlReader.Read();
+                            skillLimits.Add(ReadSkillLimitData(xmlReader));
+                            xmlReader.ReadEndElement();
+                        }
+                        xmlReader.ReadEndElement();
+                        break;
+                    case "SkillWeights":
+                        _ = xmlReader.Read();
+                        while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
+                        {
+                            _ = xmlReader.Read();
+                            skillWeights.Add(ReadSkillWeightData(xmlReader));
+                            xmlReader.ReadEndElement();
+                        }
+                        xmlReader.ReadEndElement();
+                        break;
+                    case "StatLimits":
+                        _ = xmlReader.Read();
+                        while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
+                        {
+                            _ = xmlReader.Read();
+                            statLimits.Add(ReadStatLimitData(xmlReader));
+                            xmlReader.ReadEndElement();
+                        }
+                        xmlReader.ReadEndElement();
+                        break;
+                    case "StatWeights":
+                        _ = xmlReader.Read();
+                        while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
+                        {
+                            _ = xmlReader.Read();
+                            statWeights.Add(ReadStatWeightData(xmlReader));
+                            xmlReader.ReadEndElement();
+                        }
+                        xmlReader.ReadEndElement();
                         break;
                     default:
                         Log.Warning($"Equipment Manager: Unknown Loadout property '{xmlReader.Name}'");
@@ -312,8 +387,9 @@ namespace EquipmentManager.Windows
                 }
             }
             _loadouts.Add(new Loadout(id, label, priority, primaryRuleType, primaryRangedWeaponRuleId,
-                primaryMeleeWeaponRuleId, rangedSidearmRules, meleeSidearmRules, toolRuleId, pawnTraits, pawnCapacities,
-                dropUnassignedWeapons));
+                primaryMeleeWeaponRuleId, rangedSidearmRules, meleeSidearmRules, toolRuleId, pawnTraits,
+                pawnWorkCapacities, dropUnassignedWeapons, passionLimits, pawnCapacityLimits, pawnCapacityWeights,
+                skillLimits, skillWeights, statLimits, statWeights));
         }
 
         private void ReadLoadoutsData(string savedGameFile, XmlReader xmlReader)
@@ -343,10 +419,10 @@ namespace EquipmentManager.Windows
             var id = 0;
             var label = string.Empty;
             var isProtected = false;
-            List<StatWeight> statWeights = null;
-            List<StatLimit> statLimits = null;
-            HashSet<string> whitelistedItemsDefNames = null;
-            HashSet<string> blacklistedItemsDefNames = null;
+            var statWeights = new List<StatWeight>();
+            var statLimits = new List<StatLimit>();
+            var whitelistedItemsDefNames = new HashSet<string>();
+            var blacklistedItemsDefNames = new HashSet<string>();
             var equipMode = ItemRule.WeaponEquipMode.BestOne;
             bool? usableWithShields = null;
             bool? rottable = null;
@@ -370,7 +446,6 @@ namespace EquipmentManager.Windows
                         break;
                     case "StatWeights":
                         _ = xmlReader.Read();
-                        statWeights = new List<StatWeight>();
                         while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
                         {
                             _ = xmlReader.Read();
@@ -381,7 +456,6 @@ namespace EquipmentManager.Windows
                         break;
                     case "StatLimits":
                         _ = xmlReader.Read();
-                        statLimits = new List<StatLimit>();
                         while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
                         {
                             _ = xmlReader.Read();
@@ -392,7 +466,6 @@ namespace EquipmentManager.Windows
                         break;
                     case "WhitelistedItemsDefNames":
                         _ = xmlReader.Read();
-                        whitelistedItemsDefNames = new HashSet<string>();
                         while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
                         {
                             _ = whitelistedItemsDefNames.Add(xmlReader.ReadElementContentAsString());
@@ -401,7 +474,6 @@ namespace EquipmentManager.Windows
                         break;
                     case "BlacklistedItemsDefNames":
                         _ = xmlReader.Read();
-                        blacklistedItemsDefNames = new HashSet<string>();
                         while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
                         {
                             _ = blacklistedItemsDefNames.Add(xmlReader.ReadElementContentAsString());
@@ -448,19 +520,93 @@ namespace EquipmentManager.Windows
             }
         }
 
+        private static PassionLimit ReadPassionLimitData(XmlReader xmlReader)
+        {
+            var skillDefName = string.Empty;
+            var passionValue = PassionValue.None;
+            var keepParsing = true;
+            do
+            {
+                switch (xmlReader.Name)
+                {
+                    case "SkillDefName":
+                        skillDefName = xmlReader.ReadElementContentAsString();
+                        break;
+                    case "Value":
+                        _ = Enum.TryParse(xmlReader.ReadElementContentAsString(), out passionValue);
+                        break;
+                    default:
+                        keepParsing = false;
+                        break;
+                }
+            } while (keepParsing);
+            return new PassionLimit(skillDefName) {Value = passionValue};
+        }
+
+        private static PawnCapacityLimit ReadPawnCapacityLimitData(XmlReader xmlReader)
+        {
+            var pawnCapacityDefName = string.Empty;
+            float? minValue = null;
+            float? maxValue = null;
+            var keepParsing = true;
+            do
+            {
+                switch (xmlReader.Name)
+                {
+                    case "PawnCapacityDefName":
+                        pawnCapacityDefName = xmlReader.ReadElementContentAsString();
+                        break;
+                    case "MinValue":
+                        minValue = xmlReader.ReadElementContentAsFloat();
+                        break;
+                    case "MaxValue":
+                        maxValue = xmlReader.ReadElementContentAsFloat();
+                        break;
+                    default:
+                        keepParsing = false;
+                        break;
+                }
+            } while (keepParsing);
+            return new PawnCapacityLimit(pawnCapacityDefName, minValue, maxValue);
+        }
+
+        private static PawnCapacityWeight ReadPawnCapacityWeightData(XmlReader xmlReader)
+        {
+            var pawnCapacityDefName = string.Empty;
+            var weight = 0f;
+            var keepParsing = true;
+            do
+            {
+                switch (xmlReader.Name)
+                {
+                    case "PawnCapacityDefName":
+                        pawnCapacityDefName = xmlReader.ReadElementContentAsString();
+                        break;
+                    case "Weight":
+                        weight = xmlReader.ReadElementContentAsFloat();
+                        break;
+                    default:
+                        keepParsing = false;
+                        break;
+                }
+            } while (keepParsing);
+            return new PawnCapacityWeight(pawnCapacityDefName, weight);
+        }
+
         private void ReadRangedWeaponRuleData(XmlReader xmlReader)
         {
             if (!xmlReader.ReadToFollowing("li") || !xmlReader.Read()) { return; }
             var id = 0;
             var label = string.Empty;
             var isProtected = false;
-            List<StatWeight> statWeights = null;
-            List<StatLimit> statLimits = null;
-            HashSet<string> whitelistedItemsDefNames = null;
-            HashSet<string> blacklistedItemsDefNames = null;
+            var statWeights = new List<StatWeight>();
+            var statLimits = new List<StatLimit>();
+            var whitelistedItemsDefNames = new HashSet<string>();
+            var blacklistedItemsDefNames = new HashSet<string>();
             var equipMode = ItemRule.WeaponEquipMode.BestOne;
             bool? explosive = null;
             bool? manualCast = null;
+            var ammoCount = 0;
             while (true)
             {
                 if (xmlReader.NodeType != XmlNodeType.Element || xmlReader.IsEmptyElement)
@@ -481,7 +627,6 @@ namespace EquipmentManager.Windows
                         break;
                     case "StatWeights":
                         _ = xmlReader.Read();
-                        statWeights = new List<StatWeight>();
                         while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
                         {
                             _ = xmlReader.Read();
@@ -492,7 +637,6 @@ namespace EquipmentManager.Windows
                         break;
                     case "StatLimits":
                         _ = xmlReader.Read();
-                        statLimits = new List<StatLimit>();
                         while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
                         {
                             _ = xmlReader.Read();
@@ -503,7 +647,6 @@ namespace EquipmentManager.Windows
                         break;
                     case "WhitelistedItemsDefNames":
                         _ = xmlReader.Read();
-                        whitelistedItemsDefNames = new HashSet<string>();
                         while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
                         {
                             _ = whitelistedItemsDefNames.Add(xmlReader.ReadElementContentAsString());
@@ -512,7 +655,6 @@ namespace EquipmentManager.Windows
                         break;
                     case "BlacklistedItemsDefNames":
                         _ = xmlReader.Read();
-                        blacklistedItemsDefNames = new HashSet<string>();
                         while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
                         {
                             _ = blacklistedItemsDefNames.Add(xmlReader.ReadElementContentAsString());
@@ -528,13 +670,16 @@ namespace EquipmentManager.Windows
                     case "ManualCast":
                         manualCast = bool.Parse(xmlReader.ReadElementContentAsString());
                         break;
+                    case "AmmoCount":
+                        ammoCount = xmlReader.ReadElementContentAsInt();
+                        break;
                     default:
                         Log.Warning($"Equipment Manager: Unknown RangedWeaponRule property '{xmlReader.Name}'");
                         break;
                 }
             }
             _rangedWeaponRules.Add(new RangedWeaponRule(id, label, isProtected, statWeights, statLimits,
-                whitelistedItemsDefNames, blacklistedItemsDefNames, equipMode, explosive, manualCast));
+                whitelistedItemsDefNames, blacklistedItemsDefNames, equipMode, explosive, manualCast, ammoCount));
         }
 
         private void ReadRangedWeaponRulesData(string savedGameFile, XmlReader xmlReader)
@@ -592,9 +737,13 @@ namespace EquipmentManager.Windows
                                         {
                                             _ = xmlReader.MoveToElement();
                                             ReadWorkTypeRulesData(savedGameFile, xmlReader.ReadSubtree());
+                                            xmlReader.ReadEndElement();
                                             ReadToolRulesData(savedGameFile, xmlReader.ReadSubtree());
+                                            xmlReader.ReadEndElement();
                                             ReadMeleeWeaponRulesData(savedGameFile, xmlReader.ReadSubtree());
+                                            xmlReader.ReadEndElement();
                                             ReadRangedWeaponRulesData(savedGameFile, xmlReader.ReadSubtree());
+                                            xmlReader.ReadEndElement();
                                             ReadLoadoutsData(savedGameFile, xmlReader.ReadSubtree());
                                             xmlReader.Close();
                                             return;
@@ -627,6 +776,56 @@ namespace EquipmentManager.Windows
                 Log.Warning(
                     $"Equipment Manager: Could not process save game file {savedGameFile}{Environment.NewLine}{exception.Message}");
             }
+        }
+
+        private static SkillLimit ReadSkillLimitData(XmlReader xmlReader)
+        {
+            var skillDefName = string.Empty;
+            float? minValue = null;
+            float? maxValue = null;
+            var keepParsing = true;
+            do
+            {
+                switch (xmlReader.Name)
+                {
+                    case "SkillDefName":
+                        skillDefName = xmlReader.ReadElementContentAsString();
+                        break;
+                    case "MinValue":
+                        minValue = xmlReader.ReadElementContentAsFloat();
+                        break;
+                    case "MaxValue":
+                        maxValue = xmlReader.ReadElementContentAsFloat();
+                        break;
+                    default:
+                        keepParsing = false;
+                        break;
+                }
+            } while (keepParsing);
+            return new SkillLimit(skillDefName, minValue, maxValue);
+        }
+
+        private static SkillWeight ReadSkillWeightData(XmlReader xmlReader)
+        {
+            var skillDefName = string.Empty;
+            var weight = 0f;
+            var keepParsing = true;
+            do
+            {
+                switch (xmlReader.Name)
+                {
+                    case "SkillDefName":
+                        skillDefName = xmlReader.ReadElementContentAsString();
+                        break;
+                    case "Weight":
+                        weight = xmlReader.ReadElementContentAsFloat();
+                        break;
+                    default:
+                        keepParsing = false;
+                        break;
+                }
+            } while (keepParsing);
+            return new SkillWeight(skillDefName, weight);
         }
 
         private static StatLimit ReadStatLimitData(XmlReader xmlReader)
@@ -689,10 +888,10 @@ namespace EquipmentManager.Windows
             var id = 0;
             var label = string.Empty;
             var isProtected = false;
-            List<StatWeight> statWeights = null;
-            List<StatLimit> statLimits = null;
-            HashSet<string> whitelistedItemsDefNames = null;
-            HashSet<string> blacklistedItemsDefNames = null;
+            var statWeights = new List<StatWeight>();
+            var statLimits = new List<StatLimit>();
+            var whitelistedItemsDefNames = new HashSet<string>();
+            var blacklistedItemsDefNames = new HashSet<string>();
             var equipMode = ItemRule.ToolEquipMode.OneForEveryAssignedWorkType;
             bool? ranged = null;
             while (true)
@@ -715,7 +914,6 @@ namespace EquipmentManager.Windows
                         break;
                     case "StatWeights":
                         _ = xmlReader.Read();
-                        statWeights = new List<StatWeight>();
                         while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
                         {
                             _ = xmlReader.Read();
@@ -726,7 +924,6 @@ namespace EquipmentManager.Windows
                         break;
                     case "StatLimits":
                         _ = xmlReader.Read();
-                        statLimits = new List<StatLimit>();
                         while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
                         {
                             _ = xmlReader.Read();
@@ -737,7 +934,6 @@ namespace EquipmentManager.Windows
                         break;
                     case "WhitelistedItemsDefNames":
                         _ = xmlReader.Read();
-                        whitelistedItemsDefNames = new HashSet<string>();
                         while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
                         {
                             _ = whitelistedItemsDefNames.Add(xmlReader.ReadElementContentAsString());
@@ -746,7 +942,6 @@ namespace EquipmentManager.Windows
                         break;
                     case "BlacklistedItemsDefNames":
                         _ = xmlReader.Read();
-                        blacklistedItemsDefNames = new HashSet<string>();
                         while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
                         {
                             _ = blacklistedItemsDefNames.Add(xmlReader.ReadElementContentAsString());
@@ -793,7 +988,7 @@ namespace EquipmentManager.Windows
         {
             if (!xmlReader.ReadToFollowing("li") || !xmlReader.Read()) { return; }
             var workTypeDefName = string.Empty;
-            List<StatWeight> statWeights = null;
+            var statWeights = new List<StatWeight>();
             while (true)
             {
                 if (xmlReader.NodeType != XmlNodeType.Element || xmlReader.IsEmptyElement)
@@ -808,7 +1003,6 @@ namespace EquipmentManager.Windows
                         break;
                     case "StatWeights":
                         _ = xmlReader.Read();
-                        statWeights = new List<StatWeight>();
                         while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
                         {
                             _ = xmlReader.Read();

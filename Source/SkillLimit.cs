@@ -10,12 +10,12 @@ namespace EquipmentManager
     {
         private const float ValueCap = 20f;
         private bool _isInitialized;
+        private string _maxValueBuffer;
+        private string _minValueBuffer;
         private SkillDef _skillDef;
         private string _skillDefName;
         public float? MaxValue;
-        public string MaxValueBuffer;
         public float? MinValue;
-        public string MinValueBuffer;
 
         [UsedImplicitly]
         public SkillLimit() { }
@@ -30,6 +30,52 @@ namespace EquipmentManager
             _skillDefName = skillDefName;
             MinValue = minValue;
             MaxValue = maxValue;
+        }
+
+        public string MaxValueBuffer
+        {
+            get
+            {
+                if (MaxValue.HasValue && string.IsNullOrEmpty(_maxValueBuffer)) { _maxValueBuffer = $"{MaxValue:N2}"; }
+                return _maxValueBuffer;
+            }
+            set
+            {
+                if (value == _maxValueBuffer) { return; }
+                if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var maxValue))
+                {
+                    MaxValue = Mathf.Clamp(maxValue, -1 * ValueCap, ValueCap);
+                    _maxValueBuffer = $"{MaxValue:N2}";
+                }
+                else
+                {
+                    MaxValue = null;
+                    _maxValueBuffer = value;
+                }
+            }
+        }
+
+        public string MinValueBuffer
+        {
+            get
+            {
+                if (MinValue.HasValue && string.IsNullOrEmpty(_minValueBuffer)) { _minValueBuffer = $"{MinValue:N2}"; }
+                return _minValueBuffer;
+            }
+            set
+            {
+                if (value == _minValueBuffer) { return; }
+                if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var minValue))
+                {
+                    MinValue = Mathf.Clamp(minValue, -1 * ValueCap, ValueCap);
+                    _minValueBuffer = $"{MinValue:N2}";
+                }
+                else
+                {
+                    MinValue = null;
+                    _minValueBuffer = value;
+                }
+            }
         }
 
         public SkillDef SkillDef
@@ -55,17 +101,6 @@ namespace EquipmentManager
             if (_isInitialized) { return; }
             _isInitialized = true;
             _skillDef = DefDatabase<SkillDef>.GetNamedSilentFail(_skillDefName);
-        }
-
-        public static float? Parse(ref string buffer)
-        {
-            if (!float.TryParse(buffer, NumberStyles.Float, CultureInfo.InvariantCulture, out var limit))
-            {
-                return null;
-            }
-            var value = Mathf.Clamp(limit, -1 * ValueCap, ValueCap);
-            buffer = $"{value:N2}";
-            return value;
         }
     }
 }

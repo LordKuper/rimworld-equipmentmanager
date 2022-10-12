@@ -22,12 +22,14 @@ namespace EquipmentManager
 
         public RangedWeaponRule(int id, string label, bool isProtected, List<StatWeight> statWeights,
             List<StatLimit> statLimits, HashSet<string> whitelistedItemsDefNames,
-            HashSet<string> blacklistedItemsDefNames, WeaponEquipMode equipMode, bool? explosive, bool? manualCast) :
-            base(id, label, isProtected, statWeights, statLimits, whitelistedItemsDefNames, blacklistedItemsDefNames)
+            HashSet<string> blacklistedItemsDefNames, WeaponEquipMode equipMode, bool? explosive, bool? manualCast,
+            int ammoCount) : base(id, label, isProtected, statWeights, statLimits, whitelistedItemsDefNames,
+            blacklistedItemsDefNames)
         {
             EquipMode = equipMode;
             _explosive = explosive;
             _manualCast = manualCast;
+            _ammoCount = ammoCount;
         }
 
         public static HashSet<ThingDef> AllRelevantThings

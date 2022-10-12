@@ -217,7 +217,6 @@ namespace EquipmentManager.Windows
                 var limitInputWidth = (statInputRect.width - (UiHelpers.ElementGap * 3)) / 2f;
                 var minValueRect = new Rect(statInputRect.x, statInputRect.y, limitInputWidth, statInputRect.height);
                 statLimit.MinValueBuffer = Widgets.TextField(minValueRect, statLimit.MinValueBuffer, 10);
-                statLimit.MinValue = StatLimit.Parse(ref statLimit.MinValueBuffer);
                 var dashRect = new Rect(minValueRect.xMax, statInputRect.y, UiHelpers.ElementGap * 3,
                     statInputRect.height);
                 Text.Anchor = TextAnchor.MiddleCenter;
@@ -225,7 +224,6 @@ namespace EquipmentManager.Windows
                 Text.Anchor = TextAnchor.UpperLeft;
                 var maxValueRect = new Rect(dashRect.xMax, statInputRect.y, limitInputWidth, statInputRect.height);
                 statLimit.MaxValueBuffer = Widgets.TextField(maxValueRect, statLimit.MaxValueBuffer, 10);
-                statLimit.MaxValue = StatLimit.Parse(ref statLimit.MaxValueBuffer);
             }
             Widgets.EndScrollView();
             Text.Font = font;

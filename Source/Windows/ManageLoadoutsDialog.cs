@@ -258,7 +258,6 @@ namespace EquipmentManager.Windows
                 var limitInputWidth = (statInputRect.width - (UiHelpers.ElementGap * 3)) / 2f;
                 var minValueRect = new Rect(statInputRect.x, statInputRect.y, limitInputWidth, statInputRect.height);
                 limit.MinValueBuffer = Widgets.TextField(minValueRect, limit.MinValueBuffer, 10);
-                limit.MinValue = PawnCapacityLimit.Parse(ref limit.MinValueBuffer);
                 var dashRect = new Rect(minValueRect.xMax, statInputRect.y, UiHelpers.ElementGap * 3,
                     statInputRect.height);
                 Text.Anchor = TextAnchor.MiddleCenter;
@@ -266,7 +265,6 @@ namespace EquipmentManager.Windows
                 Text.Anchor = TextAnchor.UpperLeft;
                 var maxValueRect = new Rect(dashRect.xMax, statInputRect.y, limitInputWidth, statInputRect.height);
                 limit.MaxValueBuffer = Widgets.TextField(maxValueRect, limit.MaxValueBuffer, 10);
-                limit.MaxValue = PawnCapacityLimit.Parse(ref limit.MaxValueBuffer);
             }
             Text.Font = font;
             Text.Anchor = anchor;
@@ -478,7 +476,6 @@ namespace EquipmentManager.Windows
                 var limitInputWidth = (skillInputRect.width - (UiHelpers.ElementGap * 3)) / 2f;
                 var minValueRect = new Rect(skillInputRect.x, skillInputRect.y, limitInputWidth, skillInputRect.height);
                 limit.MinValueBuffer = Widgets.TextField(minValueRect, limit.MinValueBuffer, 10);
-                limit.MinValue = SkillLimit.Parse(ref limit.MinValueBuffer);
                 var dashRect = new Rect(minValueRect.xMax, skillInputRect.y, UiHelpers.ElementGap * 3,
                     skillInputRect.height);
                 Text.Anchor = TextAnchor.MiddleCenter;
@@ -486,7 +483,6 @@ namespace EquipmentManager.Windows
                 Text.Anchor = TextAnchor.UpperLeft;
                 var maxValueRect = new Rect(dashRect.xMax, skillInputRect.y, limitInputWidth, skillInputRect.height);
                 limit.MaxValueBuffer = Widgets.TextField(maxValueRect, limit.MaxValueBuffer, 10);
-                limit.MaxValue = SkillLimit.Parse(ref limit.MaxValueBuffer);
             }
             Text.Font = font;
             Text.Anchor = anchor;
@@ -594,7 +590,6 @@ namespace EquipmentManager.Windows
                 var limitInputWidth = (statInputRect.width - (UiHelpers.ElementGap * 3)) / 2f;
                 var minValueRect = new Rect(statInputRect.x, statInputRect.y, limitInputWidth, statInputRect.height);
                 limit.MinValueBuffer = Widgets.TextField(minValueRect, limit.MinValueBuffer, 10);
-                limit.MinValue = StatLimit.Parse(ref limit.MinValueBuffer);
                 var dashRect = new Rect(minValueRect.xMax, statInputRect.y, UiHelpers.ElementGap * 3,
                     statInputRect.height);
                 Text.Anchor = TextAnchor.MiddleCenter;
@@ -602,7 +597,6 @@ namespace EquipmentManager.Windows
                 Text.Anchor = TextAnchor.UpperLeft;
                 var maxValueRect = new Rect(dashRect.xMax, statInputRect.y, limitInputWidth, statInputRect.height);
                 limit.MaxValueBuffer = Widgets.TextField(maxValueRect, limit.MaxValueBuffer, 10);
-                limit.MaxValue = StatLimit.Parse(ref limit.MaxValueBuffer);
             }
             Text.Font = font;
             Text.Anchor = anchor;

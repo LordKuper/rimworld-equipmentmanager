@@ -127,7 +127,10 @@ namespace EquipmentManager
         public Loadout(int id, string label, int priority, PrimaryWeaponType primaryRuleType,
             int? primaryRangedWeaponRuleId, int? primaryMeleeWeaponRuleId, List<int> rangedSidearmRules,
             List<int> meleeSidearmRules, int? toolRuleId, Dictionary<string, bool> pawnTraits,
-            Dictionary<string, bool> pawnWorkCapacities, bool dropUnassignedWeapons)
+            Dictionary<string, bool> pawnWorkCapacities, bool dropUnassignedWeapons, List<PassionLimit> passionLimits,
+            List<PawnCapacityLimit> pawnCapacityLimits, List<PawnCapacityWeight> pawnCapacityWeights,
+            List<SkillLimit> skillLimits, List<SkillWeight> skillWeights, List<StatLimit> statLimits,
+            List<StatWeight> statWeights)
         {
             _id = id;
             Label = label;
@@ -141,6 +144,13 @@ namespace EquipmentManager
             _pawnTraits = pawnTraits;
             _pawnWorkCapacities = pawnWorkCapacities;
             DropUnassignedWeapons = dropUnassignedWeapons;
+            _passionLimits = passionLimits;
+            _pawnCapacityLimits = pawnCapacityLimits;
+            _pawnCapacityWeights = pawnCapacityWeights;
+            _skillLimits = skillLimits;
+            _skillWeights = skillWeights;
+            _statLimits = statLimits;
+            _statWeights = statWeights;
         }
 
         public int Id => _id;
