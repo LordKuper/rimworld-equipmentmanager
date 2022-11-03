@@ -1,0 +1,139 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<LanguageData>
+	<EquipmentManager.Add>Add</EquipmentManager.Add>
+	<EquipmentManager.Loadouts.ManageLoadouts>Manage loadouts</EquipmentManager.Loadouts.ManageLoadouts>
+	<EquipmentManager.Loadouts.SelectLoadout>Select loadout</EquipmentManager.Loadouts.SelectLoadout>
+	<EquipmentManager.Loadouts.NoLoadoutSelected>No loadout selected.</EquipmentManager.Loadouts.NoLoadoutSelected>
+	<EquipmentManager.Loadouts.LoadoutLabel>Loadout name:</EquipmentManager.Loadouts.LoadoutLabel>
+	<EquipmentManager.Loadouts.LoadoutSettings>Loadout settings</EquipmentManager.Loadouts.LoadoutSettings>
+	<EquipmentManager.Loadouts.AddLoadout>Add loadout</EquipmentManager.Loadouts.AddLoadout>
+	<EquipmentManager.Loadouts.CopyLoadout>Copy loadout</EquipmentManager.Loadouts.CopyLoadout>
+	<EquipmentManager.Loadouts.DeleteLoadout>Delete loadout</EquipmentManager.Loadouts.DeleteLoadout>
+	<EquipmentManager.Loadouts.ManageWeaponRules>Manage rules</EquipmentManager.Loadouts.ManageWeaponRules>
+	<EquipmentManager.Loadouts.ImportLoadouts>Import loadouts</EquipmentManager.Loadouts.ImportLoadouts>
+	<EquipmentManager.Loadouts.Log>Log</EquipmentManager.Loadouts.Log>
+	<EquipmentManager.Loadouts.SavedGamesListHeader>Saved games</EquipmentManager.Loadouts.SavedGamesListHeader>
+	<EquipmentManager.Loadouts.LoadoutListHeader>Loadouts</EquipmentManager.Loadouts.LoadoutListHeader>
+	<EquipmentManager.Loadouts.ImportData>Import</EquipmentManager.Loadouts.ImportData>
+	<EquipmentManager.Loadouts.CancelDataImport>Cancel</EquipmentManager.Loadouts.CancelDataImport>
+	<EquipmentManager.Loadouts.AutoSelect>Auto-select</EquipmentManager.Loadouts.AutoSelect>
+	<EquipmentManager.Loadouts.PriorityLabel>Priority:</EquipmentManager.Loadouts.PriorityLabel>
+	<EquipmentManager.Loadouts.PriorityTooltip>Loadout priority for auto-assignment. The higher the value, the more colonists matching the settings will get the loadout. Priority of '0' will disable automatic assignment of this loadout.</EquipmentManager.Loadouts.PriorityTooltip>
+	<EquipmentManager.Loadouts.DropUnassignedWeapons>Drop unassigned weapons</EquipmentManager.Loadouts.DropUnassignedWeapons>
+	<EquipmentManager.Loadouts.DropUnassignedWeaponsTooltip>Pawns will drop and forget all weapons not assigned by the Equipment Manager</EquipmentManager.Loadouts.DropUnassignedWeaponsTooltip>
+	<EquipmentManager.Loadouts.Rules>Rules</EquipmentManager.Loadouts.Rules>
+	<EquipmentManager.Loadouts.AvailablePawns>Available pawns</EquipmentManager.Loadouts.AvailablePawns>
+	<EquipmentManager.Loadouts.PawnTraits>Pawn traits</EquipmentManager.Loadouts.PawnTraits>
+	<EquipmentManager.Loadouts.PawnPassions>Pawn passions</EquipmentManager.Loadouts.PawnPassions>
+	<EquipmentManager.Loadouts.PawnCapacityLimits>Pawn capacity limits</EquipmentManager.Loadouts.PawnCapacityLimits>
+	<EquipmentManager.Loadouts.PawnCapacityWeights>Pawn capacity weights</EquipmentManager.Loadouts.PawnCapacityWeights>
+	<EquipmentManager.Loadouts.PawnWorkCapacities>Pawn work capacities</EquipmentManager.Loadouts.PawnWorkCapacities>
+	<EquipmentManager.Loadouts.PawnSkillWeights>Pawn skill weights</EquipmentManager.Loadouts.PawnSkillWeights>
+	<EquipmentManager.Loadouts.PawnSkillLimits>Pawn skill limits</EquipmentManager.Loadouts.PawnSkillLimits>
+	<EquipmentManager.Loadouts.PawnStatWeights>Pawn stat weights</EquipmentManager.Loadouts.PawnStatWeights>
+	<EquipmentManager.Loadouts.PawnStatLimits>Pawn stat limits</EquipmentManager.Loadouts.PawnStatLimits>
+	<EquipmentManager.Loadouts.PrimaryWeaponLabel>Primary weapon:</EquipmentManager.Loadouts.PrimaryWeaponLabel>
+	<EquipmentManager.Loadouts.PrimaryWeaponTypes.None>None</EquipmentManager.Loadouts.PrimaryWeaponTypes.None>
+	<EquipmentManager.Loadouts.PrimaryWeaponTypes.RangedWeapon>Ranged weapon</EquipmentManager.Loadouts.PrimaryWeaponTypes.RangedWeapon>
+	<EquipmentManager.Loadouts.PrimaryWeaponTypes.MeleeWeapon>Melee weapon</EquipmentManager.Loadouts.PrimaryWeaponTypes.MeleeWeapon>
+	<EquipmentManager.Loadouts.RangedSidearmRulesLabel>Ranged sidearm rules:</EquipmentManager.Loadouts.RangedSidearmRulesLabel>
+	<EquipmentManager.Loadouts.MeleeSidearmRulesLabel>Melee sidearm rules:</EquipmentManager.Loadouts.MeleeSidearmRulesLabel>
+	<EquipmentManager.Loadouts.ToolsLabel>Tools:</EquipmentManager.Loadouts.ToolsLabel>
+	<EquipmentManager.Loadouts.Default.NoLoadout>No loadout</EquipmentManager.Loadouts.Default.NoLoadout>
+	<EquipmentManager.Loadouts.Default.Sniper>Sniper</EquipmentManager.Loadouts.Default.Sniper>
+	<EquipmentManager.Loadouts.Default.Assault>Assault</EquipmentManager.Loadouts.Default.Assault>
+	<EquipmentManager.Loadouts.Default.Support>Support</EquipmentManager.Loadouts.Default.Support>
+	<EquipmentManager.Loadouts.Default.Crusher>Crusher</EquipmentManager.Loadouts.Default.Crusher>
+	<EquipmentManager.Loadouts.Default.Slasher>Slasher</EquipmentManager.Loadouts.Default.Slasher>
+	<EquipmentManager.Loadouts.Default.Pacifist>Pacifist</EquipmentManager.Loadouts.Default.Pacifist>
+	<EquipmentManager.WeaponRules.AddRule>Add rule</EquipmentManager.WeaponRules.AddRule>
+	<EquipmentManager.WeaponRules.CopyRule>Copy rule</EquipmentManager.WeaponRules.CopyRule>
+	<EquipmentManager.WeaponRules.DeleteRule>Delete rule</EquipmentManager.WeaponRules.DeleteRule>
+	<EquipmentManager.WeaponRules.SelectRule>Select rule</EquipmentManager.WeaponRules.SelectRule>
+	<EquipmentManager.WeaponRules.RuleLabel>Rule name:</EquipmentManager.WeaponRules.RuleLabel>
+	<EquipmentManager.WeaponRules.NoRuleSelected>No rule selected.</EquipmentManager.WeaponRules.NoRuleSelected>
+	<EquipmentManager.WeaponRules.RuleSettings>Rule settings</EquipmentManager.WeaponRules.RuleSettings>
+	<EquipmentManager.WeaponRules.ItemProperties>Item properties</EquipmentManager.WeaponRules.ItemProperties>
+	<EquipmentManager.WeaponRules.StatWeights>Stat weights</EquipmentManager.WeaponRules.StatWeights>
+	<EquipmentManager.WeaponRules.StatLimits>Stat limits</EquipmentManager.WeaponRules.StatLimits>
+	<EquipmentManager.WeaponRules.Refresh>Refresh</EquipmentManager.WeaponRules.Refresh>
+	<EquipmentManager.WeaponRules.GloballyAvailableItems>Globally available items</EquipmentManager.WeaponRules.GloballyAvailableItems>
+	<EquipmentManager.WeaponRules.GloballyAvailableItemsTooltip>All items in the game corresponding to the rule settings\n\nLeft-click to view item info\nRight-click an item to blacklist it</EquipmentManager.WeaponRules.GloballyAvailableItemsTooltip>
+	<EquipmentManager.WeaponRules.CurrentlyAvailableItems>Currently available items</EquipmentManager.WeaponRules.CurrentlyAvailableItems>
+	<EquipmentManager.WeaponRules.CurrentlyAvailableItemsTooltip>All items on the current map corresponding to the rule settings\n\nLeft-click to view item info\nRight-click an item to blacklist it</EquipmentManager.WeaponRules.CurrentlyAvailableItemsTooltip>
+	<EquipmentManager.WeaponRules.WhitelistedItems>Whitelisted items</EquipmentManager.WeaponRules.WhitelistedItems>
+	<EquipmentManager.WeaponRules.WhitelistedItemsTooltip>Items available for equipping regardless of the settings\n\nLeft-click to view item info\nRight-click an item to remove it from the list</EquipmentManager.WeaponRules.WhitelistedItemsTooltip>
+	<EquipmentManager.WeaponRules.BlacklistedItems>Blacklisted items</EquipmentManager.WeaponRules.BlacklistedItems>
+	<EquipmentManager.WeaponRules.BlacklistedItemsTooltip>Items unavailable for equipping regardless of the settings\n\nLeft-click to view item info\nRight-click an item to remove it from the list</EquipmentManager.WeaponRules.BlacklistedItemsTooltip>
+	<EquipmentManager.WeaponRules.RuleEquipModeLabel>Equip mode:</EquipmentManager.WeaponRules.RuleEquipModeLabel>
+	<EquipmentManager.WeaponRules.WeaponEquipModes.BestOne>The best one available</EquipmentManager.WeaponRules.WeaponEquipModes.BestOne>
+	<EquipmentManager.WeaponRules.WeaponEquipModes.AllAvailable>All available</EquipmentManager.WeaponRules.WeaponEquipModes.AllAvailable>
+	<EquipmentManager.WeaponRules.ToolEquipModes.OneForEveryWorkType>One for every work type</EquipmentManager.WeaponRules.ToolEquipModes.OneForEveryWorkType>
+	<EquipmentManager.WeaponRules.ToolEquipModes.OneForEveryAssignedWorkType>One for every assigned work type</EquipmentManager.WeaponRules.ToolEquipModes.OneForEveryAssignedWorkType>
+	<EquipmentManager.WeaponRules.ToolEquipModes.BestOne>The best one available</EquipmentManager.WeaponRules.ToolEquipModes.BestOne>
+	<EquipmentManager.WeaponRules.ToolEquipModes.AllAvailable>All available</EquipmentManager.WeaponRules.ToolEquipModes.AllAvailable>
+	<EquipmentManager.WeaponRules.MeleeWeapons.Title>Melee weapons</EquipmentManager.WeaponRules.MeleeWeapons.Title>
+	<EquipmentManager.WeaponRules.MeleeWeapons.UsableWithShields>Usable with shields</EquipmentManager.WeaponRules.MeleeWeapons.UsableWithShields>
+	<EquipmentManager.WeaponRules.MeleeWeapons.UsableWithShieldsTooltip>Melee weapons that are usable with shields (requires Vanilla Expanded Framework to have effect)</EquipmentManager.WeaponRules.MeleeWeapons.UsableWithShieldsTooltip>
+	<EquipmentManager.WeaponRules.MeleeWeapons.Rottable>Rottable</EquipmentManager.WeaponRules.MeleeWeapons.Rottable>
+	<EquipmentManager.WeaponRules.MeleeWeapons.RottableTooltip>Melee weapons that are capable of rotting (e.g. fish)</EquipmentManager.WeaponRules.MeleeWeapons.RottableTooltip>
+	<EquipmentManager.WeaponRules.MeleeWeapons.Default.HighestDps>Highest DPS</EquipmentManager.WeaponRules.MeleeWeapons.Default.HighestDps>
+	<EquipmentManager.WeaponRules.MeleeWeapons.Default.Sharpest>Sharpest</EquipmentManager.WeaponRules.MeleeWeapons.Default.Sharpest>
+	<EquipmentManager.WeaponRules.MeleeWeapons.Default.Bluntest>Bluntest</EquipmentManager.WeaponRules.MeleeWeapons.Default.Bluntest>
+	<EquipmentManager.WeaponRules.RangedWeapons.Title>Ranged weapons</EquipmentManager.WeaponRules.RangedWeapons.Title>
+	<EquipmentManager.WeaponRules.RangedWeapons.AmmoCount>Ammo count</EquipmentManager.WeaponRules.RangedWeapons.AmmoCount>
+	<EquipmentManager.WeaponRules.RangedWeapons.AmmoCountTooltip>Target count of ammo to put in inventory alongside every weapon equipped by this rule</EquipmentManager.WeaponRules.RangedWeapons.AmmoCountTooltip>
+	<EquipmentManager.WeaponRules.RangedWeapons.Explosive>Explosive</EquipmentManager.WeaponRules.RangedWeapons.Explosive>
+	<EquipmentManager.WeaponRules.RangedWeapons.ExplosiveTooltip>Ranged weapons with explosive projectiles (e.g. rocket launchers, grenade launchers, mortars)</EquipmentManager.WeaponRules.RangedWeapons.ExplosiveTooltip>
+	<EquipmentManager.WeaponRules.RangedWeapons.ManualCast>Manual cast</EquipmentManager.WeaponRules.RangedWeapons.ManualCast>
+	<EquipmentManager.WeaponRules.RangedWeapons.ManualCastTooltip>Ranged weapons which only support manual casting</EquipmentManager.WeaponRules.RangedWeapons.ManualCastTooltip>
+	<EquipmentManager.WeaponRules.RangedWeapons.Default.HighestDpsa>Highest DPSA</EquipmentManager.WeaponRules.RangedWeapons.Default.HighestDpsa>
+	<EquipmentManager.WeaponRules.RangedWeapons.Default.HighRof>High rate of fire</EquipmentManager.WeaponRules.RangedWeapons.Default.HighRof>
+	<EquipmentManager.WeaponRules.RangedWeapons.Default.LongRangeHeavyHitter>Long-range heavy-hitter</EquipmentManager.WeaponRules.RangedWeapons.Default.LongRangeHeavyHitter>
+	<EquipmentManager.WeaponRules.RangedWeapons.Default.LowWarmupTime>Low warmup time</EquipmentManager.WeaponRules.RangedWeapons.Default.LowWarmupTime>
+	<EquipmentManager.WeaponRules.Tools.Title>Tools</EquipmentManager.WeaponRules.Tools.Title>
+	<EquipmentManager.WeaponRules.Tools.Ranged>Ranged</EquipmentManager.WeaponRules.Tools.Ranged>
+	<EquipmentManager.WeaponRules.Tools.RangedTooltip>Ranged tools</EquipmentManager.WeaponRules.Tools.RangedTooltip>
+	<EquipmentManager.WeaponRules.Tools.Default.AllWorkTypes>Tools for every work type</EquipmentManager.WeaponRules.Tools.Default.AllWorkTypes>
+	<EquipmentManager.WeaponRules.Tools.Default.AssignedWorkTypes>Tools for assigned work types</EquipmentManager.WeaponRules.Tools.Default.AssignedWorkTypes>
+	<EquipmentManager.WeaponRules.WorkTypes.Title>Work types</EquipmentManager.WeaponRules.WorkTypes.Title>
+	<EquipmentManager.Stats.EM_MeleeWeapons_ArmorPenetration.Label>Average armor penetration</EquipmentManager.Stats.EM_MeleeWeapons_ArmorPenetration.Label>
+	<EquipmentManager.Stats.EM_MeleeWeapons_ArmorPenetration.Description>The average amount of armor weapon will ignore each time it hits the target</EquipmentManager.Stats.EM_MeleeWeapons_ArmorPenetration.Description>
+	<EquipmentManager.Stats.EM_MeleeWeapons_DpsSharp.Label>DPS (Sharp)</EquipmentManager.Stats.EM_MeleeWeapons_DpsSharp.Label>
+	<EquipmentManager.Stats.EM_MeleeWeapons_DpsSharp.Description>Average sharp damage per second</EquipmentManager.Stats.EM_MeleeWeapons_DpsSharp.Description>
+	<EquipmentManager.Stats.EM_MeleeWeapons_DpsBlunt.Label>DPS (Blunt)</EquipmentManager.Stats.EM_MeleeWeapons_DpsBlunt.Label>
+	<EquipmentManager.Stats.EM_MeleeWeapons_DpsBlunt.Description>Average blunt damage per second</EquipmentManager.Stats.EM_MeleeWeapons_DpsBlunt.Description>
+	<EquipmentManager.Stats.EM_MeleeWeapons_TechLevel.Label>Tech level</EquipmentManager.Stats.EM_MeleeWeapons_TechLevel.Label>
+	<EquipmentManager.Stats.EM_MeleeWeapons_TechLevel.Description>Weapon's tech level</EquipmentManager.Stats.EM_MeleeWeapons_TechLevel.Description>
+	<EquipmentManager.Stats.EM_RangedWeapons_Dpsa.Label>Average DPSA</EquipmentManager.Stats.EM_RangedWeapons_Dpsa.Label>
+	<EquipmentManager.Stats.EM_RangedWeapons_Dpsa.Description>Average damage per second adjusted for weapon accuracy</EquipmentManager.Stats.EM_RangedWeapons_Dpsa.Description>
+	<EquipmentManager.Stats.EM_RangedWeapons_DpsaClose.Label>DPSA (close)</EquipmentManager.Stats.EM_RangedWeapons_DpsaClose.Label>
+	<EquipmentManager.Stats.EM_RangedWeapons_DpsaClose.Description>Close range damage per second adjusted for weapon accuracy</EquipmentManager.Stats.EM_RangedWeapons_DpsaClose.Description>
+	<EquipmentManager.Stats.EM_RangedWeapons_DpsaShort.Label>DPSA (short)</EquipmentManager.Stats.EM_RangedWeapons_DpsaShort.Label>
+	<EquipmentManager.Stats.EM_RangedWeapons_DpsaShort.Description>Short range damage per second adjusted for weapon accuracy</EquipmentManager.Stats.EM_RangedWeapons_DpsaShort.Description>
+	<EquipmentManager.Stats.EM_RangedWeapons_DpsaMedium.Label>DPSA (medium)</EquipmentManager.Stats.EM_RangedWeapons_DpsaMedium.Label>
+	<EquipmentManager.Stats.EM_RangedWeapons_DpsaMedium.Description>Medium range damage per second adjusted for weapon accuracy</EquipmentManager.Stats.EM_RangedWeapons_DpsaMedium.Description>
+	<EquipmentManager.Stats.EM_RangedWeapons_DpsaLong.Label>DPSA (long)</EquipmentManager.Stats.EM_RangedWeapons_DpsaLong.Label>
+	<EquipmentManager.Stats.EM_RangedWeapons_DpsaLong.Description>Long range damage per second adjusted for weapon accuracy</EquipmentManager.Stats.EM_RangedWeapons_DpsaLong.Description>
+	<EquipmentManager.Stats.EM_RangedWeapons_Damage.Label>Damage</EquipmentManager.Stats.EM_RangedWeapons_Damage.Label>
+	<EquipmentManager.Stats.EM_RangedWeapons_Damage.Description>The amount of damage weapon deals in a single hit</EquipmentManager.Stats.EM_RangedWeapons_Damage.Description>
+	<EquipmentManager.Stats.EM_RangedWeapons_Range.Label>Range</EquipmentManager.Stats.EM_RangedWeapons_Range.Label>
+	<EquipmentManager.Stats.EM_RangedWeapons_Range.Description>The maximum range of a weapon</EquipmentManager.Stats.EM_RangedWeapons_Range.Description>
+	<EquipmentManager.Stats.EM_RangedWeapons_Warmup.Label>Warmup</EquipmentManager.Stats.EM_RangedWeapons_Warmup.Label>
+	<EquipmentManager.Stats.EM_RangedWeapons_Warmup.Description>How much time passes between when a ranged attack begins aiming and when it fires</EquipmentManager.Stats.EM_RangedWeapons_Warmup.Description>
+	<EquipmentManager.Stats.EM_RangedWeapons_BurstShotCount.Label>Burst shot count</EquipmentManager.Stats.EM_RangedWeapons_BurstShotCount.Label>
+	<EquipmentManager.Stats.EM_RangedWeapons_BurstShotCount.Description>The amount of shots weapon fires in each burst</EquipmentManager.Stats.EM_RangedWeapons_BurstShotCount.Description>
+	<EquipmentManager.Stats.EM_RangedWeapons_TicksBetweenBurstShots.Label>Ticks between burst shots</EquipmentManager.Stats.EM_RangedWeapons_TicksBetweenBurstShots.Label>
+	<EquipmentManager.Stats.EM_RangedWeapons_TicksBetweenBurstShots.Description>How much game ticks passes between burst shots</EquipmentManager.Stats.EM_RangedWeapons_TicksBetweenBurstShots.Description>
+	<EquipmentManager.Stats.EM_RangedWeapons_ArmorPenetration.Label>Average armor penetration</EquipmentManager.Stats.EM_RangedWeapons_ArmorPenetration.Label>
+	<EquipmentManager.Stats.EM_RangedWeapons_ArmorPenetration.Description>The average amount of armor weapon will ignore each time it hits the target</EquipmentManager.Stats.EM_RangedWeapons_ArmorPenetration.Description>
+	<EquipmentManager.Stats.EM_RangedWeapons_StoppingPower.Label>Stopping power</EquipmentManager.Stats.EM_RangedWeapons_StoppingPower.Label>
+	<EquipmentManager.Stats.EM_RangedWeapons_StoppingPower.Description>Hits from a weapon will stagger targets, slowing their movement for several seconds</EquipmentManager.Stats.EM_RangedWeapons_StoppingPower.Description>
+	<EquipmentManager.Stats.EM_RangedWeapons_TechLevel.Label>Tech level</EquipmentManager.Stats.EM_RangedWeapons_TechLevel.Label>
+	<EquipmentManager.Stats.EM_RangedWeapons_TechLevel.Description>Weapon's tech level</EquipmentManager.Stats.EM_RangedWeapons_TechLevel.Description>
+	<EquipmentManager.Stats.EM_Tools_WorkType.Label>Work type related stats</EquipmentManager.Stats.EM_Tools_WorkType.Label>
+	<EquipmentManager.Stats.EM_Tools_WorkType.Description>Item stats that affect performance according to work type rules</EquipmentManager.Stats.EM_Tools_WorkType.Description>
+	<EquipmentManager.Stats.EM_Tools_TechLevel.Label>Tech level</EquipmentManager.Stats.EM_Tools_TechLevel.Label>
+	<EquipmentManager.Stats.EM_Tools_TechLevel.Description>Tool's tech level</EquipmentManager.Stats.EM_Tools_TechLevel.Description>
+</LanguageData>
