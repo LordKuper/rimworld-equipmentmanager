@@ -113,7 +113,7 @@ namespace EquipmentManager
         public string Label;
         public int? PrimaryMeleeWeaponRuleId;
         public int? PrimaryRangedWeaponRuleId;
-        public int Priority;
+        public float Priority;
         public int? ToolRuleId;
 
         [UsedImplicitly]

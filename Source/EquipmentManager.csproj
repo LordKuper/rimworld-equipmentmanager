@@ -51,7 +51,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="SimpleSidearms">
-      <HintPath>D:\Games\SteamLibrary\steamapps\workshop\content\294100\927155256\v1.3\Assemblies\SimpleSidearms.dll</HintPath>
+      <HintPath>D:\Games\SteamLibrary\steamapps\workshop\content\294100\927155256\v1.4\Assemblies\SimpleSidearms.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />

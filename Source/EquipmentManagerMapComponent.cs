@@ -29,7 +29,7 @@ namespace EquipmentManager
                 .Where(wt => !pawn.Pawn.WorkTypeIsDisabled(wt)).ToList();
             var availableWeapons = rule.GetCurrentlyAvailableItems(map, workTypes, _updateTime).ToList();
             _ = availableWeapons.RemoveAll(thing => _pawnCache.Any(pc => pc.AssignedWeapons.ContainsKey(thing)));
-            var carriedWeapons = pawn.Pawn.getCarriedWeapons(true, true)
+            var carriedWeapons = pawn.Pawn.GetCarriedWeapons(true, true)
                 .Where(thing => rule.IsAvailable(thing, workTypes, _updateTime)).ToList();
             availableWeapons.AddRange(carriedWeapons);
             _ = availableWeapons.RemoveAll(thing =>
@@ -43,7 +43,7 @@ namespace EquipmentManager
             foreach (var weapon in availableWeapons.Where(weapon =>
                          pawn.AssignedWeapons.Keys.All(thing => thing.def != weapon.def) &&
                          (carriedWeapons.Contains(weapon) ||
-                             StatCalculator.canCarrySidearmInstance((ThingWithComps) weapon, pawn.Pawn, out _))))
+                             StatCalculator.CanPickupSidearmInstance((ThingWithComps) weapon, pawn.Pawn, out _))))
             {
                 pawn.AssignedWeapons.Add(weapon, "tool");
                 if (carriedWeapons.Contains(weapon))
@@ -66,7 +66,7 @@ namespace EquipmentManager
                 .Where(wt => !pawn.Pawn.WorkTypeIsDisabled(wt)).ToList();
             var availableWeapons = rule.GetCurrentlyAvailableItems(map, workTypes, _updateTime).ToList();
             _ = availableWeapons.RemoveAll(thing => _pawnCache.Any(pc => pc.AssignedWeapons.ContainsKey(thing)));
-            var carriedWeapons = pawn.Pawn.getCarriedWeapons(true, true)
+            var carriedWeapons = pawn.Pawn.GetCarriedWeapons(true, true)
                 .Where(thing => rule.IsAvailable(thing, workTypes, _updateTime)).ToList();
             availableWeapons.AddRange(carriedWeapons);
             if (pawn.Pawn.story.traits.HasTrait(TraitDefOf.Brawler))
@@ -80,7 +80,7 @@ namespace EquipmentManager
             var bestWeapon = availableWeapons
                 .Where(thing =>
                     carriedWeapons.Contains(thing) ||
-                    StatCalculator.canCarrySidearmInstance((ThingWithComps) thing, pawn.Pawn, out _))
+                    StatCalculator.CanPickupSidearmInstance((ThingWithComps) thing, pawn.Pawn, out _))
                 .OrderByDescending(thing => rule.GetThingScore(thing, workTypes, _updateTime))
                 .ThenByDescending(thing => sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
                 .ThenBy(thing => thing.GetHashCode()).FirstOrDefault();
@@ -104,7 +104,7 @@ namespace EquipmentManager
             var rule = EquipmentManager.GetMeleeWeaponRule((int) pawn.AssignedLoadout.PrimaryMeleeWeaponRuleId);
             if (rule == null) { return; }
             var availableWeapons = rule.GetCurrentlyAvailableItems(map, _updateTime).ToList();
-            var carriedWeapons = pawn.Pawn.getCarriedWeapons(true, true)
+            var carriedWeapons = pawn.Pawn.GetCarriedWeapons(true, true)
                 .Where(weapon => rule.IsAvailable(weapon, _updateTime)).ToList();
             availableWeapons.AddRange(carriedWeapons);
             _ = availableWeapons.RemoveAll(thing =>
@@ -135,7 +135,7 @@ namespace EquipmentManager
             var rule = EquipmentManager.GetRangedWeaponRule((int) pawn.AssignedLoadout.PrimaryRangedWeaponRuleId);
             if (rule == null) { return; }
             var availableWeapons = rule.GetCurrentlyAvailableItems(map, _updateTime).ToList();
-            var carriedWeapons = pawn.Pawn.getCarriedWeapons(true, true)
+            var carriedWeapons = pawn.Pawn.GetCarriedWeapons(true, true)
                 .Where(weapon => rule.IsAvailable(weapon, _updateTime)).ToList();
             availableWeapons.AddRange(carriedWeapons);
             _ = availableWeapons.RemoveAll(thing =>
@@ -168,8 +168,8 @@ namespace EquipmentManager
             _ = availableWeapons.RemoveAll(thing =>
                 _pawnCache.Any(pc => pc != pawn && pc.AssignedWeapons.ContainsKey(thing)));
             _ = availableWeapons.RemoveAll(thing =>
-                !StatCalculator.canCarrySidearmInstance((ThingWithComps) thing, pawn.Pawn, out _));
-            var carriedWeapons = pawn.Pawn.getCarriedWeapons(true, true)
+                !StatCalculator.CanPickupSidearmInstance((ThingWithComps) thing, pawn.Pawn, out _));
+            var carriedWeapons = pawn.Pawn.GetCarriedWeapons(true, true)
                 .Where(thing => rule.IsAvailable(thing, workTypes, _updateTime)).ToList();
             availableWeapons.AddRange(carriedWeapons);
             if (pawn.Pawn.story.traits.HasTrait(TraitDefOf.Brawler))
@@ -183,7 +183,7 @@ namespace EquipmentManager
             foreach (var workType in workTypes)
             {
                 var things = availableWeapons.Where(thing => carriedWeapons.Contains(thing) ||
-                    StatCalculator.canCarrySidearmInstance((ThingWithComps) thing, pawn.Pawn, out _)).ToList();
+                    StatCalculator.CanPickupSidearmInstance((ThingWithComps) thing, pawn.Pawn, out _)).ToList();
                 var bestWeapon = things
                     .OrderByDescending(thing => rule.GetThingScore(thing, new[] {workType}, _updateTime))
                     .ThenByDescending(thing => sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
@@ -234,7 +234,7 @@ namespace EquipmentManager
             foreach (var pawn in _pawnCache.Where(pc =>
                          pc.ShouldUpdateEquipment && (pc.AssignedLoadout?.DropUnassignedWeapons ?? false)))
             {
-                var unassignedWeapons = pawn.Pawn.getCarriedWeapons(true, true)
+                var unassignedWeapons = pawn.Pawn.GetCarriedWeapons(true, true)
                     .Where(weapon => !pawn.AssignedWeapons.ContainsKey(weapon)).ToList();
                 if (unassignedWeapons.Any())
                 {
@@ -316,7 +316,7 @@ namespace EquipmentManager
             {
                 var availablePawns = _pawnCache.Where(pc => pc.IsAvailable(loadout)).ToList();
                 var prioritySum = availablePawns.Sum(pawn => pawn.AvailableLoadouts.Keys.Sum(l => l.Priority));
-                var avgPriority = (float) prioritySum / availablePawns.Count;
+                var avgPriority = prioritySum / availablePawns.Count;
                 var priorityShare = loadout.Priority / avgPriority;
                 var targetCount = (int) Math.Ceiling(availablePawns.Count * priorityShare);
                 var assignedPawnsCount = availablePawns.Count(pc => pc.AssignedLoadout == loadout);
@@ -353,8 +353,8 @@ namespace EquipmentManager
                 {
                     var availableWeapons = rule.GetCurrentlyAvailableItems(map, _updateTime).ToList();
                     _ = availableWeapons.RemoveAll(thing =>
-                        !StatCalculator.canCarrySidearmInstance((ThingWithComps) thing, pawn.Pawn, out _));
-                    var carriedWeapons = pawn.Pawn.getCarriedWeapons(true, true)
+                        !StatCalculator.CanPickupSidearmInstance((ThingWithComps) thing, pawn.Pawn, out _));
+                    var carriedWeapons = pawn.Pawn.GetCarriedWeapons(true, true)
                         .Where(weapon => rule.IsAvailable(weapon, _updateTime)).ToList();
                     availableWeapons.AddRange(carriedWeapons);
                     _ = availableWeapons.RemoveAll(thing =>
@@ -368,7 +368,7 @@ namespace EquipmentManager
                         case ItemRule.WeaponEquipMode.BestOne:
                             var bestWeapon = availableWeapons
                                 .Where(thing => carriedWeapons.Contains(thing) ||
-                                    StatCalculator.canCarrySidearmInstance((ThingWithComps) thing, pawn.Pawn, out _))
+                                    StatCalculator.CanPickupSidearmInstance((ThingWithComps) thing, pawn.Pawn, out _))
                                 .OrderByDescending(thing => rule.GetThingScore(thing, _updateTime))
                                 .ThenByDescending(thing =>
                                     sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
@@ -389,7 +389,7 @@ namespace EquipmentManager
                             foreach (var weapon in availableWeapons.Where(weapon =>
                                          pawn.AssignedWeapons.Keys.All(thing => thing.def != weapon.def) &&
                                          (carriedWeapons.Contains(weapon) ||
-                                             StatCalculator.canCarrySidearmInstance((ThingWithComps) weapon, pawn.Pawn,
+                                             StatCalculator.CanPickupSidearmInstance((ThingWithComps) weapon, pawn.Pawn,
                                                  out _))))
                             {
                                 pawn.AssignedWeapons.Add(weapon, "melee sidearm");
@@ -465,7 +465,7 @@ namespace EquipmentManager
                 {
                     var sidearmMemory = CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn);
                     var availableWeapons = rule.GetCurrentlyAvailableItems(map, _updateTime).ToList();
-                    var carriedWeapons = pawn.Pawn.getCarriedWeapons(true, true)
+                    var carriedWeapons = pawn.Pawn.GetCarriedWeapons(true, true)
                         .Where(weapon => rule.IsAvailable(weapon, _updateTime)).ToList();
                     availableWeapons.AddRange(carriedWeapons);
                     _ = availableWeapons.RemoveAll(thing =>
@@ -479,7 +479,7 @@ namespace EquipmentManager
                         case ItemRule.WeaponEquipMode.BestOne:
                             var bestWeapon = availableWeapons
                                 .Where(thing => carriedWeapons.Contains(thing) ||
-                                    StatCalculator.canCarrySidearmInstance((ThingWithComps) thing, pawn.Pawn, out _))
+                                    StatCalculator.CanPickupSidearmInstance((ThingWithComps) thing, pawn.Pawn, out _))
                                 .OrderByDescending(thing => rule.GetThingScore(thing, _updateTime))
                                 .ThenByDescending(thing =>
                                     sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
@@ -501,7 +501,7 @@ namespace EquipmentManager
                             foreach (var weapon in availableWeapons.Where(weapon =>
                                          pawn.AssignedWeapons.Keys.All(thing => thing.def != weapon.def) &&
                                          (carriedWeapons.Contains(weapon) ||
-                                             StatCalculator.canCarrySidearmInstance((ThingWithComps) weapon, pawn.Pawn,
+                                             StatCalculator.CanPickupSidearmInstance((ThingWithComps) weapon, pawn.Pawn,
                                                  out _))).OrderByDescending(thing =>
                                          rule.GetThingScore(thing, _updateTime)))
                             {

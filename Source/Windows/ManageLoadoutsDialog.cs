@@ -136,8 +136,8 @@ namespace EquipmentManager.Windows
             var priorityRect = LabelInput.DoLabeledRect(
                 new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width, UiHelpers.ListRowHeight),
                 Strings.PriorityLabel, Strings.PriorityTooltip);
-            SelectedLoadout.Priority = (int) Widgets.HorizontalSlider(priorityRect, SelectedLoadout.Priority, 0, 10,
-                true, $"{SelectedLoadout.Priority:N0}", roundTo: 1f);
+            Widgets.HorizontalSlider(priorityRect, ref SelectedLoadout.Priority, new FloatRange(0, 10),
+                $"{SelectedLoadout.Priority:N0}", 1f);
             var settingsRect = new Rect(rect.x, priorityRect.yMax + UiHelpers.ElementGap, rect.width,
                 UiHelpers.ListRowHeight);
             var columnWidth = (settingsRect.width - (UiHelpers.ElementGap * (UiHelpers.BoolSettingsColumnCount - 1))) /
@@ -312,9 +312,9 @@ namespace EquipmentManager.Windows
                 _ = Widgets.LabelFit(statLabelRect, weight.PawnCapacityDef?.LabelCap ?? weight.PawnCapacityDefName);
                 var statInputRect = new Rect(statLabelRect.xMax + UiHelpers.ElementGap, rowRect.y,
                     rowRect.xMax - statLabelRect.xMax - UiHelpers.ElementGap, rowRect.height);
-                weight.Weight = Widgets.HorizontalSlider(statInputRect, weight.Weight,
-                    -1 * PawnCapacityWeight.WeightCap, PawnCapacityWeight.WeightCap, true, $"{weight.Weight:N1}",
-                    roundTo: 0.1f);
+                Widgets.HorizontalSlider(statInputRect, ref weight.Weight,
+                    new FloatRange(-1 * PawnCapacityWeight.WeightCap, PawnCapacityWeight.WeightCap),
+                    $"{weight.Weight:N1}", 0.1f);
             }
             Text.Font = font;
             Text.Anchor = anchor;
@@ -540,8 +540,8 @@ namespace EquipmentManager.Windows
                 _ = Widgets.LabelFit(skillLabelRect, weight.SkillDef?.LabelCap ?? weight.SkillDefName);
                 var skillInputRect = new Rect(skillLabelRect.xMax + UiHelpers.ElementGap, rowRect.y,
                     rowRect.xMax - skillLabelRect.xMax - UiHelpers.ElementGap, rowRect.height);
-                weight.Weight = Widgets.HorizontalSlider(skillInputRect, weight.Weight, -1 * SkillWeight.WeightCap,
-                    SkillWeight.WeightCap, true, $"{weight.Weight:N1}", roundTo: 0.1f);
+                Widgets.HorizontalSlider(skillInputRect, ref weight.Weight,
+                    new FloatRange(-1 * SkillWeight.WeightCap, SkillWeight.WeightCap), $"{weight.Weight:N1}", 0.1f);
             }
             Text.Font = font;
             Text.Anchor = anchor;
@@ -656,8 +656,8 @@ namespace EquipmentManager.Windows
                 _ = Widgets.LabelFit(statLabelRect, weight.StatDef?.LabelCap ?? weight.StatDefName);
                 var statInputRect = new Rect(statLabelRect.xMax + UiHelpers.ElementGap, rowRect.y,
                     rowRect.xMax - statLabelRect.xMax - UiHelpers.ElementGap, rowRect.height);
-                weight.Weight = Widgets.HorizontalSlider(statInputRect, weight.Weight, -1 * StatWeight.WeightCap,
-                    StatWeight.WeightCap, true, $"{weight.Weight:N1}", roundTo: 0.1f);
+                Widgets.HorizontalSlider(statInputRect, ref weight.Weight,
+                    new FloatRange(-1 * StatWeight.WeightCap, StatWeight.WeightCap), $"{weight.Weight:N1}", 0.1f);
             }
             Text.Font = font;
             Text.Anchor = anchor;
