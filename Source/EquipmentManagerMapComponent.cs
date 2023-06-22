@@ -48,7 +48,11 @@ namespace EquipmentManager
                 pawn.AssignedWeapons.Add(weapon, "tool");
                 if (carriedWeapons.Contains(weapon))
                 {
-                    CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn).InformOfAddedSidearm(weapon);
+                    var sidearmMemory = CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn);
+                    if (!sidearmMemory.RememberedWeapons.Contains(weapon.toThingDefStuffDefPair()))
+                    {
+                        sidearmMemory.InformOfAddedSidearm(weapon);
+                    }
                 }
                 else
                 {
@@ -87,7 +91,13 @@ namespace EquipmentManager
             if (bestWeapon == null) { return; }
             if (pawn.AssignedWeapons.Keys.Any(thing => thing.def == bestWeapon.def)) { return; }
             pawn.AssignedWeapons.Add(bestWeapon, "tool");
-            if (carriedWeapons.Contains(bestWeapon)) { sidearmMemory.InformOfAddedSidearm(bestWeapon); }
+            if (carriedWeapons.Contains(bestWeapon))
+            {
+                if (!sidearmMemory.RememberedWeapons.Contains(bestWeapon.toThingDefStuffDefPair()))
+                {
+                    sidearmMemory.InformOfAddedSidearm(bestWeapon);
+                }
+            }
             else
             {
                 _ = pawn.Pawn.jobs.TryTakeOrderedJob(
@@ -119,7 +129,15 @@ namespace EquipmentManager
                 .FirstOrDefault();
             if (bestWeapon == null) { return; }
             pawn.AssignedWeapons.Add(bestWeapon, "primary");
-            if (carriedWeapons.Contains(bestWeapon)) { sidearmMemory.InformOfAddedPrimary(bestWeapon); }
+            if (carriedWeapons.Contains(bestWeapon))
+            {
+                var defPair = bestWeapon.toThingDefStuffDefPair();
+                if (sidearmMemory.RememberedWeapons.Contains(defPair))
+                {
+                    sidearmMemory.SetMeleeWeaponTypeAsPreferred(defPair);
+                }
+                else { sidearmMemory.InformOfAddedPrimary(bestWeapon); }
+            }
             else
             {
                 _ = pawn.Pawn.jobs.TryTakeOrderedJob(JobMaker.MakeJob(JobDefOf.Equip, (LocalTargetInfo) bestWeapon),
@@ -152,7 +170,15 @@ namespace EquipmentManager
                 .FirstOrDefault();
             if (bestWeapon == null) { return; }
             pawn.AssignedWeapons.Add(bestWeapon, "primary");
-            if (carriedWeapons.Contains(bestWeapon)) { sidearmMemory.InformOfAddedPrimary(bestWeapon); }
+            if (carriedWeapons.Contains(bestWeapon))
+            {
+                var defPair = bestWeapon.toThingDefStuffDefPair();
+                if (sidearmMemory.RememberedWeapons.Contains(defPair))
+                {
+                    sidearmMemory.SetRangedWeaponTypeAsDefault(defPair);
+                }
+                else { sidearmMemory.InformOfAddedPrimary(bestWeapon); }
+            }
             else
             {
                 _ = pawn.Pawn.jobs.TryTakeOrderedJob(JobMaker.MakeJob(JobDefOf.Equip, (LocalTargetInfo) bestWeapon),
@@ -191,7 +217,11 @@ namespace EquipmentManager
                 if (bestWeapon == null) { continue; }
                 if (pawn.AssignedWeapons.Keys.Any(thing => thing.def == bestWeapon.def)) { continue; }
                 pawn.AssignedWeapons.Add(bestWeapon, $"tool_{workType.labelShort}");
-                if (carriedWeapons.Contains(bestWeapon)) { sidearmMemory.InformOfAddedSidearm(bestWeapon); }
+                if (carriedWeapons.Contains(bestWeapon) &&
+                    !sidearmMemory.RememberedWeapons.Contains(bestWeapon.toThingDefStuffDefPair()))
+                {
+                    sidearmMemory.InformOfAddedSidearm(bestWeapon);
+                }
                 else
                 {
                     _ = pawn.Pawn.jobs.TryTakeOrderedJob(
@@ -241,12 +271,23 @@ namespace EquipmentManager
                     EquipmentManager.LogMessage(
                         $"Dropping {string.Join(", ", unassignedWeapons.Select(thing => thing.LabelCapNoCount))} from {pawn.Pawn.LabelShortCap}'s inventory");
                 }
-                foreach (var weapon in unassignedWeapons) { WeaponAssingment.dropSidearm(pawn.Pawn, weapon, true); }
+                foreach (var weapon in unassignedWeapons)
+                {
+                    WeaponAssingment.DropSidearm(pawn.Pawn, weapon, true, true);
+                }
                 var sidearmMemory = CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn);
                 foreach (var weapon in sidearmMemory.RememberedWeapons.Where(weapon =>
-                             pawn.AssignedWeapons.Keys.All(thing => thing.toThingDefStuffDefPair() != weapon)))
+                             pawn.AssignedWeapons.Keys.All(thing => thing.toThingDefStuffDefPair() != weapon)).ToList())
                 {
+                    EquipmentManager.LogMessage($"Forgetting {weapon.thing.LabelCap} for {pawn.Pawn.LabelShortCap}");
                     sidearmMemory.ForgetSidearmMemory(weapon);
+                }
+                foreach (var rememberedWeapon in sidearmMemory.RememberedWeapons.Distinct().ToList())
+                {
+                    while (sidearmMemory.RememberedWeapons.Count(w => w == rememberedWeapon) > 1)
+                    {
+                        sidearmMemory.ForgetSidearmMemory(rememberedWeapon);
+                    }
                 }
             }
         }
@@ -377,7 +418,11 @@ namespace EquipmentManager
                             if (bestWeapon == null) { continue; }
                             if (pawn.AssignedWeapons.Keys.Any(thing => thing.def == bestWeapon.def)) { continue; }
                             pawn.AssignedWeapons.Add(bestWeapon, "melee sidearm");
-                            if (carriedWeapons.Contains(bestWeapon)) { sidearmMemory.InformOfAddedSidearm(bestWeapon); }
+                            if (carriedWeapons.Contains(bestWeapon) &&
+                                !sidearmMemory.RememberedWeapons.Contains(bestWeapon.toThingDefStuffDefPair()))
+                            {
+                                sidearmMemory.InformOfAddedSidearm(bestWeapon);
+                            }
                             else
                             {
                                 _ = pawn.Pawn.jobs.TryTakeOrderedJob(
@@ -393,7 +438,11 @@ namespace EquipmentManager
                                                  out _))))
                             {
                                 pawn.AssignedWeapons.Add(weapon, "melee sidearm");
-                                if (carriedWeapons.Contains(weapon)) { sidearmMemory.InformOfAddedSidearm(weapon); }
+                                if (carriedWeapons.Contains(weapon) &&
+                                    !sidearmMemory.RememberedWeapons.Contains(weapon.toThingDefStuffDefPair()))
+                                {
+                                    sidearmMemory.InformOfAddedSidearm(weapon);
+                                }
                                 else
                                 {
                                     _ = pawn.Pawn.jobs.TryTakeOrderedJob(
@@ -488,7 +537,11 @@ namespace EquipmentManager
                             if (bestWeapon == null ||
                                 pawn.AssignedWeapons.Keys.Any(thing => thing.def == bestWeapon.def)) { continue; }
                             pawn.AssignedWeapons.Add(bestWeapon, "ranged sidearm");
-                            if (carriedWeapons.Contains(bestWeapon)) { sidearmMemory.InformOfAddedSidearm(bestWeapon); }
+                            if (carriedWeapons.Contains(bestWeapon) &&
+                                !sidearmMemory.RememberedWeapons.Contains(bestWeapon.toThingDefStuffDefPair()))
+                            {
+                                sidearmMemory.InformOfAddedSidearm(bestWeapon);
+                            }
                             else
                             {
                                 _ = pawn.Pawn.jobs.TryTakeOrderedJob(
@@ -506,7 +559,11 @@ namespace EquipmentManager
                                          rule.GetThingScore(thing, _updateTime)))
                             {
                                 pawn.AssignedWeapons.Add(weapon, "ranged sidearm");
-                                if (carriedWeapons.Contains(weapon)) { sidearmMemory.InformOfAddedSidearm(weapon); }
+                                if (carriedWeapons.Contains(weapon) &&
+                                    !sidearmMemory.RememberedWeapons.Contains(weapon.toThingDefStuffDefPair()))
+                                {
+                                    sidearmMemory.InformOfAddedSidearm(weapon);
+                                }
                                 else
                                 {
                                     _ = pawn.Pawn.jobs.TryTakeOrderedJob(

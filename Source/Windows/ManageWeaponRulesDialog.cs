@@ -290,8 +290,8 @@ namespace EquipmentManager.Windows
                 _ = Widgets.LabelFit(statLabelRect, statWeight.StatDef?.LabelCap ?? statWeight.StatDefName);
                 var statInputRect = new Rect(statLabelRect.xMax + UiHelpers.ElementGap, rowRect.y,
                     rowRect.xMax - statLabelRect.xMax - UiHelpers.ElementGap, rowRect.height);
-                statWeight.Weight = Widgets.HorizontalSlider(statInputRect, statWeight.Weight,
-                    -1 * StatWeight.WeightCap, StatWeight.WeightCap, true, $"{statWeight.Weight:N1}", roundTo: 0.1f);
+                Widgets.HorizontalSlider(statInputRect, ref statWeight.Weight,
+                    new FloatRange(-1 * StatWeight.WeightCap, StatWeight.WeightCap), $"{statWeight.Weight:N1}", 0.1f);
             }
             Widgets.EndScrollView();
             Text.Font = font;
