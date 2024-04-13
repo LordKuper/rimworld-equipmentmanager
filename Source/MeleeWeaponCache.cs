@@ -52,45 +52,62 @@ namespace EquipmentManager
 
         private float GetCustomStatValue([NotNull] StatDef statDef)
         {
-            if (Enum.TryParse(CustomMeleeWeaponStats.GetStatName(statDef.defName),
-                    out CustomMeleeWeaponStat meleeWeaponStat))
+            try
             {
-                switch (meleeWeaponStat)
+                if (Enum.TryParse(CustomMeleeWeaponStats.GetStatName(statDef.defName),
+                        out CustomMeleeWeaponStat meleeWeaponStat))
                 {
-                    case CustomMeleeWeaponStat.ArmorPenetration:
-                        return ArmorPenetration;
-                    case CustomMeleeWeaponStat.DpsSharp:
-                        var sharpVerbs = VerbUtility.GetAllVerbProperties(Thing.def.Verbs, Thing.def.tools)
-                            .Where(vp => vp.verbProps.IsMeleeAttack).Where(vp =>
-                                vp.maneuver.verb.meleeDamageDef.armorCategory.defName == "Sharp").ToList();
-                        if (!sharpVerbs.Any()) { return 0f; }
-                        var sharpDamage = sharpVerbs.AverageWeighted(
-                            vp => vp.verbProps.AdjustedMeleeSelectionWeight(vp.tool, null, Thing, null, false),
-                            vp => vp.verbProps.AdjustedMeleeDamageAmount(vp.tool, null, Thing, null));
-                        var sharpCooldown = sharpVerbs.AverageWeighted(
-                            vp => vp.verbProps.AdjustedMeleeSelectionWeight(vp.tool, null, Thing, null, false),
-                            vp => vp.verbProps.AdjustedCooldown(vp.tool, null, Thing));
-                        return sharpCooldown == 0f ? 0f : sharpDamage / sharpCooldown;
-                    case CustomMeleeWeaponStat.DpsBlunt:
-                        var bluntVerbs = VerbUtility.GetAllVerbProperties(Thing.def.Verbs, Thing.def.tools)
-                            .Where(vp => vp.verbProps.IsMeleeAttack).Where(vp =>
-                                vp.maneuver.verb.meleeDamageDef.armorCategory.defName == "Blunt").ToList();
-                        if (!bluntVerbs.Any()) { return 0f; }
-                        var bluntDamage = bluntVerbs.AverageWeighted(
-                            vp => vp.verbProps.AdjustedMeleeSelectionWeight(vp.tool, null, Thing, null, false),
-                            vp => vp.verbProps.AdjustedMeleeDamageAmount(vp.tool, null, Thing, null));
-                        var bluntCooldown = bluntVerbs.AverageWeighted(
-                            vp => vp.verbProps.AdjustedMeleeSelectionWeight(vp.tool, null, Thing, null, false),
-                            vp => vp.verbProps.AdjustedCooldown(vp.tool, null, Thing));
-                        return bluntCooldown == 0f ? 0f : bluntDamage / bluntCooldown;
-                    case CustomMeleeWeaponStat.TechLevel:
-                        return (float) Thing.def.techLevel;
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(statDef));
+                    switch (meleeWeaponStat)
+                    {
+                        case CustomMeleeWeaponStat.ArmorPenetration:
+                            return ArmorPenetration;
+                        case CustomMeleeWeaponStat.DpsSharp:
+                            var sharpVerbProperties =
+                                VerbUtility.GetAllVerbProperties(Thing.def.Verbs, Thing.def.tools);
+                            if (sharpVerbProperties == null) { return 0f; }
+                            var sharpVerbs = sharpVerbProperties.Where(vp =>
+                                (vp.verbProps?.IsMeleeAttack ?? false) && "Sharp".Equals(
+                                    vp.maneuver?.verb?.meleeDamageDef?.armorCategory?.defName,
+                                    StringComparison.OrdinalIgnoreCase)).ToList();
+                            if (!sharpVerbs.Any()) { return 0f; }
+                            var sharpDamage = sharpVerbs.AverageWeighted(
+                                vp => vp.verbProps.AdjustedMeleeSelectionWeight(vp.tool, null, Thing, null, false),
+                                vp => vp.verbProps.AdjustedMeleeDamageAmount(vp.tool, null, Thing, null));
+                            var sharpCooldown = sharpVerbs.AverageWeighted(
+                                vp => vp.verbProps.AdjustedMeleeSelectionWeight(vp.tool, null, Thing, null, false),
+                                vp => vp.verbProps.AdjustedCooldown(vp.tool, null, Thing));
+                            return sharpCooldown == 0f ? 0f : sharpDamage / sharpCooldown;
+                        case CustomMeleeWeaponStat.DpsBlunt:
+                            var bluntVerbProperties =
+                                VerbUtility.GetAllVerbProperties(Thing.def.Verbs, Thing.def.tools);
+                            if (bluntVerbProperties == null) { return 0f; }
+                            var bluntVerbs = bluntVerbProperties.Where(vp =>
+                                (vp.verbProps?.IsMeleeAttack ?? false) && "Blunt".Equals(
+                                    vp.maneuver?.verb?.meleeDamageDef?.armorCategory?.defName,
+                                    StringComparison.OrdinalIgnoreCase)).ToList();
+                            if (!bluntVerbs.Any()) { return 0f; }
+                            var bluntDamage = bluntVerbs.AverageWeighted(
+                                vp => vp.verbProps.AdjustedMeleeSelectionWeight(vp.tool, null, Thing, null, false),
+                                vp => vp.verbProps.AdjustedMeleeDamageAmount(vp.tool, null, Thing, null));
+                            var bluntCooldown = bluntVerbs.AverageWeighted(
+                                vp => vp.verbProps.AdjustedMeleeSelectionWeight(vp.tool, null, Thing, null, false),
+                                vp => vp.verbProps.AdjustedCooldown(vp.tool, null, Thing));
+                            return bluntCooldown == 0f ? 0f : bluntDamage / bluntCooldown;
+                        case CustomMeleeWeaponStat.TechLevel:
+                            return (float) Thing.def.techLevel;
+                        default:
+                            throw new ArgumentOutOfRangeException(nameof(statDef));
+                    }
                 }
+                Log.Error($"Equipment Manager: Tried to evaluate unknown custom melee stat ({statDef.defName})");
+                return 0f;
             }
-            Log.Error($"Equipment Manager: Tried to evaluate unknown custom melee stat ({statDef.defName})");
-            return 0f;
+            catch (Exception e)
+            {
+                Log.Error(
+                    $"Equipment Manager: An error occured while evaluating custom melee stat '{statDef.defName}' of '{Thing.def.defName}':\n{e.Message}\n{e.StackTrace}");
+                return 0f;
+            }
         }
 
         public float GetStatValue(StatDef statDef)
