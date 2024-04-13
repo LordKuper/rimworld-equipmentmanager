@@ -167,7 +167,7 @@ namespace EquipmentManager
                         ArmorPenetration /= tools.Count;
                     }
                 }
-                else { ArmorPenetration = Thing.GetStatValue(StatDefOf.MeleeWeapon_AverageArmorPenetration); }
+                else { ArmorPenetration = 0; }
             }
             catch (Exception exception)
             {

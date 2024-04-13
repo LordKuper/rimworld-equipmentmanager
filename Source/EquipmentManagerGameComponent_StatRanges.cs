@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
 using Verse;
@@ -47,8 +48,11 @@ namespace EquipmentManager
         public void UpdateStatRange(StatDef stat, float value)
         {
             if (_statRanges == null) { InitializeStatRanges(); }
-            if (!_statRanges.ContainsKey(stat.defName)) { _statRanges[stat.defName] = new FloatRange(value, value); }
-            var range = _statRanges[stat.defName];
+            if (_statRanges == null) { throw new NullReferenceException("Stat ranges dictionary initialization failed");}
+            if (!_statRanges.TryGetValue(stat.defName, out var range))
+            {
+                _statRanges[stat.defName] = new FloatRange(value, value);
+            }
             if (range.min > value)
             {
                 range.min = value;
