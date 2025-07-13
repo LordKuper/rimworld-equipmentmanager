@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
@@ -147,9 +147,13 @@ namespace EquipmentManager
         public IEnumerable<ThingDef> GetGloballyAvailableItems()
         {
             var items = new List<ThingDef>();
+            // items.AddRange(AllRelevantThings.Where(def =>
+            //     (def.statBases ?? new List<StatModifier>()).Union(def.equippedStatOffsets ?? new List<StatModifier>())
+            //     .Any(sm => RequiredStats.Any(statDef => statDef == sm.stat))));
             items.AddRange(AllRelevantThings.Where(def =>
-                (def.statBases ?? new List<StatModifier>()).Union(def.equippedStatOffsets ?? new List<StatModifier>())
-                .Any(sm => RequiredStats.Any(statDef => statDef == sm.stat))));
+                (def.statBases ?? new List<StatModifier>())
+                .Union(def.equippedStatOffsets ?? new List<StatModifier>())
+                .Any(sm => _statWeights.Any(statDef => statDef.StatDef == sm.stat))));
             items.SortByDescending(GetThingDefScore);
             return items;
         }
