@@ -56,11 +56,10 @@ namespace EquipmentManager
                     Label = Strings.Default.HighestDps,
                     EquipMode = WeaponEquipMode.BestOne,
                     Rottable = false,
-                    StatWeights = new List<StatWeight>(DefaultStatWeights
-                        .Where(sw => !new[] {"Mass"}.Contains(sw.StatDefName)).Union(new[]
-                        {
-                            new StatWeight("Mass", false) {Weight = -1.0f}
-                        })),
+                    StatWeights =
+                        new List<StatWeight>(DefaultStatWeights
+                            .Where(sw => !new[] {"Mass"}.Contains(sw.StatDefName))
+                            .Union(new[] {new StatWeight("Mass", false) {Weight = -1.0f}})),
                     BlacklistedItemsDefNames = new HashSet<string>(DefaultBlacklist)
                 },
                 new MeleeWeaponRule(1, false)
@@ -68,14 +67,16 @@ namespace EquipmentManager
                     Label = Strings.Default.Sharpest,
                     EquipMode = WeaponEquipMode.BestOne,
                     Rottable = false,
-                    StatWeights = new List<StatWeight>(DefaultStatWeights
-                        .Where(sw => !new[] {"MeleeWeapon_AverageDPS"}.Contains(sw.StatDefName)).Union(new[]
-                        {
-                            new StatWeight(
-                                CustomMeleeWeaponStats.GetStatDefName(CustomMeleeWeaponStat.DpsSharp),
-                                false) {Weight = 2.0f},
-                            new StatWeight("MeleeWeapon_AverageDPS", false) {Weight = 0.5f}
-                        })),
+                    StatWeights =
+                        new List<StatWeight>(DefaultStatWeights
+                            .Where(sw => !new[] {"MeleeWeapon_AverageDPS"}.Contains(sw.StatDefName))
+                            .Union(new[]
+                            {
+                                new StatWeight(
+                                    CustomMeleeWeaponStats.GetStatDefName(CustomMeleeWeaponStat.DpsSharp),
+                                    false) {Weight = 2.0f},
+                                new StatWeight("MeleeWeapon_AverageDPS", false) {Weight = 0.5f}
+                            })),
                     BlacklistedItemsDefNames = new HashSet<string>(DefaultBlacklist)
                 },
                 new MeleeWeaponRule(2, false)
@@ -137,7 +138,7 @@ namespace EquipmentManager
             return GetCurrentlyAvailableItems(map, time).OrderByDescending(thing => GetThingScore(thing, time));
         }
 
-        private IEnumerable<ThingDef> GetGloballyAvailableItems()
+        private HashSet<ThingDef> GetGloballyAvailableItems()
         {
             Initialize();
             return GloballyAvailableItems;

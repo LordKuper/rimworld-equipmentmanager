@@ -147,12 +147,8 @@ namespace EquipmentManager
         public IEnumerable<ThingDef> GetGloballyAvailableItems()
         {
             var items = new List<ThingDef>();
-            // items.AddRange(AllRelevantThings.Where(def =>
-            //     (def.statBases ?? new List<StatModifier>()).Union(def.equippedStatOffsets ?? new List<StatModifier>())
-            //     .Any(sm => RequiredStats.Any(statDef => statDef == sm.stat))));
             items.AddRange(AllRelevantThings.Where(def =>
-                (def.statBases ?? new List<StatModifier>())
-                .Union(def.equippedStatOffsets ?? new List<StatModifier>())
+                (def.statBases ?? new List<StatModifier>()).Union(def.equippedStatOffsets ?? new List<StatModifier>())
                 .Any(sm => _statWeights.Any(statDef => statDef.StatDef == sm.stat))));
             items.SortByDescending(GetThingDefScore);
             return items;
@@ -189,9 +185,9 @@ namespace EquipmentManager
             _workTypeDef = DefDatabase<WorkTypeDef>.GetNamedSilentFail(_workTypeDefName);
             if (WorkTypeDef == null) { return; }
             _defaultStatWeights = new List<StatWeight>();
-            if (DefaultWorkTypeStats.ContainsKey(WorkTypeDefName))
+            if (DefaultWorkTypeStats.TryGetValue(WorkTypeDefName, out var statDefNames))
             {
-                foreach (var statDefName in DefaultWorkTypeStats[WorkTypeDefName])
+                foreach (var statDefName in statDefNames)
                 {
                     if (!_defaultStatWeights.Any(sw => sw.StatDefName == statDefName))
                     {

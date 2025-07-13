@@ -35,7 +35,7 @@ namespace EquipmentManager
             Log.Message("Equipment Manager: VanillaFactionsExpanded.Core detected.");
             MeleeWeaponRule.UsableWithShieldsMethod =
                 AccessTools.MethodDelegate<MeleeWeaponRule.UsableWithShieldsDelegate>(
-                    AccessTools.Method(AccessTools.TypeByName("VFECore.ShieldUtility"), "UsableWithShields"));
+                    AccessTools.Method(AccessTools.TypeByName("VEF.Apparels.ShieldUtility"), "UsableWithShields"));
         }
     }
 }

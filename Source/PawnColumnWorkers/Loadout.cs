@@ -21,21 +21,23 @@ namespace EquipmentManager.PawnColumnWorkers
         private static IEnumerable<Widgets.DropdownMenuElement<EquipmentManager.Loadout>> Button_GenerateMenu(Pawn pawn)
         {
             var loadouts = EquipmentManager.GetLoadouts().ToList();
-            return loadouts.Any()
-                ? new[]
+            if (!loadouts.Any()) { return Array.Empty<Widgets.DropdownMenuElement<EquipmentManager.Loadout>>(); }
+            var elements = new List<Widgets.DropdownMenuElement<EquipmentManager.Loadout>>
+            {
+                new Widgets.DropdownMenuElement<EquipmentManager.Loadout>
                 {
-                    new Widgets.DropdownMenuElement<EquipmentManager.Loadout>
-                    {
-                        option = new FloatMenuOption($"* {Resources.Strings.Loadouts.AutoSelect}",
-                            () => EquipmentManager.SetPawnLoadout(pawn, EquipmentManager.GetLoadout(0), true))
-                    }
-                }.Union(loadouts.Select(currentLoadout => new Widgets.DropdownMenuElement<EquipmentManager.Loadout>
+                    option = new FloatMenuOption($"* {Resources.Strings.Loadouts.AutoSelect}",
+                        () => EquipmentManager.SetPawnLoadout(pawn, EquipmentManager.GetLoadout(0), true))
+                }
+            };
+            elements.AddRange(loadouts.Select(currentLoadout =>
+                new Widgets.DropdownMenuElement<EquipmentManager.Loadout>
                 {
                     option = new FloatMenuOption(currentLoadout.Label,
                         () => EquipmentManager.SetPawnLoadout(pawn, currentLoadout, false)),
                     payload = currentLoadout
-                }))
-                : Array.Empty<Widgets.DropdownMenuElement<EquipmentManager.Loadout>>();
+                }));
+            return elements;
         }
 
         public override int Compare(Pawn a, Pawn b)

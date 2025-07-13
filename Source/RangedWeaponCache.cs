@@ -62,8 +62,8 @@ namespace EquipmentManager
         private ThingComp AmmoUserComp =>
             !(Thing is ThingWithComps thingWithComps)
                 ? null
-                : thingWithComps.AllComps.FirstOrDefault(
-                    comp => comp.GetType() == CombatExtendedHelper.CompAmmoUserType);
+                : thingWithComps.AllComps.FirstOrDefault(comp =>
+                    comp.GetType() == CombatExtendedHelper.CompAmmoUserType);
 
         private float ArmorPenetration { get; set; }
         private int BurstShotCount { get; set; }
@@ -193,15 +193,28 @@ namespace EquipmentManager
 
         private void ReadProjectileProperties(ProjectileProperties projectileProperties)
         {
-            Damage = projectileProperties.GetDamageAmount(Thing);
-            StoppingPower = projectileProperties.StoppingPower;
-            ArmorPenetration = projectileProperties.GetArmorPenetration(Thing);
+            if (projectileProperties == null) { throw new ArgumentNullException(nameof(projectileProperties)); }
+            try { Damage = projectileProperties.GetDamageAmount(Thing); }
+            catch (Exception e)
+            {
+                Log.Warning(
+                    $"Equipment Manager: Could not get projectile damage for {Thing.LabelCapNoCount}: {e.Message}");
+                Damage = 0;
+            }
+            StoppingPower = projectileProperties.stoppingPower;
+            try { ArmorPenetration = projectileProperties.GetArmorPenetration(Thing); }
+            catch (Exception e)
+            {
+                Log.Warning(
+                    $"Equipment Manager: Could not get projectile armor penetration for {Thing.LabelCapNoCount}: {e.Message}");
+                ArmorPenetration = 0;
+            }
         }
 
         private void ReadProjectilePropertiesCombatExtended(ProjectileProperties projectileProperties)
         {
             Damage = projectileProperties.GetDamageAmount(Thing);
-            StoppingPower = projectileProperties.StoppingPower;
+            StoppingPower = projectileProperties.stoppingPower;
             if (projectileProperties.GetType() != CombatExtendedHelper.ProjectilePropertiesType)
             {
                 Log.Warning(
