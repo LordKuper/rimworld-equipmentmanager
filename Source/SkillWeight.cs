@@ -2,52 +2,51 @@
 using RimWorld;
 using Verse;
 
-namespace EquipmentManager
+namespace EquipmentManager;
+
+internal class SkillWeight : IExposable
 {
-    internal class SkillWeight : IExposable
+    public const float WeightCap = 2f;
+    private bool _isInitialized;
+    private SkillDef _skillDef;
+    private string _skillDefName;
+    public float Weight;
+
+    [UsedImplicitly]
+    public SkillWeight() { }
+
+    public SkillWeight(string skillDefName)
     {
-        public const float WeightCap = 2f;
-        private bool _isInitialized;
-        private SkillDef _skillDef;
-        private string _skillDefName;
-        public float Weight;
+        _skillDefName = skillDefName;
+    }
 
-        [UsedImplicitly]
-        public SkillWeight() { }
+    public SkillWeight(string skillDefName, float weight)
+    {
+        _skillDefName = skillDefName;
+        Weight = weight;
+    }
 
-        public SkillWeight(string skillDefName)
+    public SkillDef SkillDef
+    {
+        get
         {
-            _skillDefName = skillDefName;
+            Initialize();
+            return _skillDef;
         }
+    }
 
-        public SkillWeight(string skillDefName, float weight)
-        {
-            _skillDefName = skillDefName;
-            Weight = weight;
-        }
+    public string SkillDefName => _skillDefName;
 
-        public SkillDef SkillDef
-        {
-            get
-            {
-                Initialize();
-                return _skillDef;
-            }
-        }
+    public void ExposeData()
+    {
+        Scribe_Values.Look(ref _skillDefName, nameof(SkillDefName));
+        Scribe_Values.Look(ref Weight, nameof(Weight));
+    }
 
-        public string SkillDefName => _skillDefName;
-
-        public void ExposeData()
-        {
-            Scribe_Values.Look(ref _skillDefName, nameof(SkillDefName));
-            Scribe_Values.Look(ref Weight, nameof(Weight));
-        }
-
-        private void Initialize()
-        {
-            if (_isInitialized) { return; }
-            _isInitialized = true;
-            _skillDef = DefDatabase<SkillDef>.GetNamedSilentFail(_skillDefName);
-        }
+    private void Initialize()
+    {
+        if (_isInitialized) { return; }
+        _isInitialized = true;
+        _skillDef = DefDatabase<SkillDef>.GetNamedSilentFail(_skillDefName);
     }
 }

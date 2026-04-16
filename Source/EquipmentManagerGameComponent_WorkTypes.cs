@@ -1,37 +1,39 @@
 ﻿using System.Collections.Generic;
+using JetBrains.Annotations;
 using Verse;
 
-namespace EquipmentManager
+namespace EquipmentManager;
+
+internal partial class EquipmentManagerGameComponent
 {
-    internal partial class EquipmentManagerGameComponent
+    private List<WorkTypeRule> _workTypeRules;
+
+    public void AddWorkTypeRule(WorkTypeRule workTypeRule)
     {
-        private List<WorkTypeRule> _workTypeRules;
+        var existingRule =
+            _workTypeRules.FirstOrDefault(rule =>
+                rule.WorkTypeDefName == workTypeRule.WorkTypeDefName);
+        if (existingRule != null) { _ = _workTypeRules.Remove(existingRule); }
+        _workTypeRules.Add(workTypeRule);
+    }
 
-        public void AddWorkTypeRule(WorkTypeRule workTypeRule)
-        {
-            var existingRule =
-                _workTypeRules.FirstOrDefault(rule => rule.WorkTypeDefName == workTypeRule.WorkTypeDefName);
-            if (existingRule != null) { _ = _workTypeRules.Remove(existingRule); }
-            _workTypeRules.Add(workTypeRule);
-        }
+    public void DeleteWorkTypeRule(WorkTypeRule workTypeRule)
+    {
+        _ = _workTypeRules.Remove(workTypeRule);
+    }
 
-        public void DeleteWorkTypeRule(WorkTypeRule workTypeRule)
-        {
-            _ = _workTypeRules.Remove(workTypeRule);
-        }
+    private void ExposeData_WorkTypes()
+    {
+        Scribe_Collections.Look(ref _workTypeRules, "WorkTypeRules", LookMode.Deep);
+    }
 
-        private void ExposeData_WorkTypes()
+    [NotNull]
+    public IEnumerable<WorkTypeRule> GetWorkTypeRules()
+    {
+        if (_workTypeRules == null || _workTypeRules.Count == 0)
         {
-            Scribe_Collections.Look(ref _workTypeRules, "WorkTypeRules", LookMode.Deep);
+            _workTypeRules = new List<WorkTypeRule>(WorkTypeRule.DefaultRules);
         }
-
-        public IEnumerable<WorkTypeRule> GetWorkTypeRules()
-        {
-            if (_workTypeRules == null || _workTypeRules.Count == 0)
-            {
-                _workTypeRules = new List<WorkTypeRule>(WorkTypeRule.DefaultRules);
-            }
-            return _workTypeRules;
-        }
+        return _workTypeRules;
     }
 }

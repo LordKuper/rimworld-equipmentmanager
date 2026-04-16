@@ -4,103 +4,110 @@ using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace EquipmentManager
+namespace EquipmentManager;
+
+internal class SkillLimit : IExposable
 {
-    internal class SkillLimit : IExposable
+    private const float ValueCap = 20f;
+    private bool _isInitialized;
+    private string _maxValueBuffer;
+    private string _minValueBuffer;
+    private SkillDef _skillDef;
+    private string _skillDefName;
+    public float? MaxValue;
+    public float? MinValue;
+
+    [UsedImplicitly]
+    public SkillLimit() { }
+
+    public SkillLimit(string skillDefName)
     {
-        private const float ValueCap = 20f;
-        private bool _isInitialized;
-        private string _maxValueBuffer;
-        private string _minValueBuffer;
-        private SkillDef _skillDef;
-        private string _skillDefName;
-        public float? MaxValue;
-        public float? MinValue;
+        _skillDefName = skillDefName;
+    }
 
-        [UsedImplicitly]
-        public SkillLimit() { }
+    public SkillLimit(string skillDefName, float? minValue, float? maxValue)
+    {
+        _skillDefName = skillDefName;
+        MinValue = minValue;
+        MaxValue = maxValue;
+    }
 
-        public SkillLimit(string skillDefName)
+    public string MaxValueBuffer
+    {
+        get
         {
-            _skillDefName = skillDefName;
-        }
-
-        public SkillLimit(string skillDefName, float? minValue, float? maxValue)
-        {
-            _skillDefName = skillDefName;
-            MinValue = minValue;
-            MaxValue = maxValue;
-        }
-
-        public string MaxValueBuffer
-        {
-            get
+            if (MaxValue.HasValue && string.IsNullOrEmpty(_maxValueBuffer))
             {
-                if (MaxValue.HasValue && string.IsNullOrEmpty(_maxValueBuffer)) { _maxValueBuffer = $"{MaxValue:N2}"; }
-                return _maxValueBuffer;
+                _maxValueBuffer = $"{MaxValue:N2}";
             }
-            set
+            return _maxValueBuffer;
+        }
+        set
+        {
+            if (value == _maxValueBuffer) { return; }
+            if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture,
+                    out var maxValue))
             {
-                if (value == _maxValueBuffer) { return; }
-                if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var maxValue))
-                {
-                    MaxValue = Mathf.Clamp(maxValue, -1 * ValueCap, ValueCap);
-                    _maxValueBuffer = $"{MaxValue:N2}";
-                }
-                else
-                {
-                    MaxValue = null;
-                    _maxValueBuffer = value;
-                }
+                MaxValue = Mathf.Clamp(maxValue, -1 * ValueCap, ValueCap);
+                _maxValueBuffer = $"{MaxValue:N2}";
+            }
+            else
+            {
+                MaxValue = null;
+                _maxValueBuffer = value;
             }
         }
+    }
 
-        public string MinValueBuffer
+    public string MinValueBuffer
+    {
+        get
         {
-            get
+            if (MinValue.HasValue && string.IsNullOrEmpty(_minValueBuffer))
             {
-                if (MinValue.HasValue && string.IsNullOrEmpty(_minValueBuffer)) { _minValueBuffer = $"{MinValue:N2}"; }
-                return _minValueBuffer;
+                _minValueBuffer = $"{MinValue:N2}";
             }
-            set
-            {
-                if (value == _minValueBuffer) { return; }
-                if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var minValue))
-                {
-                    MinValue = Mathf.Clamp(minValue, -1 * ValueCap, ValueCap);
-                    _minValueBuffer = $"{MinValue:N2}";
-                }
-                else
-                {
-                    MinValue = null;
-                    _minValueBuffer = value;
-                }
-            }
+            return _minValueBuffer;
         }
-
-        public SkillDef SkillDef
+        set
         {
-            get
+            if (value == _minValueBuffer) { return; }
+            if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture,
+                    out var minValue))
             {
-                Initialize();
-                return _skillDef;
+                MinValue = Mathf.Clamp(minValue, -1 * ValueCap, ValueCap);
+                _minValueBuffer = $"{MinValue:N2}";
+            }
+            else
+            {
+                MinValue = null;
+                _minValueBuffer = value;
             }
         }
+    }
 
-        public string SkillDefName => _skillDefName;
-
-        public void ExposeData()
+    public SkillDef SkillDef
+    {
+        get
         {
-            Scribe_Values.Look(ref _skillDefName, nameof(SkillDefName));
-            Scribe_Values.Look(ref MinValue, nameof(MinValue));
-            Scribe_Values.Look(ref MaxValue, nameof(MaxValue));
+            Initialize();
+            return _skillDef;
         }
+    }
 
-        private void Initialize()
-        {
-            if (_isInitialized) { return; }
-            _isInitialized = true;
-            _skillDef = DefDatabase<SkillDef>.GetNamedSilentFail(_skillDefName);
-        }
+    public string SkillDefName => _skillDefName;
+
+    public void ExposeData()
+    {
+        Scribe_Values.Look(ref _skillDefName, nameof(SkillDefName));
+        Scribe_Values.Look(ref MinValue, nameof(MinValue));
+        Scribe_Values.Look(ref MaxValue, nameof(MaxValue));
+    }
+
+    private void Initialize()
+    {
+        if (_isInitialized) { return; }
+        _isInitialized = true;
+        _skillDef = DefDatabase<SkillDef>.GetNamedSilentFail(_skillDefName);
     }
 }

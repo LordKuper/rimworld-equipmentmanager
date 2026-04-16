@@ -1,68 +1,75 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using RimWorld;
 using Verse;
 
-namespace EquipmentManager
+namespace EquipmentManager;
+
+internal partial class EquipmentManagerGameComponent
 {
-    internal partial class EquipmentManagerGameComponent
+    private Dictionary<string, FloatRange> _statRanges;
+
+    private void ExposeData_StatRanges()
     {
-        private Dictionary<string, FloatRange> _statRanges;
+        Scribe_Collections.Look(ref _statRanges, "StatRanges", LookMode.Value, LookMode.Value);
+    }
 
-        private void ExposeData_StatRanges()
+    private void InitializeStatRanges()
+    {
+        _statRanges = new Dictionary<string, FloatRange>();
+        foreach (var def in DefDatabase<ThingDef>.AllDefs.Where(def => def.IsWeapon))
         {
-            Scribe_Collections.Look(ref _statRanges, "StatRanges", LookMode.Value, LookMode.Value);
-        }
-
-        private void InitializeStatRanges()
-        {
-            _statRanges = new Dictionary<string, FloatRange>();
-            foreach (var def in DefDatabase<ThingDef>.AllDefs.Where(def => def.IsWeapon))
+            var weapon = def.MadeFromStuff
+                ? ThingMaker.MakeThing(def, GenStuff.DefaultStuffFor(def))
+                : ThingMaker.MakeThing(def);
+            var time = new RimworldTime(0, 0, 0);
+            if (weapon.def.IsRangedWeapon)
             {
-                var weapon = def.MadeFromStuff
-                    ? ThingMaker.MakeThing(def, GenStuff.DefaultStuffFor(def))
-                    : ThingMaker.MakeThing(def);
-                var time = new RimworldTime(0, 0, 0);
-                if (weapon.def.IsRangedWeapon)
+                foreach (var rule in GetRangedWeaponRules())
                 {
-                    foreach (var rule in GetRangedWeaponRules()) { rule.UpdateStatRanges(weapon, time); }
-                }
-                else
-                {
-                    foreach (var rule in GetMeleeWeaponRules()) { rule.UpdateStatRanges(weapon, time); }
-                }
-                foreach (var rule in GetToolRules())
-                {
-                    rule.UpdateStatRanges(weapon, WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder.ToList(), time);
+                    rule.UpdateStatRanges(weapon, time);
                 }
             }
+            else
+            {
+                foreach (var rule in GetMeleeWeaponRules()) { rule.UpdateStatRanges(weapon, time); }
+            }
+            foreach (var rule in GetToolRules())
+            {
+                rule.UpdateStatRanges(weapon,
+                    WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder.ToList(), time);
+            }
         }
+    }
 
-        public float NormalizeStatValue(StatDef stat, float value)
+    public float NormalizeStatValue([NotNull] StatDef stat, float value)
+    {
+        UpdateStatRange(stat, value);
+        return StatHelper.NormalizeValue(value, _statRanges[stat.defName]);
+    }
+
+    public void UpdateStatRange([NotNull] StatDef stat, float value)
+    {
+        if (_statRanges == null) { InitializeStatRanges(); }
+        if (_statRanges == null)
         {
-            UpdateStatRange(stat, value);
-            return StatHelper.NormalizeValue(value, _statRanges[stat.defName]);
+            throw new NullReferenceException("Stat ranges dictionary initialization failed");
         }
-
-        public void UpdateStatRange(StatDef stat, float value)
+        if (!_statRanges.TryGetValue(stat.defName, out var range))
         {
-            if (_statRanges == null) { InitializeStatRanges(); }
-            if (_statRanges == null) { throw new NullReferenceException("Stat ranges dictionary initialization failed");}
-            if (!_statRanges.TryGetValue(stat.defName, out var range))
-            {
-                _statRanges[stat.defName] = new FloatRange(value, value);
-            }
-            if (range.min > value)
-            {
-                range.min = value;
-                _statRanges[stat.defName] = range;
-            }
-            if (range.max < value)
-            {
-                range.max = value;
-                _statRanges[stat.defName] = range;
-            }
+            _statRanges[stat.defName] = new FloatRange(value, value);
+        }
+        if (range.min > value)
+        {
+            range.min = value;
+            _statRanges[stat.defName] = range;
+        }
+        if (range.max < value)
+        {
+            range.max = value;
+            _statRanges[stat.defName] = range;
         }
     }
 }

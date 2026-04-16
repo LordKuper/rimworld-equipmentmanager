@@ -2,54 +2,53 @@
 using RimWorld;
 using Verse;
 
-namespace EquipmentManager
+namespace EquipmentManager;
+
+public enum PassionValue
 {
-    public enum PassionValue
+    None,
+    Minor,
+    Major,
+    Any
+}
+
+internal class PassionLimit : IExposable
+{
+    private bool _isInitialized;
+    private SkillDef _skillDef;
+    private string _skillDefName;
+    public PassionValue Value = PassionValue.None;
+
+    [UsedImplicitly]
+    public PassionLimit() { }
+
+    public PassionLimit(string skillDefName)
     {
-        None,
-        Minor,
-        Major,
-        Any
+        _skillDefName = skillDefName;
     }
 
-    internal class PassionLimit : IExposable
+    public SkillDef SkillDef
     {
-        private bool _isInitialized;
-        private SkillDef _skillDef;
-        private string _skillDefName;
-        public PassionValue Value = PassionValue.None;
-
-        [UsedImplicitly]
-        public PassionLimit() { }
-
-        public PassionLimit(string skillDefName)
+        get
         {
-            _skillDefName = skillDefName;
+            Initialize();
+            return _skillDef;
         }
+    }
 
-        public SkillDef SkillDef
-        {
-            get
-            {
-                Initialize();
-                return _skillDef;
-            }
-        }
+    public string SkillDefName => _skillDefName;
 
-        public string SkillDefName => _skillDefName;
+    public void ExposeData()
+    {
+        Scribe_Values.Look(ref _skillDefName, nameof(SkillDefName));
+        Scribe_Values.Look(ref Value, nameof(Value));
+    }
 
-        public void ExposeData()
-        {
-            Scribe_Values.Look(ref _skillDefName, nameof(SkillDefName));
-            Scribe_Values.Look(ref Value, nameof(Value));
-        }
-
-        private void Initialize()
-        {
-            if (_isInitialized) { return; }
-            _isInitialized = true;
-            _skillDef = DefDatabase<SkillDef>.GetNamedSilentFail(_skillDefName);
-            if (SkillDef == null) { }
-        }
+    private void Initialize()
+    {
+        if (_isInitialized) { return; }
+        _isInitialized = true;
+        _skillDef = DefDatabase<SkillDef>.GetNamedSilentFail(_skillDefName);
+        if (SkillDef == null) { }
     }
 }
