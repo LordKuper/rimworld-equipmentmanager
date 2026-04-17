@@ -10,20 +10,15 @@ using Verse;
 
 namespace EquipmentManager;
 
-internal class ToolCache : ItemCache
+internal class ToolCache([NotNull] Thing thing) : ItemCache
 {
     private static EquipmentManagerGameComponent _equipmentManager;
     private readonly Dictionary<string, float> _workTypeScores = new();
 
-    public ToolCache([NotNull] Thing thing)
-    {
-        Thing = thing ?? throw new ArgumentNullException(nameof(thing));
-    }
-
     private static EquipmentManagerGameComponent EquipmentManager =>
         _equipmentManager ??= Current.Game.GetComponent<EquipmentManagerGameComponent>();
 
-    private Thing Thing { get; }
+    private Thing Thing { get; } = thing ?? throw new ArgumentNullException(nameof(thing));
 
     private float GetCustomStatValue([NotNull] StatDef statDef,
         IReadOnlyCollection<WorkTypeDef> workTypeDefs)
@@ -67,13 +62,9 @@ internal class ToolCache : ItemCache
     public float GetStatValueDeviation([NotNull] StatDef statDef,
         IReadOnlyCollection<WorkTypeDef> workTypeDefs)
     {
-        return statDef == null
-            ? throw new ArgumentNullException(nameof(statDef))
-            :
-            ToolStats.IsCustomStat(statDef.defName)
-                ?
-                GetCustomStatValue(statDef, workTypeDefs)
-                : StatHelper.GetStatValueDeviation(Thing, statDef);
+        return statDef == null ? throw new ArgumentNullException(nameof(statDef)) :
+            ToolStats.IsCustomStat(statDef.defName) ? GetCustomStatValue(statDef, workTypeDefs) :
+            StatHelper.GetStatValueDeviation(Thing, statDef);
     }
 
     private float GetWorkTypeScore([NotNull] string workTypeDefName)
@@ -84,6 +75,11 @@ internal class ToolCache : ItemCache
     private float GetWorkTypesScore([NotNull] IEnumerable<string> workTypeDefNames)
     {
         return workTypeDefNames.Average(GetWorkTypeScore);
+    }
+
+    public static void ResetCache()
+    {
+        _equipmentManager = null;
     }
 
     public override bool Update(RimWorldTime time)
@@ -105,7 +101,6 @@ internal class ToolCache : ItemCache
         {
             Log.Error(
                 $"Equipment Manager: Could not update cache of '{Thing.LabelCapNoCount}' ({Thing.def?.defName}): {exception.Message}");
-            throw;
         }
         return true;
     }

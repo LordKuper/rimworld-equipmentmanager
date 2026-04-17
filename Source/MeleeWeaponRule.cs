@@ -34,19 +34,27 @@ internal class MeleeWeaponRule : ItemRule
         _rottable = rottable;
     }
 
+    private static HashSet<ThingDef> _allRelevantThings;
+
     [NotNull]
     public static HashSet<ThingDef> AllRelevantThings
     {
         get
         {
-            if (field == null || field.Count == 0)
+            if (_allRelevantThings == null || _allRelevantThings.Count == 0)
             {
-                field = new HashSet<ThingDef>(
+                _allRelevantThings = new HashSet<ThingDef>(
                     DefDatabase<ThingDef>.AllDefs.Where(def =>
                         def.IsMeleeWeapon && !def.destroyOnDrop));
             }
-            return field;
+            return _allRelevantThings;
         }
+    }
+
+    public static void ResetCache()
+    {
+        _allRelevantThings = null;
+        ResetEquipmentManagerCache();
     }
 
     [NotNull] public static IEnumerable<string> DefaultBlacklist => ["WoodLog", "Beer"];
@@ -76,8 +84,7 @@ internal class MeleeWeaponRule : ItemRule
                 ..DefaultStatWeights
                     .Where(sw => !new[] { "MeleeWeapon_AverageDPS" }.Contains(sw.StatDefName))
                     .Union([
-                        new StatWeight(
-                            MeleeWeaponStats.GetStatDefName(MeleeWeaponStat.DpsSharp),
+                        new StatWeight(MeleeWeaponStats.GetStatDefName(MeleeWeaponStat.DpsSharp),
                             2.0f, false),
                         new StatWeight("MeleeWeapon_AverageDPS", 0.5f, false)
                     ])
@@ -94,8 +101,7 @@ internal class MeleeWeaponRule : ItemRule
                 ..DefaultStatWeights
                     .Where(sw => !new[] { "MeleeWeapon_AverageDPS" }.Contains(sw.StatDefName))
                     .Union([
-                        new StatWeight(
-                            MeleeWeaponStats.GetStatDefName(MeleeWeaponStat.DpsBlunt),
+                        new StatWeight(MeleeWeaponStats.GetStatDefName(MeleeWeaponStat.DpsBlunt),
                             2.0f, false),
                         new StatWeight("MeleeWeapon_AverageDPS", 0.5f, false)
                     ])
@@ -109,8 +115,7 @@ internal class MeleeWeaponRule : ItemRule
         new[]
         {
             new StatWeight("MeleeWeapon_AverageDPS", 2.0f, false),
-            new StatWeight(
-                MeleeWeaponStats.GetStatDefName(MeleeWeaponStat.ArmorPenetration),
+            new StatWeight(MeleeWeaponStats.GetStatDefName(MeleeWeaponStat.ArmorPenetration),
                 0.5f, false)
         }.Union(ItemRule.DefaultStatWeights);
 
@@ -225,7 +230,7 @@ internal class MeleeWeaponRule : ItemRule
         if (Rottable != null)
         {
             _ = GloballyAvailableItems.RemoveWhere(def =>
-                def.GetCompProperties<CompProperties_Rottable>() != null != Rottable);
+                def.GetCompProperties<CompProperties_Rottable>() != null != Rottable.Value);
         }
         _ = GloballyAvailableItems.RemoveWhere(def => GetBlacklistedItems().Contains(def));
         foreach (var def in GetWhitelistedItems()) { _ = GloballyAvailableItems.Add(def); }

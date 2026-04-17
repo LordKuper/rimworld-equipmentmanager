@@ -4,10 +4,10 @@ using System.Text;
 using EquipmentManager.CustomWidgets;
 using JetBrains.Annotations;
 using LordKuper.Common.Helpers;
+using LordKuper.Common.UI;
 using RimWorld;
 using UnityEngine;
 using Verse;
-using LordKuper.Common.UI;
 
 namespace EquipmentManager.Windows;
 
@@ -56,7 +56,8 @@ internal partial class ManageWeaponRulesDialog
             UiHelpers.ElementGap));
         if (SelectedWorkTypeRule == null)
         {
-            Labels.DoLabel(labelRect, Resources.Strings.WeaponRules.NoRuleSelected, TextAnchor.MiddleLeft);
+            Labels.DoLabel(labelRect, Resources.Strings.WeaponRules.NoRuleSelected,
+                TextAnchor.MiddleLeft);
         }
         else
         {
@@ -85,7 +86,7 @@ internal partial class ManageWeaponRulesDialog
     }
 
     [NotNull]
-    private string GetWorkTypeDefTooltip([NotNull] ThingDef def, [NotNull] WorkTypeRule rule)
+    private string GetWorkTypeDefTooltip([NotNull] BuildableDef def, [NotNull] WorkTypeRule rule)
     {
         var stringBuilder = new StringBuilder();
         _ = stringBuilder.AppendLine(def.LabelCap);
@@ -93,13 +94,11 @@ internal partial class ManageWeaponRulesDialog
             .ToHashSet();
         if (!stats.Any()) { return stringBuilder.ToString(); }
         _ = stringBuilder.AppendLine();
-        var thing = def.MadeFromStuff
-            ? ThingMaker.MakeThing(def, GenStuff.DefaultStuffFor(def))
-            : ThingMaker.MakeThing(def);
+        var stuffDef = def.MadeFromStuff ? GenStuff.DefaultStuffFor(def) : null;
+        var request = StatRequest.For(def, stuffDef);
         foreach (var stat in stats)
         {
-            _ = stringBuilder.AppendLine(
-                $"- {stat.LabelCap} = {StatHelper.GetStatValue(thing, stat):N2}");
+            _ = stringBuilder.AppendLine($"- {stat.LabelCap} = {stat.Worker.GetValue(request):N2}");
         }
         return stringBuilder.ToString();
     }

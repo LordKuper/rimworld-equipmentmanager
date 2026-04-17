@@ -65,6 +65,12 @@ internal class WorkTypeRule : IExposable
         }
     }
 
+    public static void ResetCache()
+    {
+        _allRelevantThings = null;
+        _equipmentManager = null;
+    }
+
     [NotNull]
     public static IEnumerable<WorkTypeRule> DefaultRules
     {

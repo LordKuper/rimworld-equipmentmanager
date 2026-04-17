@@ -16,14 +16,14 @@ internal partial class ManageWeaponRulesDialog : Window
 {
     private const float ItemIconGap = 4f;
     private const float ItemIconSize = 32f;
-    private static Vector2 _blacklistScrollPosition;
-    private static Vector2 _currentItemsScrollPosition;
+    private Vector2 _blacklistScrollPosition;
+    private Vector2 _currentItemsScrollPosition;
     private static DialogTab _currentTab = DialogTab.MeleeWeapons;
-    private static EquipmentManagerGameComponent _equipmentManager;
-    private static Vector2 _globalItemsScrollPosition;
-    private static Vector2 _statLimitsScrollPosition;
-    private static Vector2 _statWeightsScrollPosition;
-    private static Vector2 _whitelistScrollPosition;
+    private EquipmentManagerGameComponent _equipmentManager;
+    private Vector2 _globalItemsScrollPosition;
+    private Vector2 _statLimitsScrollPosition;
+    private Vector2 _statWeightsScrollPosition;
+    private Vector2 _whitelistScrollPosition;
     private readonly List<TabRecord> _tabs = new();
     private bool _initialized;
 
@@ -38,7 +38,7 @@ internal partial class ManageWeaponRulesDialog : Window
 
     private int AvailableItemIconsRowCount => InitialSize.y < MaxSize.y ? 2 : 5;
 
-    private static EquipmentManagerGameComponent EquipmentManager =>
+    private EquipmentManagerGameComponent EquipmentManager =>
         _equipmentManager ??= Current.Game.GetComponent<EquipmentManagerGameComponent>();
 
     private int ExclusiveItemIconsRowCount => InitialSize.y < MaxSize.y ? 2 : 3;
@@ -54,7 +54,7 @@ internal partial class ManageWeaponRulesDialog : Window
         rule.Label = $"{rule.Id}";
     }
 
-    private static void DoAvailableItems(Rect rect, [NotNull] IReadOnlyList<ThingDef> globalItems,
+    private void DoAvailableItems(Rect rect, [NotNull] IReadOnlyList<ThingDef> globalItems,
         Action<ThingDef> globalItemRightClickAction, Func<ThingDef, string> globalTooltipGetter,
         [NotNull] IReadOnlyList<Thing> currentItems, Action<Thing> currentItemRightClickAction,
         Func<Thing, string> currentTooltipGetter, Action refreshAction)
@@ -70,7 +70,7 @@ internal partial class ManageWeaponRulesDialog : Window
             refreshAction, currentTooltipGetter);
     }
 
-    private static void DoBlacklist(Rect rect, [NotNull] IReadOnlyCollection<ThingDef> items,
+    private void DoBlacklist(Rect rect, [NotNull] IReadOnlyCollection<ThingDef> items,
         IEnumerable<ThingDef> allItems, Action<ThingDef> addAction,
         Action<ThingDef> rightClickAction, Func<ThingDef, string> tooltipGetter)
     {
@@ -98,7 +98,7 @@ internal partial class ManageWeaponRulesDialog : Window
             items.ToList(), rightClickAction, tooltipGetter);
     }
 
-    private static void DoCurrentlyAvailableItems(Rect rect, [NotNull] IReadOnlyList<Thing> items,
+    private void DoCurrentlyAvailableItems(Rect rect, [NotNull] IReadOnlyList<Thing> items,
         Action<Thing> rightClickAction, Action refreshAction, Func<Thing, string> tooltipGetter)
     {
         var font = Text.Font;
@@ -120,7 +120,7 @@ internal partial class ManageWeaponRulesDialog : Window
             ref _currentItemsScrollPosition, items, rightClickAction, tooltipGetter);
     }
 
-    private static void DoExclusiveItems(Rect rect, HashSet<ThingDef> allItems,
+    private void DoExclusiveItems(Rect rect, HashSet<ThingDef> allItems,
         [NotNull] IReadOnlyCollection<ThingDef> whitelistedItems,
         Action<ThingDef> whitelistedItemsRightClickAction, Action<ThingDef> addToWhitelistAction,
         [NotNull] IReadOnlyCollection<ThingDef> blacklistedItems,
@@ -138,7 +138,7 @@ internal partial class ManageWeaponRulesDialog : Window
             blacklistedItemsRightClickAction, tooltipGetter);
     }
 
-    private static void DoGloballyAvailableItems(Rect rect, [NotNull] IReadOnlyList<ThingDef> items,
+    private void DoGloballyAvailableItems(Rect rect, [NotNull] IReadOnlyList<ThingDef> items,
         Action<ThingDef> rightClickAction, Action refreshAction,
         Func<ThingDef, string> tooltipGetter)
     {
@@ -178,7 +178,7 @@ internal partial class ManageWeaponRulesDialog : Window
         Text.Anchor = anchor;
     }
 
-    private static void DoRuleStatLimits(Rect rect, IEnumerable<StatDef> statDefs,
+    private void DoRuleStatLimits(Rect rect, IEnumerable<StatDef> statDefs,
         [NotNull] IReadOnlyList<StatLimit> statLimits, Action<StatDef> addAction,
         Action<string> deleteAction)
     {
@@ -249,7 +249,7 @@ internal partial class ManageWeaponRulesDialog : Window
         Text.Anchor = anchor;
     }
 
-    private static void DoRuleStats(Rect rect, IReadOnlyList<StatDef> statDefs,
+    private void DoRuleStats(Rect rect, IReadOnlyList<StatDef> statDefs,
         [NotNull] IReadOnlyList<StatWeight> statWeights, Action<StatDef> addWeightAction,
         Action<string> deleteWeightAction, [NotNull] IReadOnlyList<StatLimit> statLimits,
         Action<StatDef> addLimitAction, Action<string> deleteLimitAction)
@@ -263,7 +263,7 @@ internal partial class ManageWeaponRulesDialog : Window
         DoRuleStatLimits(limitsRect, statDefs, statLimits, addLimitAction, deleteLimitAction);
     }
 
-    private static void DoRuleStatWeights(Rect rect, IEnumerable<StatDef> statDefs,
+    private void DoRuleStatWeights(Rect rect, IEnumerable<StatDef> statDefs,
         [NotNull] IReadOnlyList<StatWeight> statWeights, Action<StatDef> addAction,
         Action<string> deleteAction)
     {
@@ -348,7 +348,7 @@ internal partial class ManageWeaponRulesDialog : Window
         Text.Anchor = anchor;
     }
 
-    private static void DoWhitelist(Rect rect, [NotNull] IReadOnlyCollection<ThingDef> items,
+    private void DoWhitelist(Rect rect, [NotNull] IReadOnlyCollection<ThingDef> items,
         IEnumerable<ThingDef> allItems, Action<ThingDef> addAction,
         Action<ThingDef> rightClickAction, Func<ThingDef, string> tooltipGetter)
     {
@@ -492,7 +492,7 @@ internal partial class ManageWeaponRulesDialog : Window
         UpdateAvailableItems_WorkTypes();
     }
 
-    private static void ResetScrollPositions()
+    private void ResetScrollPositions()
     {
         _statWeightsScrollPosition.Set(0, 0);
         _statLimitsScrollPosition.Set(0, 0);

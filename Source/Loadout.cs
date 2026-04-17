@@ -111,11 +111,16 @@ internal class Loadout : IExposable
     private List<SkillWeight> _skillWeights = [];
     private List<StatLimit> _statLimits = [];
     private List<StatWeight> _statWeights = [];
+    private int _scoreContextTick = -1;
+    private List<Pawn> _scoreContextPawns;
+    private readonly Dictionary<StatDef, FloatRange> _scoreStatRanges = new();
+    private readonly Dictionary<SkillDef, FloatRange> _scoreSkillRanges = new();
+    private readonly Dictionary<PawnCapacityDef, FloatRange> _scoreCapacityRanges = new();
     public bool DropUnassignedWeapons = true;
     public string Label;
     public int? PrimaryMeleeWeaponRuleId;
     public int? PrimaryRangedWeaponRuleId;
-    public float Priority;
+    public int Priority;
     public int? ToolRuleId;
 
     [UsedImplicitly]
@@ -315,42 +320,69 @@ internal class Loadout : IExposable
     public float GetScore(Pawn pawn)
     {
         Initialize();
-        var pawns = PawnsFinder.AllMaps_FreeColonistsSpawned;
+        EnsureScoreContext();
         var score = 0f;
         foreach (var statWeight in _statWeights.Where(sw => sw.StatDef != null))
         {
             if (statWeight.StatDef.Worker?.IsDisabledFor(pawn) ?? false) { continue; }
-            var eligiblePawns = pawns.Where(p => !(statWeight.StatDef.Worker?.IsDisabledFor(p) ?? false))
-                .ToList();
-            if (!eligiblePawns.Any()) { continue; }
-            var pawnValues = eligiblePawns
-                .Select(p => StatHelper.GetStatValue(p, statWeight.StatDef)).ToList();
+            if (!_scoreStatRanges.TryGetValue(statWeight.StatDef, out var range)) { continue; }
             var normalizedValue = MathHelper.NormalizeValue(
-                StatHelper.GetStatValue(pawn, statWeight.StatDef),
-                new FloatRange(pawnValues.Min(), pawnValues.Max()));
+                StatHelper.GetStatValue(pawn, statWeight.StatDef), range);
             score += normalizedValue * statWeight.Weight;
         }
         foreach (var skillWeight in _skillWeights.Where(sw => sw.SkillDef != null))
         {
-            var pawnValues = pawns.Select(p => p.skills.GetSkill(skillWeight.SkillDef).Level)
-                .ToList();
+            if (!_scoreSkillRanges.TryGetValue(skillWeight.SkillDef, out var range)) { continue; }
             var normalizedValue = MathHelper.NormalizeValue(
-                pawn.skills.GetSkill(skillWeight.SkillDef).Level,
-                new FloatRange(pawnValues.Min(), pawnValues.Max()));
+                pawn.skills.GetSkill(skillWeight.SkillDef).Level, range);
             score += normalizedValue * skillWeight.Weight;
         }
         foreach (var pawnCapacityWeight in _pawnCapacityWeights.Where(pcw =>
                      pcw.PawnCapacityDef != null))
         {
-            var pawnValues = pawns
-                .Select(p => p.health.capacities.GetLevel(pawnCapacityWeight.PawnCapacityDef))
-                .ToList();
+            if (!_scoreCapacityRanges.TryGetValue(pawnCapacityWeight.PawnCapacityDef, out var range))
+            {
+                continue;
+            }
             var normalizedValue = MathHelper.NormalizeValue(
-                pawn.health.capacities.GetLevel(pawnCapacityWeight.PawnCapacityDef),
-                new FloatRange(pawnValues.Min(), pawnValues.Max()));
+                pawn.health.capacities.GetLevel(pawnCapacityWeight.PawnCapacityDef), range);
             score += normalizedValue * pawnCapacityWeight.Weight;
         }
         return score;
+    }
+
+    private void EnsureScoreContext()
+    {
+        var tick = Find.TickManager.TicksGame;
+        if (_scoreContextTick == tick) { return; }
+        _scoreContextTick = tick;
+        _scoreContextPawns = PawnsFinder.AllMaps_FreeColonistsSpawned.ToList();
+        _scoreStatRanges.Clear();
+        foreach (var statWeight in _statWeights.Where(sw => sw.StatDef != null))
+        {
+            var eligible = _scoreContextPawns
+                .Where(p => !(statWeight.StatDef.Worker?.IsDisabledFor(p) ?? false)).ToList();
+            if (!eligible.Any()) { continue; }
+            var values = eligible.Select(p => StatHelper.GetStatValue(p, statWeight.StatDef)).ToList();
+            _scoreStatRanges[statWeight.StatDef] = new FloatRange(values.Min(), values.Max());
+        }
+        _scoreSkillRanges.Clear();
+        foreach (var skillWeight in _skillWeights.Where(sw => sw.SkillDef != null))
+        {
+            var values = _scoreContextPawns.Select(p => (float)p.skills.GetSkill(skillWeight.SkillDef).Level).ToList();
+            if (!values.Any()) { continue; }
+            _scoreSkillRanges[skillWeight.SkillDef] = new FloatRange(values.Min(), values.Max());
+        }
+        _scoreCapacityRanges.Clear();
+        foreach (var pawnCapacityWeight in _pawnCapacityWeights.Where(pcw =>
+                     pcw.PawnCapacityDef != null))
+        {
+            var values = _scoreContextPawns
+                .Select(p => p.health.capacities.GetLevel(pawnCapacityWeight.PawnCapacityDef)).ToList();
+            if (!values.Any()) { continue; }
+            _scoreCapacityRanges[pawnCapacityWeight.PawnCapacityDef] =
+                new FloatRange(values.Min(), values.Max());
+        }
     }
 
     private void Initialize()

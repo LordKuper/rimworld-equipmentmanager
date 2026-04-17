@@ -14,7 +14,7 @@ namespace EquipmentManager.Windows;
 
 internal class ImportLoadoutsDialog : Window
 {
-    private static EquipmentManagerGameComponent _equipmentManager;
+    private EquipmentManagerGameComponent _equipmentManager;
     private readonly List<Loadout> _loadouts = [];
     private readonly List<MeleeWeaponRule> _meleeWeaponRules = [];
     private readonly List<RangedWeaponRule> _rangedWeaponRules = [];
@@ -34,7 +34,7 @@ internal class ImportLoadoutsDialog : Window
         absorbInputAroundWindow = true;
     }
 
-    private static EquipmentManagerGameComponent EquipmentManager =>
+    private EquipmentManagerGameComponent EquipmentManager =>
         _equipmentManager ??= Current.Game.GetComponent<EquipmentManagerGameComponent>();
 
     public override Vector2 InitialSize =>
@@ -188,7 +188,7 @@ internal class ImportLoadoutsDialog : Window
         {
             try
             {
-                var xmlReader = XmlReader.Create(file.FullName,
+                using var xmlReader = XmlReader.Create(file.FullName,
                     new XmlReaderSettings
                     {
                         IgnoreWhitespace = true,
@@ -201,11 +201,11 @@ internal class ImportLoadoutsDialog : Window
                     _savedGames.Add(file.FullName,
                         $"{file.Name} {xml.Substring(0, xml.FirstIndexOf(char.IsWhiteSpace))}");
                 }
-                xmlReader.Close();
             }
-            catch
+            catch (Exception e)
             {
-                Log.Warning($"Equipment Manager: Could not process save game file {file.FullName}");
+                Log.Warning(
+                    $"Equipment Manager: Could not process save game file {file.FullName}: {e.Message}");
             }
         }
     }

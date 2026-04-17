@@ -10,17 +10,12 @@ using Verse;
 
 namespace EquipmentManager;
 
-internal class MeleeWeaponCache : ItemCache
+internal class MeleeWeaponCache([NotNull] Thing thing) : ItemCache
 {
     private AccessTools.FieldRef<Tool, float> _armorPenetrationBluntDelegate;
     private AccessTools.FieldRef<Tool, float> _armorPenetrationSharpDelegate;
     private bool _initialized;
     private Type _toolType;
-
-    public MeleeWeaponCache([NotNull] Thing thing)
-    {
-        Thing = thing ?? throw new ArgumentNullException(nameof(thing));
-    }
 
     private float ArmorPenetration { get; set; }
 
@@ -42,7 +37,7 @@ internal class MeleeWeaponCache : ItemCache
         }
     }
 
-    private Thing Thing { get; }
+    private Thing Thing { get; } = thing ?? throw new ArgumentNullException(nameof(thing));
 
     private Type ToolType
     {
@@ -180,6 +175,7 @@ internal class MeleeWeaponCache : ItemCache
                 }
                 else
                 {
+                    ArmorPenetration = 0f;
                     foreach (var tool in tools)
                     {
                         if (tool.GetType() != ToolType)
@@ -193,7 +189,7 @@ internal class MeleeWeaponCache : ItemCache
                             if (ArmorPenetrationSharpDelegate != null &&
                                 ArmorPenetrationBluntDelegate != null)
                             {
-                                ArmorPenetration = ArmorPenetrationSharpDelegate(tool) +
+                                ArmorPenetration += ArmorPenetrationSharpDelegate(tool) +
                                     ArmorPenetrationBluntDelegate(tool);
                             }
                             else { ArmorPenetration += tool.armorPenetration; }

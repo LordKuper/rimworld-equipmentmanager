@@ -33,19 +33,27 @@ internal class RangedWeaponRule : ItemRule
         _ammoCount = ammoCount;
     }
 
+    private static HashSet<ThingDef> _allRelevantThings;
+
     [NotNull]
     public static HashSet<ThingDef> AllRelevantThings
     {
         get
         {
-            if (field == null || field.Count == 0)
+            if (_allRelevantThings == null || _allRelevantThings.Count == 0)
             {
-                field = new HashSet<ThingDef>(
+                _allRelevantThings = new HashSet<ThingDef>(
                     DefDatabase<ThingDef>.AllDefs.Where(def =>
                         def.IsRangedWeapon && !def.destroyOnDrop));
             }
-            return field;
+            return _allRelevantThings;
         }
+    }
+
+    public static void ResetCache()
+    {
+        _allRelevantThings = null;
+        ResetEquipmentManagerCache();
     }
 
     public int AmmoCount
