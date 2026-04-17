@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using LordKuper.Common;
+using LordKuper.Common.CustomStats;
+using LordKuper.Common.Helpers;
 using RimWorld;
 using Verse;
 
@@ -25,12 +28,11 @@ internal class ToolCache : ItemCache
     private float GetCustomStatValue([NotNull] StatDef statDef,
         IReadOnlyCollection<WorkTypeDef> workTypeDefs)
     {
-        if (Enum.TryParse(CustomToolStats.GetStatName(statDef.defName),
-                out CustomToolStat toolStat))
+        if (Enum.TryParse(ToolStats.GetStatName(statDef.defName), out ToolStat toolStat))
         {
             switch (toolStat)
             {
-                case CustomToolStat.WorkType:
+                case ToolStat.WorkType:
                     if (!workTypeDefs.Any())
                     {
                         throw new ArgumentException("At least one work type must be passed",
@@ -38,7 +40,7 @@ internal class ToolCache : ItemCache
                     }
                     return GetWorkTypesScore(
                         workTypeDefs.Select(workTypeDef => workTypeDef.defName));
-                case CustomToolStat.TechLevel:
+                case ToolStat.TechLevel:
                     return (float)Thing.def.techLevel;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(statDef));
@@ -54,7 +56,7 @@ internal class ToolCache : ItemCache
     {
         if (!StatValues.TryGetValue(statDef, out var value))
         {
-            value = CustomToolStats.IsCustomStat(statDef.defName)
+            value = ToolStats.IsCustomStat(statDef.defName)
                 ? GetCustomStatValue(statDef, workTypeDefs)
                 : StatHelper.GetStatValue(Thing, statDef);
             StatValues.Add(statDef, value);
@@ -68,7 +70,7 @@ internal class ToolCache : ItemCache
         return statDef == null
             ? throw new ArgumentNullException(nameof(statDef))
             :
-            CustomToolStats.IsCustomStat(statDef.defName)
+            ToolStats.IsCustomStat(statDef.defName)
                 ?
                 GetCustomStatValue(statDef, workTypeDefs)
                 : StatHelper.GetStatValueDeviation(Thing, statDef);
@@ -84,7 +86,7 @@ internal class ToolCache : ItemCache
         return workTypeDefNames.Average(GetWorkTypeScore);
     }
 
-    public override bool Update(RimworldTime time)
+    public override bool Update(RimWorldTime time)
     {
         if (!base.Update(time)) { return false; }
         try

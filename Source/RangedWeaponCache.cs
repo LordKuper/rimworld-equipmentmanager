@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
 using JetBrains.Annotations;
+using LordKuper.Common;
+using LordKuper.Common.CustomStats;
+using LordKuper.Common.Helpers;
 using RimWorld;
 using Verse;
 
@@ -100,36 +103,36 @@ internal class RangedWeaponCache : ItemCache
 
     private float GetCustomStatValue([NotNull] StatDef statDef)
     {
-        if (Enum.TryParse(CustomRangedWeaponStats.GetStatName(statDef.defName),
-                out CustomRangedWeaponStat rangedWeaponStat))
+        if (Enum.TryParse(RangedWeaponStats.GetStatName(statDef.defName),
+                out RangedWeaponStat rangedWeaponStat))
         {
             switch (rangedWeaponStat)
             {
-                case CustomRangedWeaponStat.Dpsa:
+                case RangedWeaponStat.Dpsa:
                     return Dpsa;
-                case CustomRangedWeaponStat.DpsaClose:
+                case RangedWeaponStat.DpsaClose:
                     return DpsaClose;
-                case CustomRangedWeaponStat.DpsaShort:
+                case RangedWeaponStat.DpsaShort:
                     return DpsaShort;
-                case CustomRangedWeaponStat.DpsaMedium:
+                case RangedWeaponStat.DpsaMedium:
                     return DpsaMedium;
-                case CustomRangedWeaponStat.DpsaLong:
+                case RangedWeaponStat.DpsaLong:
                     return DpsaLong;
-                case CustomRangedWeaponStat.Range:
+                case RangedWeaponStat.Range:
                     return MaxRange;
-                case CustomRangedWeaponStat.Warmup:
+                case RangedWeaponStat.Warmup:
                     return Warmup;
-                case CustomRangedWeaponStat.BurstShotCount:
+                case RangedWeaponStat.BurstShotCount:
                     return BurstShotCount;
-                case CustomRangedWeaponStat.TicksBetweenBurstShots:
+                case RangedWeaponStat.TicksBetweenBurstShots:
                     return TicksBetweenBurstShots;
-                case CustomRangedWeaponStat.ArmorPenetration:
+                case RangedWeaponStat.ArmorPenetration:
                     return ArmorPenetration;
-                case CustomRangedWeaponStat.StoppingPower:
+                case RangedWeaponStat.StoppingPower:
                     return StoppingPower;
-                case CustomRangedWeaponStat.Damage:
+                case RangedWeaponStat.Damage:
                     return Damage;
-                case CustomRangedWeaponStat.TechLevel:
+                case RangedWeaponStat.TechLevel:
                     return (float)Thing.def.techLevel;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(statDef));
@@ -144,7 +147,7 @@ internal class RangedWeaponCache : ItemCache
     {
         if (!StatValues.TryGetValue(statDef, out var value))
         {
-            value = CustomRangedWeaponStats.IsCustomStat(statDef.defName)
+            value = RangedWeaponStats.IsCustomStat(statDef.defName)
                 ? GetCustomStatValue(statDef)
                 : StatHelper.GetStatValue(Thing, statDef);
             StatValues.Add(statDef, value);
@@ -155,7 +158,7 @@ internal class RangedWeaponCache : ItemCache
     public float GetStatValueDeviation([NotNull] StatDef statDef)
     {
         return statDef == null ? throw new ArgumentNullException(nameof(statDef)) :
-            CustomRangedWeaponStats.IsCustomStat(statDef.defName) ? GetCustomStatValue(statDef) :
+            RangedWeaponStats.IsCustomStat(statDef.defName) ? GetCustomStatValue(statDef) :
             StatHelper.GetStatValueDeviation(Thing, statDef);
     }
 
@@ -245,7 +248,7 @@ internal class RangedWeaponCache : ItemCache
         }
     }
 
-    public override bool Update(RimworldTime time)
+    public override bool Update(RimWorldTime time)
     {
         if (!base.Update(time)) { return false; }
         try

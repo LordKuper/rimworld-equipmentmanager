@@ -2,6 +2,9 @@
 using System.Linq;
 using HarmonyLib;
 using JetBrains.Annotations;
+using LordKuper.Common;
+using LordKuper.Common.CustomStats;
+using LordKuper.Common.Helpers;
 using RimWorld;
 using Verse;
 
@@ -54,14 +57,14 @@ internal class MeleeWeaponCache : ItemCache
     {
         try
         {
-            if (Enum.TryParse(CustomMeleeWeaponStats.GetStatName(statDef.defName),
-                    out CustomMeleeWeaponStat meleeWeaponStat))
+            if (Enum.TryParse(MeleeWeaponStats.GetStatName(statDef.defName),
+                    out MeleeWeaponStat meleeWeaponStat))
             {
                 switch (meleeWeaponStat)
                 {
-                    case CustomMeleeWeaponStat.ArmorPenetration:
+                    case MeleeWeaponStat.ArmorPenetration:
                         return ArmorPenetration;
-                    case CustomMeleeWeaponStat.DpsSharp:
+                    case MeleeWeaponStat.DpsSharp:
                         var sharpVerbProperties =
                             VerbUtility.GetAllVerbProperties(Thing.def.Verbs, Thing.def.tools);
                         if (sharpVerbProperties == null) { return 0f; }
@@ -80,7 +83,7 @@ internal class MeleeWeaponCache : ItemCache
                                 null, false),
                             vp => vp.verbProps.AdjustedCooldown(vp.tool, null, Thing));
                         return sharpCooldown == 0f ? 0f : sharpDamage / sharpCooldown;
-                    case CustomMeleeWeaponStat.DpsBlunt:
+                    case MeleeWeaponStat.DpsBlunt:
                         var bluntVerbProperties =
                             VerbUtility.GetAllVerbProperties(Thing.def.Verbs, Thing.def.tools);
                         if (bluntVerbProperties == null) { return 0f; }
@@ -99,7 +102,7 @@ internal class MeleeWeaponCache : ItemCache
                                 null, false),
                             vp => vp.verbProps.AdjustedCooldown(vp.tool, null, Thing));
                         return bluntCooldown == 0f ? 0f : bluntDamage / bluntCooldown;
-                    case CustomMeleeWeaponStat.TechLevel:
+                    case MeleeWeaponStat.TechLevel:
                         return (float)Thing.def.techLevel;
                     default:
                         throw new ArgumentOutOfRangeException(nameof(statDef));
@@ -121,7 +124,7 @@ internal class MeleeWeaponCache : ItemCache
     {
         if (!StatValues.TryGetValue(statDef, out var value))
         {
-            value = CustomMeleeWeaponStats.IsCustomStat(statDef.defName)
+            value = MeleeWeaponStats.IsCustomStat(statDef.defName)
                 ? GetCustomStatValue(statDef)
                 : StatHelper.GetStatValue(Thing, statDef);
             StatValues.Add(statDef, value);
@@ -132,7 +135,7 @@ internal class MeleeWeaponCache : ItemCache
     public float GetStatValueDeviation([NotNull] StatDef statDef)
     {
         return statDef == null ? throw new ArgumentNullException(nameof(statDef)) :
-            CustomMeleeWeaponStats.IsCustomStat(statDef.defName) ? GetCustomStatValue(statDef) :
+            MeleeWeaponStats.IsCustomStat(statDef.defName) ? GetCustomStatValue(statDef) :
             StatHelper.GetStatValueDeviation(Thing, statDef);
     }
 
@@ -162,7 +165,7 @@ internal class MeleeWeaponCache : ItemCache
         }
     }
 
-    public override bool Update(RimworldTime time)
+    public override bool Update(RimWorldTime time)
     {
         if (!base.Update(time)) { return false; }
         try

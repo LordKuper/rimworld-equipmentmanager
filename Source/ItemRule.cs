@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using LordKuper.Common;
+using LordKuper.Common.Filters.Limits;
 using RimWorld;
 using Verse;
 
@@ -57,14 +59,14 @@ internal class ItemRule : IExposable
         CombatExtendedHelper.CombatExtended
             ? new[]
             {
-                new StatWeight("Mass", false) { Weight = -0.1f },
-                new StatWeight("Bulk", false) { Weight = -0.1f },
-                new StatWeight("MarketValue", false) { Weight = 0.1f }
+                new StatWeight("Mass", -0.1f, false),
+                new StatWeight("Bulk", -0.1f, false),
+                new StatWeight("MarketValue", 0.1f, false)
             }
             : new[]
             {
-                new StatWeight("Mass", false) { Weight = -0.1f },
-                new StatWeight("MarketValue", false) { Weight = 0.1f }
+                new StatWeight("Mass", -0.1f, false),
+                new StatWeight("MarketValue", 0.1f, false)
             };
 
     protected static EquipmentManagerGameComponent EquipmentManager =>
@@ -154,6 +156,7 @@ internal class ItemRule : IExposable
         _initialized = true;
         if (StatWeights == null) { StatWeights = []; }
         if (StatLimits == null) { StatLimits = []; }
+        NormalizeLegacyCustomStatDefNames();
         if (_whitelistedItems == null) { _whitelistedItems = []; }
         if (WhitelistedItemsDefNames == null) { WhitelistedItemsDefNames = []; }
         if (_blacklistedItems == null) { _blacklistedItems = []; }
@@ -183,10 +186,16 @@ internal class ItemRule : IExposable
         var statWeight = StatWeights.FirstOrDefault(sw => sw.StatDef == statDef);
         if (statWeight == null)
         {
-            statWeight = new StatWeight(statDef.defName, isProtected);
+            statWeight = new StatWeight(statDef.defName, 0f, isProtected);
             StatWeights.Add(statWeight);
         }
         statWeight.Weight = weight;
+    }
+
+    internal virtual void NormalizeLegacyCustomStatDefNames()
+    {
+        StatWeights = StatWeights?.Select(LegacyCustomStatDefs.NormalizeStatWeight).ToList() ?? [];
+        StatLimits = StatLimits?.Select(LegacyCustomStatDefs.NormalizeStatLimit).ToList() ?? [];
     }
 
     private void UpdateExclusiveItems()

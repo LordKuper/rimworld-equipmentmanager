@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Text.RegularExpressions;
+using JetBrains.Annotations;
 using UnityEngine;
 using Verse;
 
@@ -13,7 +14,7 @@ internal static class UiHelpers
     public const float ButtonHeight = 32f;
     public const float ElementGap = 12f;
     public const float ListRowHeight = 32f;
-    public static readonly Regex ValidNameRegex = new("^[\\p{L}0-9 '\\-]*$");
+    public static readonly Regex ValidNameRegex = new(@"^[\p{L}0-9 '\-]*$");
     public static float LabelHeight => Text.LineHeightOf(GameFont.Medium) + 4f;
 
     public static bool? CycleSettingValue(MultiCheckboxState state)
@@ -47,6 +48,36 @@ internal static class UiHelpers
         GUI.color = color;
     }
 
+    public static Rect DoLabeledRect(Rect rect, string label, [CanBeNull] string tooltip = null,
+        float labelWidthFactor = 0.25f)
+    {
+        var anchor = Text.Anchor;
+        Text.Anchor = TextAnchor.MiddleRight;
+        var labelRect = new Rect(rect.x, rect.y, rect.width * labelWidthFactor, rect.height);
+        Widgets.Label(labelRect, label);
+        Text.Anchor = anchor;
+        if (!string.IsNullOrEmpty(tooltip)) { TooltipHandler.TipRegion(labelRect, tooltip); }
+        return new Rect(labelRect.xMax + ElementGap, rect.y,
+            rect.width - labelRect.width - ElementGap, rect.height);
+    }
+
+    public static void DoLabeledText(Rect rect, string label, [CanBeNull] string value,
+        float labelWidthFactor = 0.25f)
+    {
+        var font = Text.Font;
+        var anchor = Text.Anchor;
+        Text.Font = GameFont.Medium;
+        Text.Anchor = TextAnchor.MiddleRight;
+        var labelRect = new Rect(rect.x, rect.y, rect.width * labelWidthFactor, rect.height);
+        Widgets.Label(labelRect, label);
+        Text.Anchor = TextAnchor.MiddleLeft;
+        var valueRect = new Rect(labelRect.xMax + ElementGap, rect.y,
+            rect.width - labelRect.width - ElementGap, rect.height);
+        Widgets.Label(valueRect, value ?? string.Empty);
+        Text.Font = font;
+        Text.Anchor = anchor;
+    }
+
     public static Rect GetBoolSettingRect(Rect rect, int index, float columnWidth)
     {
         var rowIndex = Math.DivRem(index, BoolSettingsColumnCount, out var columnIndex);
@@ -56,8 +87,12 @@ internal static class UiHelpers
 
     public static MultiCheckboxState GetSettingCheckboxState(bool? value)
     {
-        return value == null ? MultiCheckboxState.Partial :
-            value == false ? MultiCheckboxState.Off : MultiCheckboxState.On;
+        return value switch
+        {
+            null => MultiCheckboxState.Partial,
+            false => MultiCheckboxState.Off,
+            _ => MultiCheckboxState.On
+        };
     }
 
     public static Vector2 GetWindowSize(Vector2 minSize, Vector2 maxSize)

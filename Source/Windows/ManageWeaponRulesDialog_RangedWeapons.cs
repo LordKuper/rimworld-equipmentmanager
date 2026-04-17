@@ -1,18 +1,19 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using EquipmentManager.CustomWidgets;
 using JetBrains.Annotations;
+using LordKuper.Common;
+using LordKuper.Common.UI;
 using UnityEngine;
 using Verse;
-using Strings = EquipmentManager.Resources.Strings.WeaponRules;
 
 namespace EquipmentManager.Windows;
 
 internal partial class ManageWeaponRulesDialog
 {
-    private readonly List<Thing> _currentlyAvailableRangedWeapons = new();
-    private readonly List<ThingDef> _globallyAvailableRangedWeapons = new();
+    private readonly List<Thing> _currentlyAvailableRangedWeapons = [];
+    private readonly List<ThingDef> _globallyAvailableRangedWeapons = [];
     private RangedWeaponRule _selectedRangedWeaponRule;
 
     private RangedWeaponRule SelectedRangedWeaponRule
@@ -32,7 +33,7 @@ internal partial class ManageWeaponRulesDialog
         const int buttonCount = 4;
         var buttonWidth = (rect.width - UiHelpers.ButtonGap * (buttonCount - 1)) / buttonCount;
         if (Widgets.ButtonText(new Rect(rect.x, rect.y, buttonWidth, UiHelpers.ButtonHeight),
-                Strings.SelectRule))
+                Resources.Strings.WeaponRules.SelectRule))
         {
             Find.WindowStack.Add(new FloatMenu(EquipmentManager.GetRangedWeaponRules()
                 .Select(rule =>
@@ -41,13 +42,13 @@ internal partial class ManageWeaponRulesDialog
         }
         if (Widgets.ButtonText(
                 new Rect(rect.x + buttonWidth + UiHelpers.ButtonGap, rect.y, buttonWidth,
-                    UiHelpers.ButtonHeight), Strings.AddRule))
+                    UiHelpers.ButtonHeight), Resources.Strings.WeaponRules.AddRule))
         {
             SelectedRangedWeaponRule = EquipmentManager.AddRangedWeaponRule();
         }
         if (Widgets.ButtonText(
                 new Rect(rect.x + (buttonWidth + UiHelpers.ButtonGap) * 2, rect.y, buttonWidth,
-                    UiHelpers.ButtonHeight), Strings.CopyRule))
+                    UiHelpers.ButtonHeight), Resources.Strings.WeaponRules.CopyRule))
         {
             Find.WindowStack.Add(new FloatMenu(EquipmentManager.GetRangedWeaponRules()
                 .Select(rule => new FloatMenuOption(rule.Label,
@@ -56,7 +57,7 @@ internal partial class ManageWeaponRulesDialog
         }
         if (Widgets.ButtonText(
                 new Rect(rect.x + (buttonWidth + UiHelpers.ButtonGap) * 3, rect.y, buttonWidth,
-                    UiHelpers.ButtonHeight), Strings.DeleteRule))
+                    UiHelpers.ButtonHeight), Resources.Strings.WeaponRules.DeleteRule))
         {
             Find.WindowStack.Add(new FloatMenu(EquipmentManager.GetRangedWeaponRules()
                 .Where(rule => !rule.Protected).Select(rule => new FloatMenuOption(rule.Label, () =>
@@ -74,7 +75,7 @@ internal partial class ManageWeaponRulesDialog
         Text.Font = GameFont.Medium;
         Text.Anchor = TextAnchor.MiddleLeft;
         var labelRect = new Rect(rect.x, rect.y, rect.width, Text.LineHeight);
-        Widgets.Label(labelRect, Strings.ItemProperties);
+        Widgets.Label(labelRect, Resources.Strings.WeaponRules.ItemProperties);
         Text.Font = font;
         Text.Anchor = anchor;
         var propertiesRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
@@ -94,13 +95,15 @@ internal partial class ManageWeaponRulesDialog
             {
                 SelectedRangedWeaponRule.Explosive = value;
                 UpdateAvailableItems_RangedWeapons();
-            }, Strings.RangedWeapons.Explosive, Strings.RangedWeapons.ExplosiveTooltip);
+            }, Resources.Strings.WeaponRules.RangedWeapons.Explosive,
+            Resources.Strings.WeaponRules.RangedWeapons.ExplosiveTooltip);
         DoRuleSetting(UiHelpers.GetBoolSettingRect(propertiesRect, 1, columnWidth),
             () => SelectedRangedWeaponRule.ManualCast, value =>
             {
                 SelectedRangedWeaponRule.ManualCast = value;
                 UpdateAvailableItems_RangedWeapons();
-            }, Strings.RangedWeapons.ManualCast, Strings.RangedWeapons.ManualCastTooltip);
+            }, Resources.Strings.WeaponRules.RangedWeapons.ManualCast,
+            Resources.Strings.WeaponRules.RangedWeapons.ManualCastTooltip);
     }
 
     private void DoRuleSettings_RangedWeapons(Rect rect)
@@ -110,13 +113,13 @@ internal partial class ManageWeaponRulesDialog
         Text.Font = GameFont.Medium;
         Text.Anchor = TextAnchor.MiddleLeft;
         var labelRect = new Rect(rect.x, rect.y, rect.width, Text.LineHeight);
-        Widgets.Label(labelRect, Strings.RuleSettings);
+        Widgets.Label(labelRect, Resources.Strings.WeaponRules.RuleSettings);
         Text.Font = font;
         Text.Anchor = anchor;
-        var ammoCountRect = LabelInput.DoLabeledRect(
+        var ammoCountRect = UiHelpers.DoLabeledRect(
             new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
-                UiHelpers.ListRowHeight), Strings.RangedWeapons.AmmoCount,
-            Strings.RangedWeapons.AmmoCountTooltip);
+                UiHelpers.ListRowHeight), Resources.Strings.WeaponRules.RangedWeapons.AmmoCount,
+            Resources.Strings.WeaponRules.RangedWeapons.AmmoCountTooltip);
         SelectedRangedWeaponRule.AmmoCount = (int)Widgets.HorizontalSlider(ammoCountRect,
             SelectedRangedWeaponRule.AmmoCount, 0f, 1000f, true,
             $"{SelectedRangedWeaponRule.AmmoCount:N0}", roundTo: 10f);
@@ -135,12 +138,14 @@ internal partial class ManageWeaponRulesDialog
             UiHelpers.ElementGap));
         if (SelectedRangedWeaponRule == null)
         {
-            LabelInput.DoLabelWithoutInput(labelRect, Strings.NoRuleSelected);
+            Labels.DoLabel(labelRect, Resources.Strings.WeaponRules.NoRuleSelected,
+                TextAnchor.MiddleLeft);
         }
         else
         {
-            LabelInput.DoLabelInput(labelRect, Strings.RuleLabel,
-                ref SelectedRangedWeaponRule.Label);
+            Fields.DoLabeledTextInput(labelRect, 0, null, Resources.Strings.WeaponRules.RuleLabel,
+                null, ref SelectedRangedWeaponRule.Label, UiHelpers.ValidNameRegex, 30, null,
+                out _);
             UiHelpers.DoGapLineVertical(new Rect(rect.center.x - UiHelpers.ElementGap / 2f,
                 labelRect.y, UiHelpers.ElementGap, labelRect.height));
             DoWeaponRuleEquipMode(equipModeRect, () => SelectedRangedWeaponRule.EquipMode,
@@ -156,7 +161,7 @@ internal partial class ManageWeaponRulesDialog
             DoItemProperties_RangedWeapons(itemPropertiesRect);
             UiHelpers.DoGapLineHorizontal(new Rect(rect.x, itemPropertiesRect.yMax, rect.width,
                 UiHelpers.ElementGap));
-            DoRuleStats(statsRect, StatHelper.RangedWeaponStatDefs,
+            DoRuleStats(statsRect, EquipmentManagerStatDefs.RangedWeaponStatDefs,
                 SelectedRangedWeaponRule.GetStatWeights(), def =>
                 {
                     SelectedRangedWeaponRule.SetStatWeight(def, 0f, false);
@@ -220,7 +225,7 @@ internal partial class ManageWeaponRulesDialog
             .ToHashSet();
         if (!stats.Any()) { return stringBuilder.ToString(); }
         var cache =
-            EquipmentManager.GetRangedWeaponDefCache(def, RimworldTime.GetMapTime(Find.CurrentMap));
+            EquipmentManager.GetRangedWeaponDefCache(def, RimWorldTime.GetMapTime(Find.CurrentMap));
         _ = stringBuilder.AppendLine();
         foreach (var stat in stats)
         {
@@ -239,7 +244,7 @@ internal partial class ManageWeaponRulesDialog
             .ToHashSet();
         if (!stats.Any()) { return stringBuilder.ToString(); }
         var cache =
-            EquipmentManager.GetRangedWeaponCache(thing, RimworldTime.GetMapTime(Find.CurrentMap));
+            EquipmentManager.GetRangedWeaponCache(thing, RimWorldTime.GetMapTime(Find.CurrentMap));
         _ = stringBuilder.AppendLine();
         foreach (var stat in stats)
         {
@@ -262,9 +267,9 @@ internal partial class ManageWeaponRulesDialog
         var map = Find.CurrentMap;
         SelectedRangedWeaponRule.UpdateGloballyAvailableItems();
         _globallyAvailableRangedWeapons.AddRange(
-            SelectedRangedWeaponRule.GetGloballyAvailableItemsSorted(RimworldTime.GetMapTime(map)));
+            SelectedRangedWeaponRule.GetGloballyAvailableItemsSorted(RimWorldTime.GetMapTime(map)));
         _currentlyAvailableRangedWeapons.AddRange(
             SelectedRangedWeaponRule.GetCurrentlyAvailableItemsSorted(map,
-                RimworldTime.GetMapTime(map)));
+                RimWorldTime.GetMapTime(map)));
     }
 }

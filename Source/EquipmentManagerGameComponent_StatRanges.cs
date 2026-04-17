@@ -1,7 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using LordKuper.Common;
+using LordKuper.Common.Helpers;
 using RimWorld;
 using Verse;
 
@@ -24,7 +26,7 @@ internal partial class EquipmentManagerGameComponent
             var weapon = def.MadeFromStuff
                 ? ThingMaker.MakeThing(def, GenStuff.DefaultStuffFor(def))
                 : ThingMaker.MakeThing(def);
-            var time = new RimworldTime(0, 0, 0);
+            var time = new RimWorldTime(0, 0, 0);
             if (weapon.def.IsRangedWeapon)
             {
                 foreach (var rule in GetRangedWeaponRules())
@@ -47,7 +49,7 @@ internal partial class EquipmentManagerGameComponent
     public float NormalizeStatValue([NotNull] StatDef stat, float value)
     {
         UpdateStatRange(stat, value);
-        return StatHelper.NormalizeValue(value, _statRanges[stat.defName]);
+        return MathHelper.NormalizeValue(value, _statRanges[stat.defName]);
     }
 
     public void UpdateStatRange([NotNull] StatDef stat, float value)

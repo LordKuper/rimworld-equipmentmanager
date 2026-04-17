@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using LordKuper.Common;
 using RimWorld;
 using Verse;
 
@@ -33,8 +34,9 @@ internal partial class EquipmentManagerGameComponent
         return rangedWeaponRule;
     }
 
-    public void AddRangedWeaponRule(RangedWeaponRule rangedWeaponRule)
+    public void AddRangedWeaponRule([NotNull] RangedWeaponRule rangedWeaponRule)
     {
+        rangedWeaponRule.NormalizeLegacyCustomStatDefNames();
         var existingRule =
             _rangedWeaponRules.FirstOrDefault(rule => rule.Id == rangedWeaponRule.Id);
         if (existingRule != null) { _ = _rangedWeaponRules.Remove(existingRule); }
@@ -92,8 +94,7 @@ internal partial class EquipmentManagerGameComponent
     }
 
     [NotNull]
-    public RangedWeaponCache GetRangedWeaponCache([NotNull] Thing thing,
-        [NotNull] RimworldTime time)
+    public RangedWeaponCache GetRangedWeaponCache([NotNull] Thing thing, RimWorldTime time)
     {
         if (!_rangedWeaponsCache.TryGetValue(thing, out var cache))
         {
@@ -105,8 +106,7 @@ internal partial class EquipmentManagerGameComponent
     }
 
     [NotNull]
-    public RangedWeaponCache GetRangedWeaponDefCache([NotNull] ThingDef thingDef,
-        [NotNull] RimworldTime time)
+    public RangedWeaponCache GetRangedWeaponDefCache([NotNull] ThingDef thingDef, RimWorldTime time)
     {
         if (!_rangedWeaponDefsCache.TryGetValue(thingDef, out var cache))
         {

@@ -24,6 +24,12 @@ internal partial class EquipmentManagerGameComponent : GameComponent
     public override void FinalizeInit()
     {
         base.FinalizeInit();
+        foreach (var loadout in GetLoadouts()) { loadout.NormalizeLegacyCustomStatDefNames(); }
+        foreach (var rule in GetWorkTypeRules()) { rule.NormalizeLegacyCustomStatDefNames(); }
+        foreach (var rule in GetMeleeWeaponRules()) { rule.NormalizeLegacyCustomStatDefNames(); }
+        foreach (var rule in GetRangedWeaponRules()) { rule.NormalizeLegacyCustomStatDefNames(); }
+        foreach (var rule in GetToolRules()) { rule.NormalizeLegacyCustomStatDefNames(); }
+        if (_statRanges != null) { _statRanges = LegacyCustomStatDefs.NormalizeStatRanges(_statRanges); }
         foreach (var rule in GetMeleeWeaponRules()) { rule.UpdateGloballyAvailableItems(); }
         foreach (var rule in GetRangedWeaponRules()) { rule.UpdateGloballyAvailableItems(); }
         foreach (var rule in GetToolRules()) { rule.UpdateGloballyAvailableItems(); }

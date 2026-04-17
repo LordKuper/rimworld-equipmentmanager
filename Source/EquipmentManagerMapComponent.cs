@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using LordKuper.Common;
 using PeteTimesSix.SimpleSidearms;
 using PeteTimesSix.SimpleSidearms.Utilities;
 using RimWorld;
@@ -15,9 +16,10 @@ namespace EquipmentManager;
 internal class EquipmentManagerMapComponent : MapComponent
 {
     private static EquipmentManagerGameComponent _equipmentManager;
-    private readonly RimworldTime _updateTime = new(-1, -1, -1);
     private HashSet<Pawn> _allPawns = [];
+    private bool _hasUpdateTime;
     private HashSet<PawnCache> _pawnCache = [];
+    private RimWorldTime _updateTime;
     public EquipmentManagerMapComponent(Map map) : base(map) { }
 
     private static EquipmentManagerGameComponent EquipmentManager =>
@@ -255,13 +257,11 @@ internal class EquipmentManagerMapComponent : MapComponent
         if (!map.IsPlayerHome) { return; }
         if (Find.TickManager.CurTimeSpeed == TimeSpeed.Paused ||
             Find.TickManager.TicksGame % 60 != 0) { return; }
-        var mapTime = RimworldTime.GetMapTime(map);
-        var hoursPassed = (mapTime.Year - _updateTime.Year) * 60 * 24 +
-            (mapTime.Day - _updateTime.Day) * 24 + mapTime.Hour - _updateTime.Hour;
+        var mapTime = RimWorldTime.GetMapTime(map);
+        var hoursPassed = _hasUpdateTime ? mapTime - _updateTime : float.MaxValue;
         if (hoursPassed < 6f) { return; }
-        _updateTime.Year = mapTime.Year;
-        _updateTime.Day = mapTime.Day;
-        _updateTime.Hour = mapTime.Hour;
+        _updateTime = mapTime;
+        _hasUpdateTime = true;
         EquipmentManager.LogMessage(
             $"Updating equipment at year={_updateTime.Year}, day={_updateTime.Day}, hour={_updateTime.Hour:N1} ====================");
         UpdatePawnCache();

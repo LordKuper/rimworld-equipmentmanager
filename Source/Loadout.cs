@@ -1,10 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using LordKuper.Common;
+using LordKuper.Common.Filters.Limits;
+using LordKuper.Common.Helpers;
 using RimWorld;
 using Verse;
-using Strings = EquipmentManager.Resources.Strings.Loadouts;
 
 namespace EquipmentManager;
 
@@ -21,7 +23,7 @@ internal class Loadout : IExposable
     [
         new(1)
         {
-            Label = Strings.Default.Assault,
+            Label = Resources.Strings.Loadouts.Default.Assault,
             Priority = 5,
             PrimaryRuleType = PrimaryWeaponType.RangedWeapon,
             PrimaryRangedWeaponRuleId = 0,
@@ -34,7 +36,7 @@ internal class Loadout : IExposable
         },
         new(2)
         {
-            Label = Strings.Default.Sniper,
+            Label = Resources.Strings.Loadouts.Default.Sniper,
             Priority = 3,
             PrimaryRuleType = PrimaryWeaponType.RangedWeapon,
             PrimaryRangedWeaponRuleId = 3,
@@ -49,7 +51,7 @@ internal class Loadout : IExposable
         },
         new(3)
         {
-            Label = Strings.Default.Support,
+            Label = Resources.Strings.Loadouts.Default.Support,
             Priority = 2,
             PrimaryRuleType = PrimaryWeaponType.RangedWeapon,
             PrimaryRangedWeaponRuleId = 2,
@@ -64,7 +66,7 @@ internal class Loadout : IExposable
         },
         new(4)
         {
-            Label = Strings.Default.Slasher,
+            Label = Resources.Strings.Loadouts.Default.Slasher,
             Priority = 5,
             PrimaryRuleType = PrimaryWeaponType.MeleeWeapon,
             PrimaryMeleeWeaponRuleId = 1,
@@ -75,7 +77,7 @@ internal class Loadout : IExposable
         },
         new(5)
         {
-            Label = Strings.Default.Crusher,
+            Label = Resources.Strings.Loadouts.Default.Crusher,
             Priority = 5,
             PrimaryRuleType = PrimaryWeaponType.MeleeWeapon,
             PrimaryMeleeWeaponRuleId = 2,
@@ -86,7 +88,7 @@ internal class Loadout : IExposable
         },
         new(6)
         {
-            Label = Strings.Default.Pacifist,
+            Label = Resources.Strings.Loadouts.Default.Pacifist,
             Priority = 5,
             PrimaryRuleType = PrimaryWeaponType.None,
             ToolRuleId = 0,
@@ -105,7 +107,7 @@ internal class Loadout : IExposable
     private Dictionary<string, bool> _pawnWorkCapacities = new();
     private PrimaryWeaponType _primaryRuleType = PrimaryWeaponType.None;
     private List<int> _rangedSidearmRules = [];
-    private List<SkillLimit> _skillLimits = [];
+    private List<PawnSkillLimit> _skillLimits = [];
     private List<SkillWeight> _skillWeights = [];
     private List<StatLimit> _statLimits = [];
     private List<StatWeight> _statWeights = [];
@@ -129,7 +131,7 @@ internal class Loadout : IExposable
         List<int> meleeSidearmRules, int? toolRuleId, Dictionary<string, bool> pawnTraits,
         Dictionary<string, bool> pawnWorkCapacities, bool dropUnassignedWeapons,
         List<PassionLimit> passionLimits, List<PawnCapacityLimit> pawnCapacityLimits,
-        List<PawnCapacityWeight> pawnCapacityWeights, List<SkillLimit> skillLimits,
+        List<PawnCapacityWeight> pawnCapacityWeights, List<PawnSkillLimit> skillLimits,
         List<SkillWeight> skillWeights, List<StatLimit> statLimits, List<StatWeight> statWeights)
     {
         _id = id;
@@ -242,7 +244,7 @@ internal class Loadout : IExposable
         }
     }
 
-    public List<SkillLimit> SkillLimits
+    public List<PawnSkillLimit> SkillLimits
     {
         get
         {
@@ -317,13 +319,13 @@ internal class Loadout : IExposable
         var score = 0f;
         foreach (var statWeight in _statWeights.Where(sw => sw.StatDef != null))
         {
-            if (StatHelper.IsStatDisabled(pawn, statWeight.StatDef)) { continue; }
-            var eligiblePawns = pawns.Where(p => !StatHelper.IsStatDisabled(p, statWeight.StatDef))
+            if (statWeight.StatDef.Worker?.IsDisabledFor(pawn) ?? false) { continue; }
+            var eligiblePawns = pawns.Where(p => !(statWeight.StatDef.Worker?.IsDisabledFor(p) ?? false))
                 .ToList();
             if (!eligiblePawns.Any()) { continue; }
             var pawnValues = eligiblePawns
                 .Select(p => StatHelper.GetStatValue(p, statWeight.StatDef)).ToList();
-            var normalizedValue = StatHelper.NormalizeValue(
+            var normalizedValue = MathHelper.NormalizeValue(
                 StatHelper.GetStatValue(pawn, statWeight.StatDef),
                 new FloatRange(pawnValues.Min(), pawnValues.Max()));
             score += normalizedValue * statWeight.Weight;
@@ -332,7 +334,7 @@ internal class Loadout : IExposable
         {
             var pawnValues = pawns.Select(p => p.skills.GetSkill(skillWeight.SkillDef).Level)
                 .ToList();
-            var normalizedValue = StatHelper.NormalizeValue(
+            var normalizedValue = MathHelper.NormalizeValue(
                 pawn.skills.GetSkill(skillWeight.SkillDef).Level,
                 new FloatRange(pawnValues.Min(), pawnValues.Max()));
             score += normalizedValue * skillWeight.Weight;
@@ -343,7 +345,7 @@ internal class Loadout : IExposable
             var pawnValues = pawns
                 .Select(p => p.health.capacities.GetLevel(pawnCapacityWeight.PawnCapacityDef))
                 .ToList();
-            var normalizedValue = StatHelper.NormalizeValue(
+            var normalizedValue = MathHelper.NormalizeValue(
                 pawn.health.capacities.GetLevel(pawnCapacityWeight.PawnCapacityDef),
                 new FloatRange(pawnValues.Min(), pawnValues.Max()));
             score += normalizedValue * pawnCapacityWeight.Weight;
@@ -366,6 +368,13 @@ internal class Loadout : IExposable
         if (_skillWeights == null) { _skillWeights = []; }
         if (_statLimits == null) { _statLimits = []; }
         if (_statWeights == null) { _statWeights = []; }
+        NormalizeLegacyCustomStatDefNames();
+    }
+
+    internal void NormalizeLegacyCustomStatDefNames()
+    {
+        _statLimits = _statLimits?.Select(LegacyCustomStatDefs.NormalizeStatLimit).ToList() ?? [];
+        _statWeights = _statWeights?.Select(LegacyCustomStatDefs.NormalizeStatWeight).ToList() ?? [];
     }
 
     public bool IsAvailable(Pawn pawn)
@@ -432,7 +441,7 @@ internal class Loadout : IExposable
         }
         foreach (var statLimit in _statLimits.Where(sl => sl.StatDef != null))
         {
-            if (StatHelper.IsStatDisabled(pawn, statLimit.StatDef)) { return false; }
+            if (statLimit.StatDef.Worker?.IsDisabledFor(pawn) ?? false) { return false; }
             var statValue = StatHelper.GetStatValue(pawn, statLimit.StatDef);
             if ((statLimit.MinValue != null && statValue < statLimit.MinValue) ||
                 (statLimit.MaxValue != null && statValue > statLimit.MaxValue)) { return false; }

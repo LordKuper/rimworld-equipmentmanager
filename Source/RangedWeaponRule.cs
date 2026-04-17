@@ -1,16 +1,17 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using LordKuper.Common;
+using LordKuper.Common.CustomStats;
+using LordKuper.Common.Filters.Limits;
 using RimWorld;
 using Verse;
-using Strings = EquipmentManager.Resources.Strings.WeaponRules.RangedWeapons;
 
 namespace EquipmentManager;
 
 internal class RangedWeaponRule : ItemRule
 {
-    private static HashSet<ThingDef> _allRelevantThings;
     private int _ammoCount;
     private bool? _explosive;
     private bool? _manualCast;
@@ -37,13 +38,13 @@ internal class RangedWeaponRule : ItemRule
     {
         get
         {
-            if (_allRelevantThings == null || _allRelevantThings.Count == 0)
+            if (field == null || field.Count == 0)
             {
-                _allRelevantThings = new HashSet<ThingDef>(
+                field = new HashSet<ThingDef>(
                     DefDatabase<ThingDef>.AllDefs.Where(def =>
                         def.IsRangedWeapon && !def.destroyOnDrop));
             }
-            return _allRelevantThings;
+            return field;
         }
     }
 
@@ -65,22 +66,18 @@ internal class RangedWeaponRule : ItemRule
     [
         new(0, true)
         {
-            Label = Strings.Default.HighestDpsa,
+            Label = Resources.Strings.WeaponRules.RangedWeapons.Default.HighestDpsa,
             EquipMode = WeaponEquipMode.BestOne,
             ManualCast = false,
             StatWeights =
             [
                 ..DefaultStatWeights.Union([
                     new StatWeight(
-                        CustomRangedWeaponStats.GetStatDefName(CustomRangedWeaponStat.Dpsa), false)
-                    {
-                        Weight = 2.0f
-                    },
+                        RangedWeaponStats.GetStatDefName(RangedWeaponStat.Dpsa), 2.0f,
+                        false),
                     new StatWeight(
-                        CustomRangedWeaponStats.GetStatDefName(CustomRangedWeaponStat.Range), false)
-                    {
-                        Weight = 0.5f
-                    }
+                        RangedWeaponStats.GetStatDefName(RangedWeaponStat.Range), 0.5f,
+                        false)
                 ])
             ],
             BlacklistedItemsDefNames = [..DefaultBlacklist],
@@ -88,7 +85,7 @@ internal class RangedWeaponRule : ItemRule
         },
         new(1, false)
         {
-            Label = Strings.Default.LowWarmupTime,
+            Label = Resources.Strings.WeaponRules.RangedWeapons.Default.LowWarmupTime,
             EquipMode = WeaponEquipMode.BestOne,
             Explosive = false,
             ManualCast = false,
@@ -96,16 +93,14 @@ internal class RangedWeaponRule : ItemRule
             [
                 ..DefaultStatWeights.Union([
                     new StatWeight(
-                        CustomRangedWeaponStats.GetStatDefName(CustomRangedWeaponStat.Warmup),
-                        false) { Weight = -2.0f },
+                        RangedWeaponStats.GetStatDefName(RangedWeaponStat.Warmup),
+                        -2.0f, false),
                     new StatWeight(
-                        CustomRangedWeaponStats.GetStatDefName(CustomRangedWeaponStat.DpsaShort),
-                        false) { Weight = 1.0f },
+                        RangedWeaponStats.GetStatDefName(RangedWeaponStat.DpsaShort),
+                        1.0f, false),
                     new StatWeight(
-                        CustomRangedWeaponStats.GetStatDefName(CustomRangedWeaponStat.Dpsa), false)
-                    {
-                        Weight = 0.5f
-                    }
+                        RangedWeaponStats.GetStatDefName(RangedWeaponStat.Dpsa), 0.5f,
+                        false)
                 ])
             ],
             BlacklistedItemsDefNames = [..DefaultBlacklist],
@@ -113,7 +108,7 @@ internal class RangedWeaponRule : ItemRule
         },
         new(2, false)
         {
-            Label = Strings.Default.HighRof,
+            Label = Resources.Strings.WeaponRules.RangedWeapons.Default.HighRof,
             EquipMode = WeaponEquipMode.BestOne,
             Explosive = false,
             ManualCast = false,
@@ -121,25 +116,21 @@ internal class RangedWeaponRule : ItemRule
             [
                 ..DefaultStatWeights.Union([
                     new StatWeight(
-                        CustomRangedWeaponStats.GetStatDefName(
-                            CustomRangedWeaponStat.BurstShotCount), false) { Weight = 2.0f },
+                        RangedWeaponStats.GetStatDefName(RangedWeaponStat.BurstShotCount), 2.0f,
+                        false),
                     new StatWeight(
-                        CustomRangedWeaponStats.GetStatDefName(CustomRangedWeaponStat
-                            .TicksBetweenBurstShots), false) { Weight = -2.0f },
+                        RangedWeaponStats.GetStatDefName(RangedWeaponStat.TicksBetweenBurstShots),
+                        -2.0f, false),
                     new StatWeight(
-                        CustomRangedWeaponStats.GetStatDefName(CustomRangedWeaponStat.Warmup),
-                        false) { Weight = -0.5f },
+                        RangedWeaponStats.GetStatDefName(RangedWeaponStat.Warmup),
+                        -0.5f, false),
                     new StatWeight(
-                        CustomRangedWeaponStats.GetStatDefName(CustomRangedWeaponStat.Dpsa), false)
-                    {
-                        Weight = 1.0f
-                    },
+                        RangedWeaponStats.GetStatDefName(RangedWeaponStat.Dpsa), 1.0f,
+                        false),
                     new StatWeight(
-                        CustomRangedWeaponStats.GetStatDefName(CustomRangedWeaponStat.Range), false)
-                    {
-                        Weight = 0.5f
-                    },
-                    new StatWeight("RangedWeapon_Cooldown", false) { Weight = -1.5f }
+                        RangedWeaponStats.GetStatDefName(RangedWeaponStat.Range), 0.5f,
+                        false),
+                    new StatWeight("RangedWeapon_Cooldown", -1.5f, false)
                 ])
             ],
             BlacklistedItemsDefNames = [..DefaultBlacklist],
@@ -147,7 +138,7 @@ internal class RangedWeaponRule : ItemRule
         },
         new(3, false)
         {
-            Label = Strings.Default.LongRangeHeavyHitter,
+            Label = Resources.Strings.WeaponRules.RangedWeapons.Default.LongRangeHeavyHitter,
             EquipMode = WeaponEquipMode.BestOne,
             Explosive = false,
             ManualCast = false,
@@ -155,24 +146,20 @@ internal class RangedWeaponRule : ItemRule
             [
                 ..DefaultStatWeights.Union([
                     new StatWeight(
-                        CustomRangedWeaponStats.GetStatDefName(CustomRangedWeaponStat.Range), false)
-                    {
-                        Weight = 2.0f
-                    },
+                        RangedWeaponStats.GetStatDefName(RangedWeaponStat.Range), 2.0f,
+                        false),
                     new StatWeight(
-                        CustomRangedWeaponStats.GetStatDefName(CustomRangedWeaponStat.Damage),
-                        false) { Weight = 1.5f },
+                        RangedWeaponStats.GetStatDefName(RangedWeaponStat.Damage), 1.5f,
+                        false),
                     new StatWeight(
-                        CustomRangedWeaponStats.GetStatDefName(CustomRangedWeaponStat.DpsaLong),
-                        false) { Weight = 1.0f },
+                        RangedWeaponStats.GetStatDefName(RangedWeaponStat.DpsaLong),
+                        1.0f, false),
                     new StatWeight(
-                        CustomRangedWeaponStats.GetStatDefName(CustomRangedWeaponStat.Dpsa), false)
-                    {
-                        Weight = 0.5f
-                    },
+                        RangedWeaponStats.GetStatDefName(RangedWeaponStat.Dpsa), 0.5f,
+                        false),
                     new StatWeight(
-                        CustomRangedWeaponStats.GetStatDefName(CustomRangedWeaponStat
-                            .StoppingPower), false) { Weight = 0.5f }
+                        RangedWeaponStats.GetStatDefName(RangedWeaponStat.StoppingPower), 0.5f,
+                        false)
                 ])
             ],
             BlacklistedItemsDefNames = [..DefaultBlacklist],
@@ -185,8 +172,8 @@ internal class RangedWeaponRule : ItemRule
         new[]
         {
             new StatWeight(
-                CustomRangedWeaponStats.GetStatDefName(CustomRangedWeaponStat.ArmorPenetration),
-                false) { Weight = 0.2f }
+                RangedWeaponStats.GetStatDefName(RangedWeaponStat.ArmorPenetration),
+                0.2f, false)
         }.Union(ItemRule.DefaultStatWeights);
 
     public bool? Explosive
@@ -211,7 +198,7 @@ internal class RangedWeaponRule : ItemRule
     }
 
     [NotNull]
-    public IEnumerable<Thing> GetCurrentlyAvailableItems([CanBeNull] Map map, RimworldTime time)
+    public IEnumerable<Thing> GetCurrentlyAvailableItems([CanBeNull] Map map, RimWorldTime time)
     {
         Initialize();
         return (map?.listerThings?.ThingsInGroup(ThingRequestGroup.Weapon) ?? [])
@@ -219,7 +206,7 @@ internal class RangedWeaponRule : ItemRule
     }
 
     [NotNull]
-    public IEnumerable<Thing> GetCurrentlyAvailableItemsSorted(Map map, RimworldTime time)
+    public IEnumerable<Thing> GetCurrentlyAvailableItemsSorted(Map map, RimWorldTime time)
     {
         return GetCurrentlyAvailableItems(map, time)
             .OrderByDescending(thing => GetThingScore(thing, time));
@@ -232,20 +219,20 @@ internal class RangedWeaponRule : ItemRule
     }
 
     [NotNull]
-    public IEnumerable<ThingDef> GetGloballyAvailableItemsSorted(RimworldTime time)
+    public IEnumerable<ThingDef> GetGloballyAvailableItemsSorted(RimWorldTime time)
     {
         return GetGloballyAvailableItems().OrderByDescending(def => GetThingDefScore(def, time));
     }
 
     private static float GetStatValue([NotNull] Thing thing, [NotNull] StatDef statDef,
-        [NotNull] RimworldTime time)
+        RimWorldTime time)
     {
         return thing == null ? throw new ArgumentNullException(nameof(thing)) :
             statDef == null ? throw new ArgumentNullException(nameof(statDef)) :
             EquipmentManager.GetRangedWeaponCache(thing, time).GetStatValue(statDef);
     }
 
-    private float GetThingDefScore([NotNull] ThingDef def, [NotNull] RimworldTime time)
+    private float GetThingDefScore([NotNull] ThingDef def, RimWorldTime time)
     {
         if (def == null) { throw new ArgumentNullException(nameof(def)); }
         var cache = EquipmentManager.GetRangedWeaponDefCache(def, time);
@@ -254,7 +241,7 @@ internal class RangedWeaponRule : ItemRule
                 cache.GetStatValueDeviation(statWeight.StatDef)) * statWeight.Weight);
     }
 
-    public float GetThingScore([NotNull] Thing thing, [NotNull] RimworldTime time)
+    public float GetThingScore([NotNull] Thing thing, RimWorldTime time)
     {
         if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
         var cache = EquipmentManager.GetRangedWeaponCache(thing, time);
@@ -268,7 +255,7 @@ internal class RangedWeaponRule : ItemRule
         return score;
     }
 
-    public bool IsAvailable(Thing thing, RimworldTime time)
+    public bool IsAvailable(Thing thing, RimWorldTime time)
     {
         Initialize();
         var comp = thing.TryGetComp<CompForbiddable>();
@@ -276,7 +263,7 @@ internal class RangedWeaponRule : ItemRule
             (GetGloballyAvailableItems().Contains(thing.def) && SatisfiesLimits(thing, time)));
     }
 
-    private bool SatisfiesLimits([NotNull] Thing thing, RimworldTime time)
+    private bool SatisfiesLimits([NotNull] Thing thing, RimWorldTime time)
     {
         if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
         foreach (var statLimit in StatLimits.Where(limit => limit.StatDef != null))
@@ -308,7 +295,7 @@ internal class RangedWeaponRule : ItemRule
         foreach (var def in GetWhitelistedItems()) { _ = GloballyAvailableItems.Add(def); }
     }
 
-    public void UpdateStatRanges([NotNull] Thing thing, [NotNull] RimworldTime time)
+    public void UpdateStatRanges([NotNull] Thing thing, RimWorldTime time)
     {
         if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
         var cache = EquipmentManager.GetRangedWeaponCache(thing, time);

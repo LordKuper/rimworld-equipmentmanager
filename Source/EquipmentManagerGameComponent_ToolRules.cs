@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using LordKuper.Common;
 using RimWorld;
 using Verse;
 
@@ -32,8 +33,9 @@ internal partial class EquipmentManagerGameComponent
         return toolRule;
     }
 
-    public void AddToolRule(ToolRule toolRule)
+    public void AddToolRule([NotNull] ToolRule toolRule)
     {
+        toolRule.NormalizeLegacyCustomStatDefNames();
         var existingRule = _toolRules.FirstOrDefault(rule => rule.Id == toolRule.Id);
         if (existingRule != null) { _ = _toolRules.Remove(existingRule); }
         _toolRules.Add(toolRule);
@@ -74,7 +76,7 @@ internal partial class EquipmentManagerGameComponent
     }
 
     [NotNull]
-    public ToolCache GetToolCache([NotNull] Thing thing, [NotNull] RimworldTime time)
+    public ToolCache GetToolCache([NotNull] Thing thing, RimWorldTime time)
     {
         if (!_toolCache.TryGetValue(thing, out var cache))
         {
@@ -86,7 +88,7 @@ internal partial class EquipmentManagerGameComponent
     }
 
     [NotNull]
-    public ToolCache GetToolDefCache([NotNull] ThingDef thingDef, [NotNull] RimworldTime time)
+    public ToolCache GetToolDefCache([NotNull] ThingDef thingDef, RimWorldTime time)
     {
         if (!_toolDefsCache.TryGetValue(thingDef, out var cache))
         {

@@ -1,10 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using LordKuper.Common;
+using LordKuper.Common.CustomStats;
+using LordKuper.Common.Filters.Limits;
 using RimWorld;
 using Verse;
-using Strings = EquipmentManager.Resources.Strings.WeaponRules.MeleeWeapons;
 
 namespace EquipmentManager;
 
@@ -12,7 +14,6 @@ internal class MeleeWeaponRule : ItemRule
 {
     public delegate bool UsableWithShieldsDelegate(ThingDef thing);
 
-    private static HashSet<ThingDef> _allRelevantThings;
     public static UsableWithShieldsDelegate UsableWithShieldsMethod;
     private bool? _rottable;
     private bool? _usableWithShields;
@@ -38,13 +39,13 @@ internal class MeleeWeaponRule : ItemRule
     {
         get
         {
-            if (_allRelevantThings == null || _allRelevantThings.Count == 0)
+            if (field == null || field.Count == 0)
             {
-                _allRelevantThings = new HashSet<ThingDef>(
+                field = new HashSet<ThingDef>(
                     DefDatabase<ThingDef>.AllDefs.Where(def =>
                         def.IsMeleeWeapon && !def.destroyOnDrop));
             }
-            return _allRelevantThings;
+            return field;
         }
     }
 
@@ -55,19 +56,19 @@ internal class MeleeWeaponRule : ItemRule
     [
         new(0, true)
         {
-            Label = Strings.Default.HighestDps,
+            Label = Resources.Strings.WeaponRules.MeleeWeapons.Default.HighestDps,
             EquipMode = WeaponEquipMode.BestOne,
             Rottable = false,
             StatWeights =
             [
                 ..DefaultStatWeights.Where(sw => !new[] { "Mass" }.Contains(sw.StatDefName))
-                    .Union([new StatWeight("Mass", false) { Weight = -1.0f }])
+                    .Union([new StatWeight("Mass", -1.0f, false)])
             ],
             BlacklistedItemsDefNames = [..DefaultBlacklist]
         },
         new(1, false)
         {
-            Label = Strings.Default.Sharpest,
+            Label = Resources.Strings.WeaponRules.MeleeWeapons.Default.Sharpest,
             EquipMode = WeaponEquipMode.BestOne,
             Rottable = false,
             StatWeights =
@@ -76,16 +77,16 @@ internal class MeleeWeaponRule : ItemRule
                     .Where(sw => !new[] { "MeleeWeapon_AverageDPS" }.Contains(sw.StatDefName))
                     .Union([
                         new StatWeight(
-                            CustomMeleeWeaponStats.GetStatDefName(CustomMeleeWeaponStat.DpsSharp),
-                            false) { Weight = 2.0f },
-                        new StatWeight("MeleeWeapon_AverageDPS", false) { Weight = 0.5f }
+                            MeleeWeaponStats.GetStatDefName(MeleeWeaponStat.DpsSharp),
+                            2.0f, false),
+                        new StatWeight("MeleeWeapon_AverageDPS", 0.5f, false)
                     ])
             ],
             BlacklistedItemsDefNames = [..DefaultBlacklist]
         },
         new(2, false)
         {
-            Label = Strings.Default.Bluntest,
+            Label = Resources.Strings.WeaponRules.MeleeWeapons.Default.Bluntest,
             EquipMode = WeaponEquipMode.BestOne,
             Rottable = false,
             StatWeights =
@@ -94,9 +95,9 @@ internal class MeleeWeaponRule : ItemRule
                     .Where(sw => !new[] { "MeleeWeapon_AverageDPS" }.Contains(sw.StatDefName))
                     .Union([
                         new StatWeight(
-                            CustomMeleeWeaponStats.GetStatDefName(CustomMeleeWeaponStat.DpsBlunt),
-                            false) { Weight = 2.0f },
-                        new StatWeight("MeleeWeapon_AverageDPS", false) { Weight = 0.5f }
+                            MeleeWeaponStats.GetStatDefName(MeleeWeaponStat.DpsBlunt),
+                            2.0f, false),
+                        new StatWeight("MeleeWeapon_AverageDPS", 0.5f, false)
                     ])
             ],
             BlacklistedItemsDefNames = [..DefaultBlacklist]
@@ -107,10 +108,10 @@ internal class MeleeWeaponRule : ItemRule
     public new static IEnumerable<StatWeight> DefaultStatWeights =>
         new[]
         {
-            new StatWeight("MeleeWeapon_AverageDPS", false) { Weight = 2.0f },
+            new StatWeight("MeleeWeapon_AverageDPS", 2.0f, false),
             new StatWeight(
-                CustomMeleeWeaponStats.GetStatDefName(CustomMeleeWeaponStat.ArmorPenetration),
-                false) { Weight = 0.5f }
+                MeleeWeaponStats.GetStatDefName(MeleeWeaponStat.ArmorPenetration),
+                0.5f, false)
         }.Union(ItemRule.DefaultStatWeights);
 
     public bool? Rottable
@@ -134,7 +135,7 @@ internal class MeleeWeaponRule : ItemRule
     }
 
     [NotNull]
-    public IEnumerable<Thing> GetCurrentlyAvailableItems([CanBeNull] Map map, RimworldTime time)
+    public IEnumerable<Thing> GetCurrentlyAvailableItems([CanBeNull] Map map, RimWorldTime time)
     {
         Initialize();
         return (map?.listerThings?.ThingsInGroup(ThingRequestGroup.Weapon) ?? [])
@@ -142,7 +143,7 @@ internal class MeleeWeaponRule : ItemRule
     }
 
     [NotNull]
-    public IEnumerable<Thing> GetCurrentlyAvailableItemsSorted(Map map, RimworldTime time)
+    public IEnumerable<Thing> GetCurrentlyAvailableItemsSorted(Map map, RimWorldTime time)
     {
         return GetCurrentlyAvailableItems(map, time)
             .OrderByDescending(thing => GetThingScore(thing, time));
@@ -155,20 +156,20 @@ internal class MeleeWeaponRule : ItemRule
     }
 
     [NotNull]
-    public IEnumerable<ThingDef> GetGloballyAvailableItemsSorted(RimworldTime time)
+    public IEnumerable<ThingDef> GetGloballyAvailableItemsSorted(RimWorldTime time)
     {
         return GetGloballyAvailableItems().OrderByDescending(def => GetThingDefScore(def, time));
     }
 
     private static float GetStatValue([NotNull] Thing thing, [NotNull] StatDef statDef,
-        [NotNull] RimworldTime time)
+        RimWorldTime time)
     {
         return thing == null ? throw new ArgumentNullException(nameof(thing)) :
             statDef == null ? throw new ArgumentNullException(nameof(statDef)) :
             EquipmentManager.GetMeleeWeaponCache(thing, time).GetStatValue(statDef);
     }
 
-    private float GetThingDefScore([NotNull] ThingDef def, [NotNull] RimworldTime time)
+    private float GetThingDefScore([NotNull] ThingDef def, RimWorldTime time)
     {
         if (def == null) { throw new ArgumentNullException(nameof(def)); }
         var cache = EquipmentManager.GetMeleeWeaponDefCache(def, time);
@@ -177,7 +178,7 @@ internal class MeleeWeaponRule : ItemRule
                 cache.GetStatValueDeviation(statWeight.StatDef)) * statWeight.Weight);
     }
 
-    public float GetThingScore([NotNull] Thing thing, [NotNull] RimworldTime time)
+    public float GetThingScore([NotNull] Thing thing, RimWorldTime time)
     {
         if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
         var cache = EquipmentManager.GetMeleeWeaponCache(thing, time);
@@ -191,7 +192,7 @@ internal class MeleeWeaponRule : ItemRule
         return score;
     }
 
-    public bool IsAvailable(Thing thing, RimworldTime time)
+    public bool IsAvailable(Thing thing, RimWorldTime time)
     {
         Initialize();
         var comp = thing.TryGetComp<CompForbiddable>();
@@ -199,7 +200,7 @@ internal class MeleeWeaponRule : ItemRule
             (GetGloballyAvailableItems().Contains(thing.def) && SatisfiesLimits(thing, time)));
     }
 
-    private bool SatisfiesLimits([NotNull] Thing thing, RimworldTime time)
+    private bool SatisfiesLimits([NotNull] Thing thing, RimWorldTime time)
     {
         if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
         foreach (var statLimit in StatLimits.Where(limit => limit.StatDef != null))
@@ -230,7 +231,7 @@ internal class MeleeWeaponRule : ItemRule
         foreach (var def in GetWhitelistedItems()) { _ = GloballyAvailableItems.Add(def); }
     }
 
-    public void UpdateStatRanges([NotNull] Thing thing, [NotNull] RimworldTime time)
+    public void UpdateStatRanges([NotNull] Thing thing, RimWorldTime time)
     {
         if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
         var cache = EquipmentManager.GetMeleeWeaponCache(thing, time);

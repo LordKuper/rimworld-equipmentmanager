@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using EquipmentManager.CustomWidgets;
 using JetBrains.Annotations;
+using LordKuper.Common.Helpers;
 using RimWorld;
 using UnityEngine;
 using Verse;
-using Strings = EquipmentManager.Resources.Strings.WeaponRules;
+using LordKuper.Common.UI;
 
 namespace EquipmentManager.Windows;
 
@@ -14,14 +15,13 @@ internal partial class ManageWeaponRulesDialog
 {
     private readonly List<Thing> _currentlyAvailableWorkTypes = new();
     private readonly List<ThingDef> _globallyAvailableWorkTypes = new();
-    private WorkTypeRule _selectedWorkTypeRule;
 
     private WorkTypeRule SelectedWorkTypeRule
     {
-        get => _selectedWorkTypeRule;
+        get;
         set
         {
-            _selectedWorkTypeRule = value;
+            field = value;
             UpdateAvailableItems_WorkTypes();
         }
     }
@@ -31,7 +31,7 @@ internal partial class ManageWeaponRulesDialog
         const int buttonCount = 1;
         var buttonWidth = (rect.width - UiHelpers.ButtonGap * (buttonCount - 1)) / buttonCount;
         if (Widgets.ButtonText(new Rect(rect.x, rect.y, buttonWidth, UiHelpers.ButtonHeight),
-                Strings.SelectRule))
+                Resources.Strings.WeaponRules.SelectRule))
         {
             Find.WindowStack.Add(new FloatMenu(EquipmentManager.GetWorkTypeRules().Select(rule =>
                 new FloatMenuOption(rule.Label, () => SelectedWorkTypeRule = rule)).ToList()));
@@ -56,15 +56,15 @@ internal partial class ManageWeaponRulesDialog
             UiHelpers.ElementGap));
         if (SelectedWorkTypeRule == null)
         {
-            LabelInput.DoLabelWithoutInput(labelRect, Strings.NoRuleSelected);
+            Labels.DoLabel(labelRect, Resources.Strings.WeaponRules.NoRuleSelected, TextAnchor.MiddleLeft);
         }
         else
         {
-            LabelInput.DoLabelInputReadOnly(labelRect, Strings.RuleLabel,
+            UiHelpers.DoLabeledText(labelRect, Resources.Strings.WeaponRules.RuleLabel,
                 SelectedWorkTypeRule.Label);
             UiHelpers.DoGapLineHorizontal(new Rect(rect.x, labelRect.yMax, rect.width,
                 UiHelpers.ElementGap));
-            DoRuleStatWeights(statsRect, StatHelper.WorkTypeStatDefs,
+            DoRuleStatWeights(statsRect, EquipmentManagerStatDefs.WorkTypeStatDefs,
                 SelectedWorkTypeRule.GetStatWeights(), def =>
                 {
                     SelectedWorkTypeRule.SetStatWeight(def, 0f);

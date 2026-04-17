@@ -1,16 +1,17 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using LordKuper.Common;
+using LordKuper.Common.CustomStats;
+using LordKuper.Common.Filters.Limits;
 using RimWorld;
 using Verse;
-using Strings = EquipmentManager.Resources.Strings.WeaponRules.Tools;
 
 namespace EquipmentManager;
 
 internal class ToolRule : ItemRule
 {
-    private static HashSet<ThingDef> _allRelevantThings;
     private bool? _ranged;
     public ToolEquipMode EquipMode = ToolEquipMode.OneForEveryAssignedWorkType;
     public ToolRule(int id, bool isProtected) : base(id, isProtected) { }
@@ -33,17 +34,16 @@ internal class ToolRule : ItemRule
     {
         get
         {
-            if (_allRelevantThings == null || _allRelevantThings.Count == 0)
+            if (field == null || field.Count == 0)
             {
                 var relevantStats = EquipmentManager.GetWorkTypeRules()
                     .SelectMany(rule => rule.RequiredStats).ToHashSet();
-                _allRelevantThings = new HashSet<ThingDef>(
-                    DefDatabase<ThingDef>.AllDefs.Where(def =>
-                        def.IsWeapon && !def.destroyOnDrop && (def.statBases ?? [])
-                        .Union(def.equippedStatOffsets ?? [])
-                        .Any(sm => relevantStats.Contains(sm.stat))));
+                field = new HashSet<ThingDef>(DefDatabase<ThingDef>.AllDefs.Where(def =>
+                    def.IsWeapon && !def.destroyOnDrop && (def.statBases ?? [])
+                    .Union(def.equippedStatOffsets ?? [])
+                    .Any(sm => relevantStats.Contains(sm.stat))));
             }
-            return _allRelevantThings;
+            return field;
         }
     }
 
@@ -54,14 +54,14 @@ internal class ToolRule : ItemRule
     [
         new(0, true)
         {
-            Label = Strings.Default.AssignedWorkTypes,
+            Label = Resources.Strings.WeaponRules.Tools.Default.AssignedWorkTypes,
             EquipMode = ToolEquipMode.OneForEveryAssignedWorkType,
             StatWeights = [..DefaultStatWeights],
             BlacklistedItemsDefNames = [..DefaultBlacklist]
         },
         new(1, true)
         {
-            Label = Strings.Default.AllWorkTypes,
+            Label = Resources.Strings.WeaponRules.Tools.Default.AllWorkTypes,
             EquipMode = ToolEquipMode.OneForEveryWorkType,
             StatWeights = [..DefaultStatWeights],
             BlacklistedItemsDefNames = [..DefaultBlacklist]
@@ -72,11 +72,8 @@ internal class ToolRule : ItemRule
     public new static IEnumerable<StatWeight> DefaultStatWeights =>
         new[]
         {
-            new StatWeight(CustomToolStats.GetStatDefName(CustomToolStat.WorkType), true)
-            {
-                Weight = 2.0f
-            },
-            new StatWeight("MoveSpeed", false) { Weight = 1.0f }
+            new StatWeight(ToolStats.GetStatDefName(ToolStat.WorkType), 2.0f, true),
+            new StatWeight("MoveSpeed", 1.0f, false)
         }.Union(ItemRule.DefaultStatWeights);
 
     public bool? Ranged
@@ -94,7 +91,7 @@ internal class ToolRule : ItemRule
 
     [NotNull]
     public IEnumerable<Thing> GetCurrentlyAvailableItems([CanBeNull] Map map,
-        IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimworldTime time)
+        IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimWorldTime time)
     {
         Initialize();
         return (map?.listerThings?.ThingsInGroup(ThingRequestGroup.Weapon) ?? [])
@@ -103,7 +100,7 @@ internal class ToolRule : ItemRule
 
     [NotNull]
     public IEnumerable<Thing> GetCurrentlyAvailableItemsSorted(Map map,
-        [NotNull] IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimworldTime time)
+        [NotNull] IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimWorldTime time)
     {
         return !workTypeDefs.Any()
             ? throw new ArgumentException("At least one work type must be passed",
@@ -126,14 +123,14 @@ internal class ToolRule : ItemRule
 
     [NotNull]
     public IEnumerable<ThingDef> GetGloballyAvailableItemsSorted(
-        IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimworldTime time)
+        IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimWorldTime time)
     {
         return GetGloballyAvailableItems(workTypeDefs)
             .OrderByDescending(def => GetThingDefScore(def, workTypeDefs, time));
     }
 
     private static float GetStatValue([NotNull] Thing thing, [NotNull] StatDef statDef,
-        IReadOnlyCollection<WorkTypeDef> workTypeDefs, [NotNull] RimworldTime time)
+        IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimWorldTime time)
     {
         return thing == null ? throw new ArgumentNullException(nameof(thing)) :
             statDef == null ? throw new ArgumentNullException(nameof(statDef)) :
@@ -141,7 +138,7 @@ internal class ToolRule : ItemRule
     }
 
     private float GetThingDefScore([NotNull] ThingDef def,
-        IReadOnlyCollection<WorkTypeDef> workTypeDefs, [NotNull] RimworldTime time)
+        IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimWorldTime time)
     {
         if (def == null) { throw new ArgumentNullException(nameof(def)); }
         var cache = EquipmentManager.GetToolDefCache(def, time);
@@ -151,7 +148,7 @@ internal class ToolRule : ItemRule
     }
 
     public float GetThingScore([NotNull] Thing thing, IReadOnlyCollection<WorkTypeDef> workTypeDefs,
-        [NotNull] RimworldTime time)
+        RimWorldTime time)
     {
         if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
         var cache = EquipmentManager.GetToolCache(thing, time);
@@ -166,7 +163,7 @@ internal class ToolRule : ItemRule
     }
 
     public bool IsAvailable(Thing thing, IReadOnlyCollection<WorkTypeDef> workTypeDefs,
-        RimworldTime time)
+        RimWorldTime time)
     {
         Initialize();
         var comp = thing.TryGetComp<CompForbiddable>();
@@ -176,7 +173,7 @@ internal class ToolRule : ItemRule
     }
 
     private bool SatisfiesLimits([NotNull] Thing thing,
-        IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimworldTime time)
+        IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimWorldTime time)
     {
         if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
         foreach (var statLimit in StatLimits.Where(limit => limit.StatDef != null))
@@ -202,7 +199,7 @@ internal class ToolRule : ItemRule
     }
 
     public void UpdateStatRanges([NotNull] Thing thing,
-        [NotNull] IReadOnlyCollection<WorkTypeDef> workTypeDefs, [NotNull] RimworldTime time)
+        [NotNull] IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimWorldTime time)
     {
         if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
         if (workTypeDefs == null) { throw new ArgumentNullException(nameof(workTypeDefs)); }

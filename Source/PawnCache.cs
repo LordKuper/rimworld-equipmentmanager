@@ -1,21 +1,22 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using JetBrains.Annotations;
+using LordKuper.Common;
+using LordKuper.Common.Cache;
 using RimWorld;
 using Verse;
 
 namespace EquipmentManager;
 
-internal class PawnCache
+internal class PawnCache : TimedCache
 {
     private static EquipmentManagerGameComponent _equipmentManager;
-    private readonly RimworldTime _updateTime = new(-1, -1, -1);
     public readonly Dictionary<Thing, int> AssignedAmmo = new();
     public readonly Dictionary<Thing, string> AssignedWeapons = new();
     public Loadout AssignedLoadout;
     public bool AutoLoadout;
     public bool ShouldUpdateEquipment;
 
-    public PawnCache(Pawn pawn)
+    public PawnCache(Pawn pawn) : base(6f, true)
     {
         Pawn = pawn;
     }
@@ -32,7 +33,7 @@ internal class PawnCache
         return AvailableLoadouts.ContainsKey(loadout);
     }
 
-    public void Update([NotNull] RimworldTime time)
+    public override bool Update(RimWorldTime time)
     {
         var capable = !Pawn.Dead && !Pawn.Downed && !Pawn.InMentalState &&
             !Pawn.InContainerEnclosed && !Pawn.Drafted &&
@@ -40,13 +41,8 @@ internal class PawnCache
         var pawnLoadout = EquipmentManager.GetPawnLoadout(Pawn);
         AutoLoadout = pawnLoadout.Automatic;
         AssignedLoadout = AutoLoadout ? null : EquipmentManager.GetLoadout(pawnLoadout.LoadoutId);
-        var hoursPassed = (time.Year - _updateTime.Year) * 60 * 24 +
-            (time.Day - _updateTime.Day) * 24 + time.Hour - _updateTime.Hour;
-        ShouldUpdateEquipment = capable && hoursPassed > 6f;
-        if (!ShouldUpdateEquipment) { return; }
-        _updateTime.Year = time.Year;
-        _updateTime.Day = time.Day;
-        _updateTime.Hour = time.Hour;
+        ShouldUpdateEquipment = capable && base.Update(time);
+        if (!ShouldUpdateEquipment) { return false; }
         AvailableLoadouts.Clear();
         foreach (var loadout in EquipmentManager.GetLoadouts())
         {
@@ -55,5 +51,6 @@ internal class PawnCache
                 AvailableLoadouts.Add(loadout, loadout.GetScore(Pawn));
             }
         }
+        return true;
     }
 }

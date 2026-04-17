@@ -1,12 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using EquipmentManager.CustomWidgets;
 using JetBrains.Annotations;
+using LordKuper.Common;
+using LordKuper.Common.Filters.Limits;
 using RimWorld;
 using UnityEngine;
 using Verse;
-using Strings = EquipmentManager.Resources.Strings.WeaponRules;
+using LordKuper.Common.UI.Widgets;
 
 namespace EquipmentManager.Windows;
 
@@ -77,8 +79,8 @@ internal partial class ManageWeaponRulesDialog : Window
         Text.Font = GameFont.Medium;
         Text.Anchor = TextAnchor.MiddleLeft;
         var labelRect = new Rect(rect.x, rect.y, rect.width * 3f / 4f, Text.LineHeight);
-        Widgets.Label(labelRect, Strings.BlacklistedItems);
-        TooltipHandler.TipRegion(labelRect, Strings.BlacklistedItemsTooltip);
+        Widgets.Label(labelRect, Resources.Strings.WeaponRules.BlacklistedItems);
+        TooltipHandler.TipRegion(labelRect, Resources.Strings.WeaponRules.BlacklistedItemsTooltip);
         Text.Font = GameFont.Small;
         var buttonRect = new Rect(labelRect.xMax + UiHelpers.ElementGap, rect.y,
             rect.width - labelRect.width - UiHelpers.ElementGap, labelRect.height);
@@ -90,12 +92,10 @@ internal partial class ManageWeaponRulesDialog : Window
         }
         Text.Font = font;
         Text.Anchor = anchor;
-        ThingBox.DoThingDefBox(
+        ThingIconBox.DoThingDefBox(
             new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
-                rect.yMax - (labelRect.yMax + UiHelpers.ElementGap)),
-            new Color(1f, 0.5f, 0.5f, 0.05f), new Color(1f, 0.5f, 0.5f, 0.4f), ItemIconSize,
-            ItemIconGap, ref _blacklistScrollPosition, items.ToList(), rightClickAction,
-            tooltipGetter);
+                rect.yMax - (labelRect.yMax + UiHelpers.ElementGap)), ref _blacklistScrollPosition,
+            items.ToList(), rightClickAction, tooltipGetter);
     }
 
     private static void DoCurrentlyAvailableItems(Rect rect, [NotNull] IReadOnlyList<Thing> items,
@@ -106,19 +106,18 @@ internal partial class ManageWeaponRulesDialog : Window
         Text.Font = GameFont.Medium;
         Text.Anchor = TextAnchor.MiddleLeft;
         var labelRect = new Rect(rect.x, rect.y, rect.width * 3f / 4f, Text.LineHeight);
-        Widgets.Label(labelRect, Strings.CurrentlyAvailableItems);
-        TooltipHandler.TipRegion(labelRect, Strings.CurrentlyAvailableItemsTooltip);
+        Widgets.Label(labelRect, Resources.Strings.WeaponRules.CurrentlyAvailableItems);
+        TooltipHandler.TipRegion(labelRect, Resources.Strings.WeaponRules.CurrentlyAvailableItemsTooltip);
         Text.Font = GameFont.Small;
         var buttonRect = new Rect(labelRect.xMax + UiHelpers.ElementGap, rect.y,
             rect.width - labelRect.width - UiHelpers.ElementGap, labelRect.height);
-        if (Widgets.ButtonText(buttonRect, Strings.Refresh)) { refreshAction(); }
+        if (Widgets.ButtonText(buttonRect, Resources.Strings.WeaponRules.Refresh)) { refreshAction(); }
         Text.Font = font;
         Text.Anchor = anchor;
-        ThingBox.DoThingBox(
+        ThingIconBox.DoThingBox(
             new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
-                rect.yMax - (labelRect.yMax + UiHelpers.ElementGap)), new Color(1f, 1f, 1f, 0.05f),
-            new Color(1f, 1f, 1f, 0.4f), ItemIconSize, ItemIconGap, ref _currentItemsScrollPosition,
-            items, rightClickAction, tooltipGetter);
+                rect.yMax - (labelRect.yMax + UiHelpers.ElementGap)),
+            ref _currentItemsScrollPosition, items, rightClickAction, tooltipGetter);
     }
 
     private static void DoExclusiveItems(Rect rect, HashSet<ThingDef> allItems,
@@ -148,19 +147,18 @@ internal partial class ManageWeaponRulesDialog : Window
         Text.Font = GameFont.Medium;
         Text.Anchor = TextAnchor.MiddleLeft;
         var labelRect = new Rect(rect.x, rect.y, rect.width * 3f / 4f, Text.LineHeight);
-        Widgets.Label(labelRect, Strings.GloballyAvailableItems);
-        TooltipHandler.TipRegion(labelRect, Strings.GloballyAvailableItemsTooltip);
+        Widgets.Label(labelRect, Resources.Strings.WeaponRules.GloballyAvailableItems);
+        TooltipHandler.TipRegion(labelRect, Resources.Strings.WeaponRules.GloballyAvailableItemsTooltip);
         Text.Font = GameFont.Small;
         var buttonRect = new Rect(labelRect.xMax + UiHelpers.ElementGap, rect.y,
             rect.width - labelRect.width - UiHelpers.ElementGap, labelRect.height);
-        if (Widgets.ButtonText(buttonRect, Strings.Refresh)) { refreshAction(); }
+        if (Widgets.ButtonText(buttonRect, Resources.Strings.WeaponRules.Refresh)) { refreshAction(); }
         Text.Font = font;
         Text.Anchor = anchor;
-        ThingBox.DoThingDefBox(
+        ThingIconBox.DoThingDefBox(
             new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
-                rect.yMax - (labelRect.yMax + UiHelpers.ElementGap)), new Color(1f, 1f, 1f, 0.05f),
-            new Color(1f, 1f, 1f, 0.4f), ItemIconSize, ItemIconGap, ref _globalItemsScrollPosition,
-            items, rightClickAction, tooltipGetter);
+                rect.yMax - (labelRect.yMax + UiHelpers.ElementGap)),
+            ref _globalItemsScrollPosition, items, rightClickAction, tooltipGetter);
     }
 
     private static void DoRuleSetting(Rect settingRect, [NotNull] Func<bool?> getter,
@@ -189,7 +187,7 @@ internal partial class ManageWeaponRulesDialog : Window
         Text.Font = GameFont.Medium;
         Text.Anchor = TextAnchor.MiddleLeft;
         var labelRect = new Rect(rect.x, rect.y, rect.width * 3f / 4f, Text.LineHeight);
-        Widgets.Label(labelRect, Strings.StatLimits);
+        Widgets.Label(labelRect, Resources.Strings.WeaponRules.StatLimits);
         Text.Font = GameFont.Small;
         var buttonRect = new Rect(labelRect.xMax + UiHelpers.ElementGap, rect.y,
             rect.width - labelRect.width - UiHelpers.ElementGap, labelRect.height);
@@ -274,7 +272,7 @@ internal partial class ManageWeaponRulesDialog : Window
         Text.Font = GameFont.Medium;
         Text.Anchor = TextAnchor.MiddleLeft;
         var labelRect = new Rect(rect.x, rect.y, rect.width * 3f / 4f, Text.LineHeight);
-        Widgets.Label(labelRect, Strings.StatWeights);
+        Widgets.Label(labelRect, Resources.Strings.WeaponRules.StatWeights);
         Text.Font = GameFont.Small;
         var buttonRect = new Rect(labelRect.xMax + UiHelpers.ElementGap, rect.y,
             rect.width - labelRect.width - UiHelpers.ElementGap, labelRect.height);
@@ -319,8 +317,7 @@ internal partial class ManageWeaponRulesDialog : Window
                 statWeight.StatDef?.LabelCap ?? statWeight.StatDefName);
             var statInputRect = new Rect(statLabelRect.xMax + UiHelpers.ElementGap, rowRect.y,
                 rowRect.xMax - statLabelRect.xMax - UiHelpers.ElementGap, rowRect.height);
-            Widgets.HorizontalSlider(statInputRect, ref statWeight.Weight,
-                new FloatRange(-1 * StatWeight.WeightCap, StatWeight.WeightCap),
+            Widgets.HorizontalSlider(statInputRect, ref statWeight.Weight, new FloatRange(-2f, 2f),
                 $"{statWeight.Weight:N1}", 0.1f);
         }
         Widgets.EndScrollView();
@@ -336,15 +333,15 @@ internal partial class ManageWeaponRulesDialog : Window
         Text.Font = GameFont.Medium;
         Text.Anchor = TextAnchor.MiddleRight;
         var labelRect = new Rect(rect.x, rect.y, rect.width / 3f, rect.height);
-        Widgets.Label(labelRect, Strings.RuleEquipModeLabel);
+        Widgets.Label(labelRect, Resources.Strings.WeaponRules.RuleEquipModeLabel);
         Text.Font = GameFont.Small;
         var inputRect = new Rect(labelRect.xMax + UiHelpers.ElementGap, rect.y,
             rect.width - labelRect.width - UiHelpers.ElementGap, rect.height);
-        if (Widgets.ButtonText(inputRect, Strings.GetWeaponEquipModeLabel(getter())))
+        if (Widgets.ButtonText(inputRect, Resources.Strings.WeaponRules.GetWeaponEquipModeLabel(getter())))
         {
             Find.WindowStack.Add(new FloatMenu(Enum.GetValues(typeof(ItemRule.WeaponEquipMode))
                 .OfType<ItemRule.WeaponEquipMode>().Select(mode =>
-                    new FloatMenuOption(Strings.GetWeaponEquipModeLabel(mode), () => setter(mode)))
+                    new FloatMenuOption(Resources.Strings.WeaponRules.GetWeaponEquipModeLabel(mode), () => setter(mode)))
                 .ToList()));
         }
         Text.Font = font;
@@ -360,8 +357,8 @@ internal partial class ManageWeaponRulesDialog : Window
         Text.Font = GameFont.Medium;
         Text.Anchor = TextAnchor.MiddleLeft;
         var labelRect = new Rect(rect.x, rect.y, rect.width * 3f / 4f, Text.LineHeight);
-        Widgets.Label(labelRect, Strings.WhitelistedItems);
-        TooltipHandler.TipRegion(labelRect, Strings.WhitelistedItemsTooltip);
+        Widgets.Label(labelRect, Resources.Strings.WeaponRules.WhitelistedItems);
+        TooltipHandler.TipRegion(labelRect, Resources.Strings.WeaponRules.WhitelistedItemsTooltip);
         Text.Font = GameFont.Small;
         var buttonRect = new Rect(labelRect.xMax + UiHelpers.ElementGap, rect.y,
             rect.width - labelRect.width - UiHelpers.ElementGap, labelRect.height);
@@ -373,12 +370,10 @@ internal partial class ManageWeaponRulesDialog : Window
         }
         Text.Font = font;
         Text.Anchor = anchor;
-        ThingBox.DoThingDefBox(
+        ThingIconBox.DoThingDefBox(
             new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
-                rect.yMax - (labelRect.yMax + UiHelpers.ElementGap)),
-            new Color(0.5f, 1f, 0.5f, 0.05f), new Color(0.5f, 1f, 0.5f, 0.4f), ItemIconSize,
-            ItemIconGap, ref _whitelistScrollPosition, items.ToList(), rightClickAction,
-            tooltipGetter);
+                rect.yMax - (labelRect.yMax + UiHelpers.ElementGap)), ref _whitelistScrollPosition,
+            items.ToList(), rightClickAction, tooltipGetter);
     }
 
     public override void DoWindowContents(Rect inRect)
@@ -452,25 +447,25 @@ internal partial class ManageWeaponRulesDialog : Window
     private void Initialize()
     {
         if (_initialized) { return; }
-        _tabs.Add(new TabRecord(Strings.MeleeWeapons.Title, () =>
+        _tabs.Add(new TabRecord(Resources.Strings.WeaponRules.MeleeWeapons.Title, () =>
         {
             _currentTab = DialogTab.MeleeWeapons;
             UpdateAvailableItems_MeleeWeapons();
             ResetScrollPositions();
         }, () => _currentTab == DialogTab.MeleeWeapons));
-        _tabs.Add(new TabRecord(Strings.RangedWeapons.Title, () =>
+        _tabs.Add(new TabRecord(Resources.Strings.WeaponRules.RangedWeapons.Title, () =>
         {
             _currentTab = DialogTab.RangedWeapons;
             UpdateAvailableItems_RangedWeapons();
             ResetScrollPositions();
         }, () => _currentTab == DialogTab.RangedWeapons));
-        _tabs.Add(new TabRecord(Strings.Tools.Title, () =>
+        _tabs.Add(new TabRecord(Resources.Strings.WeaponRules.Tools.Title, () =>
         {
             _currentTab = DialogTab.Tools;
             UpdateAvailableItems_Tools();
             ResetScrollPositions();
         }, () => _currentTab == DialogTab.Tools));
-        _tabs.Add(new TabRecord(Strings.WorkTypes.Title, () =>
+        _tabs.Add(new TabRecord(Resources.Strings.WeaponRules.WorkTypes.Title, () =>
         {
             _currentTab = DialogTab.WorkTypes;
             UpdateAvailableItems_WorkTypes();

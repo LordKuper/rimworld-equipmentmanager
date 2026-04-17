@@ -8,8 +8,9 @@ internal partial class EquipmentManagerGameComponent
 {
     private List<WorkTypeRule> _workTypeRules;
 
-    public void AddWorkTypeRule(WorkTypeRule workTypeRule)
+    public void AddWorkTypeRule([NotNull] WorkTypeRule workTypeRule)
     {
+        workTypeRule.NormalizeLegacyCustomStatDefNames();
         var existingRule =
             _workTypeRules.FirstOrDefault(rule =>
                 rule.WorkTypeDefName == workTypeRule.WorkTypeDefName);

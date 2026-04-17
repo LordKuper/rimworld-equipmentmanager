@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using LordKuper.Common;
+using LordKuper.Common.Helpers;
 using PeteTimesSix.SimpleSidearms;
 using RimWorld;
 using Verse;
@@ -142,7 +144,7 @@ internal class WorkTypeRule : IExposable
                      .Where(thing => globalItemDefs.Contains(thing.def)) ?? [])
         {
             var comp = thing.TryGetComp<CompForbiddable>();
-            if (comp != null && comp.Forbidden) { continue; }
+            if (comp is { Forbidden: true }) { continue; }
             items.Add(thing);
         }
         items.SortByDescending(GetThingScore);
@@ -189,6 +191,7 @@ internal class WorkTypeRule : IExposable
     {
         if (_isInitialized) { return; }
         _isInitialized = true;
+        NormalizeLegacyCustomStatDefNames();
         _workTypeDef = DefDatabase<WorkTypeDef>.GetNamedSilentFail(_workTypeDefName);
         if (WorkTypeDef == null) { return; }
         _defaultStatWeights = [];
@@ -198,7 +201,7 @@ internal class WorkTypeRule : IExposable
             {
                 if (!_defaultStatWeights.Any(sw => sw.StatDefName == statDefName))
                 {
-                    _defaultStatWeights.Add(new StatWeight(statDefName, false) { Weight = 2f });
+                    _defaultStatWeights.Add(new StatWeight(statDefName, 2f, false));
                 }
             }
         }
@@ -209,7 +212,7 @@ internal class WorkTypeRule : IExposable
             _ = _requiredStats.Add(statDef);
             if (!_defaultStatWeights.Any(sw => sw.StatDefName == statDef.defName))
             {
-                _defaultStatWeights.Add(new StatWeight(statDef.defName, false) { Weight = 1f });
+                _defaultStatWeights.Add(new StatWeight(statDef.defName, 1f, false));
             }
         }
         foreach (var recipe in DefDatabase<RecipeDef>.AllDefs.Where(recipeDef =>
@@ -220,8 +223,8 @@ internal class WorkTypeRule : IExposable
             {
                 if (!_defaultStatWeights.Any(sw => sw.StatDefName == recipe.efficiencyStat.defName))
                 {
-                    _defaultStatWeights.Add(
-                        new StatWeight(recipe.efficiencyStat.defName, false) { Weight = 0.8f });
+                    _defaultStatWeights.Add(new StatWeight(recipe.efficiencyStat.defName, 0.8f,
+                        false));
                 }
             }
             if (recipe.workSpeedStat != null)
@@ -232,8 +235,8 @@ internal class WorkTypeRule : IExposable
                     if (!_defaultStatWeights.Any(sw =>
                             sw.StatDefName == recipe.workSpeedStat.defName))
                     {
-                        _defaultStatWeights.Add(
-                            new StatWeight(recipe.workSpeedStat.defName, false) { Weight = 0.5f });
+                        _defaultStatWeights.Add(new StatWeight(recipe.workSpeedStat.defName, 0.5f,
+                            false));
                     }
                 }
             }
@@ -243,11 +246,8 @@ internal class WorkTypeRule : IExposable
                 if (!_defaultStatWeights.Any(sw =>
                         sw.StatDefName == recipe.workTableEfficiencyStat.defName))
                 {
-                    _defaultStatWeights.Add(
-                        new StatWeight(recipe.workTableEfficiencyStat.defName, false)
-                        {
-                            Weight = 0.8f
-                        });
+                    _defaultStatWeights.Add(new StatWeight(recipe.workTableEfficiencyStat.defName,
+                        0.8f, false));
                 }
             }
             if (recipe.workTableSpeedStat != null && !_defaultStatWeights.Any(sw =>
@@ -256,13 +256,13 @@ internal class WorkTypeRule : IExposable
                 if (!_defaultStatWeights.Any(sw =>
                         sw.StatDefName == recipe.workTableSpeedStat.defName))
                 {
-                    _defaultStatWeights.Add(
-                        new StatWeight(recipe.workTableSpeedStat.defName, false) { Weight = 0.5f });
+                    _defaultStatWeights.Add(new StatWeight(recipe.workTableSpeedStat.defName, 0.5f,
+                        false));
                 }
             }
         }
-        _ = _defaultStatWeights.RemoveAll(sw => !StatHelper.WorkTypeStatDefs.Contains(sw.StatDef));
-        _ = _requiredStats.RemoveWhere(statDef => !StatHelper.WorkTypeStatDefs.Contains(statDef));
+        _ = _defaultStatWeights.RemoveAll(sw => !EquipmentManagerStatDefs.WorkTypeStatDefs.Contains(sw.StatDef));
+        _ = _requiredStats.RemoveWhere(statDef => !EquipmentManagerStatDefs.WorkTypeStatDefs.Contains(statDef));
     }
 
     public void SetStatWeight([NotNull] StatDef statDef, float weight)
@@ -271,9 +271,14 @@ internal class WorkTypeRule : IExposable
         var statWeight = _statWeights.FirstOrDefault(sw => sw.StatDef == statDef);
         if (statWeight == null)
         {
-            statWeight = new StatWeight(statDef.defName, false);
+            statWeight = new StatWeight(statDef.defName, 0f, false);
             _statWeights.Add(statWeight);
         }
         statWeight.Weight = weight;
+    }
+
+    internal void NormalizeLegacyCustomStatDefNames()
+    {
+        _statWeights = _statWeights?.Select(LegacyCustomStatDefs.NormalizeStatWeight).ToList() ?? [];
     }
 }

@@ -1,9 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 using EquipmentManager.CustomWidgets;
 using JetBrains.Annotations;
+using LordKuper.Common;
+using LordKuper.Common.Filters.Limits;
+using LordKuper.Common.UI;
 using UnityEngine;
 using Verse;
 
@@ -12,12 +15,12 @@ namespace EquipmentManager.Windows;
 internal class ImportLoadoutsDialog : Window
 {
     private static EquipmentManagerGameComponent _equipmentManager;
-    private readonly List<Loadout> _loadouts = new();
-    private readonly List<MeleeWeaponRule> _meleeWeaponRules = new();
-    private readonly List<RangedWeaponRule> _rangedWeaponRules = new();
+    private readonly List<Loadout> _loadouts = [];
+    private readonly List<MeleeWeaponRule> _meleeWeaponRules = [];
+    private readonly List<RangedWeaponRule> _rangedWeaponRules = [];
     private readonly Dictionary<string, string> _savedGames = new();
-    private readonly List<ToolRule> _toolRules = new();
-    private readonly List<WorkTypeRule> _workTypeRules = new();
+    private readonly List<ToolRule> _toolRules = [];
+    private readonly List<WorkTypeRule> _workTypeRules = [];
     private Vector2 _loadoutsListScrollPosition;
     private Vector2 _savedGamesListScrollPosition;
     private string _selectedSaveGame;
@@ -109,13 +112,14 @@ internal class ImportLoadoutsDialog : Window
                     (UiHelpers.ListRowHeight * 1.5f - Math.Min(32f, UiHelpers.ListRowHeight)) / 2f,
                     Math.Min(32f, UiHelpers.ListRowHeight), Math.Min(32f, UiHelpers.ListRowHeight))
                 .ContractedBy(4f);
-            ButtonImageToggle.DoButtonImageToggle(() => savedGame.Key == _selectedSaveGame,
+            Buttons.DoIconButtonToggle(toggleButtonRect,
+                () => savedGame.Key == _selectedSaveGame,
                 newValue =>
                 {
                     if (!newValue) { return; }
                     _selectedSaveGame = savedGame.Key;
                     ReadSaveGameData(savedGame.Key);
-                }, toggleButtonRect, Widgets.CheckboxOnTex, Widgets.CheckboxOffTex);
+                }, null, Widgets.CheckboxOnTex, null, Widgets.CheckboxOffTex);
             var nameRectX = toggleButtonRect.x + toggleButtonRect.width + 4f;
             Widgets.Label(
                 new Rect(nameRectX, rowRect.y, rowRect.xMax - nameRectX, rowRect.height)
@@ -227,7 +231,7 @@ internal class ImportLoadoutsDialog : Window
         else
         {
             _ = xmlReader.Read();
-            while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
+            while (xmlReader is { Name: "li", NodeType: XmlNodeType.Element })
             {
                 keys.Add(xmlReader.ReadElementContentAsString());
             }
@@ -243,7 +247,7 @@ internal class ImportLoadoutsDialog : Window
         else
         {
             _ = xmlReader.Read();
-            while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
+            while (xmlReader is { Name: "li", NodeType: XmlNodeType.Element })
             {
                 values.Add(xmlReader.ReadElementContentAsString());
             }
@@ -271,7 +275,7 @@ internal class ImportLoadoutsDialog : Window
         var passionLimits = new List<PassionLimit>();
         var pawnCapacityLimits = new List<PawnCapacityLimit>();
         var pawnCapacityWeights = new List<PawnCapacityWeight>();
-        var skillLimits = new List<SkillLimit>();
+        var skillLimits = new List<PawnSkillLimit>();
         var skillWeights = new List<SkillWeight>();
         var statLimits = new List<StatLimit>();
         var statWeights = new List<StatWeight>();
@@ -304,7 +308,7 @@ internal class ImportLoadoutsDialog : Window
                     break;
                 case "RangedSidearmRules":
                     _ = xmlReader.Read();
-                    while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
+                    while (xmlReader is { Name: "li", NodeType: XmlNodeType.Element })
                     {
                         rangedSidearmRules.Add(xmlReader.ReadElementContentAsInt());
                     }
@@ -312,7 +316,7 @@ internal class ImportLoadoutsDialog : Window
                     break;
                 case "MeleeSidearmRules":
                     _ = xmlReader.Read();
-                    while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
+                    while (xmlReader is { Name: "li", NodeType: XmlNodeType.Element })
                     {
                         meleeSidearmRules.Add(xmlReader.ReadElementContentAsInt());
                     }
@@ -338,7 +342,7 @@ internal class ImportLoadoutsDialog : Window
                     break;
                 case "PassionLimits":
                     _ = xmlReader.Read();
-                    while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
+                    while (xmlReader is { Name: "li", NodeType: XmlNodeType.Element })
                     {
                         _ = xmlReader.Read();
                         passionLimits.Add(ReadPassionLimitData(xmlReader));
@@ -348,7 +352,7 @@ internal class ImportLoadoutsDialog : Window
                     break;
                 case "PawnCapacityLimits":
                     _ = xmlReader.Read();
-                    while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
+                    while (xmlReader is { Name: "li", NodeType: XmlNodeType.Element })
                     {
                         _ = xmlReader.Read();
                         pawnCapacityLimits.Add(ReadPawnCapacityLimitData(xmlReader));
@@ -358,7 +362,7 @@ internal class ImportLoadoutsDialog : Window
                     break;
                 case "PawnCapacityWeights":
                     _ = xmlReader.Read();
-                    while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
+                    while (xmlReader is { Name: "li", NodeType: XmlNodeType.Element })
                     {
                         _ = xmlReader.Read();
                         pawnCapacityWeights.Add(ReadPawnCapacityWeightData(xmlReader));
@@ -368,7 +372,7 @@ internal class ImportLoadoutsDialog : Window
                     break;
                 case "SkillLimits":
                     _ = xmlReader.Read();
-                    while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
+                    while (xmlReader is { Name: "li", NodeType: XmlNodeType.Element })
                     {
                         _ = xmlReader.Read();
                         skillLimits.Add(ReadSkillLimitData(xmlReader));
@@ -378,7 +382,7 @@ internal class ImportLoadoutsDialog : Window
                     break;
                 case "SkillWeights":
                     _ = xmlReader.Read();
-                    while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
+                    while (xmlReader is { Name: "li", NodeType: XmlNodeType.Element })
                     {
                         _ = xmlReader.Read();
                         skillWeights.Add(ReadSkillWeightData(xmlReader));
@@ -388,7 +392,7 @@ internal class ImportLoadoutsDialog : Window
                     break;
                 case "StatLimits":
                     _ = xmlReader.Read();
-                    while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
+                    while (xmlReader is { Name: "li", NodeType: XmlNodeType.Element })
                     {
                         _ = xmlReader.Read();
                         statLimits.Add(ReadStatLimitData(xmlReader));
@@ -398,7 +402,7 @@ internal class ImportLoadoutsDialog : Window
                     break;
                 case "StatWeights":
                     _ = xmlReader.Read();
-                    while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
+                    while (xmlReader is { Name: "li", NodeType: XmlNodeType.Element })
                     {
                         _ = xmlReader.Read();
                         statWeights.Add(ReadStatWeightData(xmlReader));
@@ -472,7 +476,7 @@ internal class ImportLoadoutsDialog : Window
                     break;
                 case "StatWeights":
                     _ = xmlReader.Read();
-                    while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
+                    while (xmlReader is { Name: "li", NodeType: XmlNodeType.Element })
                     {
                         _ = xmlReader.Read();
                         statWeights.Add(ReadStatWeightData(xmlReader));
@@ -482,7 +486,7 @@ internal class ImportLoadoutsDialog : Window
                     break;
                 case "StatLimits":
                     _ = xmlReader.Read();
-                    while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
+                    while (xmlReader is { Name: "li", NodeType: XmlNodeType.Element })
                     {
                         _ = xmlReader.Read();
                         statLimits.Add(ReadStatLimitData(xmlReader));
@@ -492,7 +496,7 @@ internal class ImportLoadoutsDialog : Window
                     break;
                 case "WhitelistedItemsDefNames":
                     _ = xmlReader.Read();
-                    while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
+                    while (xmlReader is { Name: "li", NodeType: XmlNodeType.Element })
                     {
                         _ = whitelistedItemsDefNames.Add(xmlReader.ReadElementContentAsString());
                     }
@@ -500,7 +504,7 @@ internal class ImportLoadoutsDialog : Window
                     break;
                 case "BlacklistedItemsDefNames":
                     _ = xmlReader.Read();
-                    while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
+                    while (xmlReader is { Name: "li", NodeType: XmlNodeType.Element })
                     {
                         _ = blacklistedItemsDefNames.Add(xmlReader.ReadElementContentAsString());
                     }
@@ -659,7 +663,7 @@ internal class ImportLoadoutsDialog : Window
                     break;
                 case "StatWeights":
                     _ = xmlReader.Read();
-                    while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
+                    while (xmlReader is { Name: "li", NodeType: XmlNodeType.Element })
                     {
                         _ = xmlReader.Read();
                         statWeights.Add(ReadStatWeightData(xmlReader));
@@ -669,7 +673,7 @@ internal class ImportLoadoutsDialog : Window
                     break;
                 case "StatLimits":
                     _ = xmlReader.Read();
-                    while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
+                    while (xmlReader is { Name: "li", NodeType: XmlNodeType.Element })
                     {
                         _ = xmlReader.Read();
                         statLimits.Add(ReadStatLimitData(xmlReader));
@@ -679,7 +683,7 @@ internal class ImportLoadoutsDialog : Window
                     break;
                 case "WhitelistedItemsDefNames":
                     _ = xmlReader.Read();
-                    while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
+                    while (xmlReader is { Name: "li", NodeType: XmlNodeType.Element })
                     {
                         _ = whitelistedItemsDefNames.Add(xmlReader.ReadElementContentAsString());
                     }
@@ -687,7 +691,7 @@ internal class ImportLoadoutsDialog : Window
                     break;
                 case "BlacklistedItemsDefNames":
                     _ = xmlReader.Read();
-                    while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
+                    while (xmlReader is { Name: "li", NodeType: XmlNodeType.Element })
                     {
                         _ = blacklistedItemsDefNames.Add(xmlReader.ReadElementContentAsString());
                     }
@@ -825,7 +829,7 @@ internal class ImportLoadoutsDialog : Window
     }
 
     [NotNull]
-    private static SkillLimit ReadSkillLimitData([NotNull] XmlReader xmlReader)
+    private static PawnSkillLimit ReadSkillLimitData([NotNull] XmlReader xmlReader)
     {
         var skillDefName = string.Empty;
         float? minValue = null;
@@ -849,7 +853,7 @@ internal class ImportLoadoutsDialog : Window
                     break;
             }
         } while (keepParsing);
-        return new SkillLimit(skillDefName, minValue, maxValue);
+        return new PawnSkillLimit(skillDefName, minValue, maxValue);
     }
 
     [NotNull]
@@ -901,6 +905,7 @@ internal class ImportLoadoutsDialog : Window
                     break;
             }
         } while (keepParsing);
+        statDefName = LegacyCustomStatDefs.NormalizeStatDefName(statDefName);
         return new StatLimit(statDefName, minValue, maxValue);
     }
 
@@ -929,6 +934,7 @@ internal class ImportLoadoutsDialog : Window
                     break;
             }
         } while (keepParsing);
+        statDefName = LegacyCustomStatDefs.NormalizeStatDefName(statDefName);
         return new StatWeight(statDefName, weight, isProtected);
     }
 
@@ -964,7 +970,7 @@ internal class ImportLoadoutsDialog : Window
                     break;
                 case "StatWeights":
                     _ = xmlReader.Read();
-                    while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
+                    while (xmlReader is { Name: "li", NodeType: XmlNodeType.Element })
                     {
                         _ = xmlReader.Read();
                         statWeights.Add(ReadStatWeightData(xmlReader));
@@ -974,7 +980,7 @@ internal class ImportLoadoutsDialog : Window
                     break;
                 case "StatLimits":
                     _ = xmlReader.Read();
-                    while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
+                    while (xmlReader is { Name: "li", NodeType: XmlNodeType.Element })
                     {
                         _ = xmlReader.Read();
                         statLimits.Add(ReadStatLimitData(xmlReader));
@@ -984,7 +990,7 @@ internal class ImportLoadoutsDialog : Window
                     break;
                 case "WhitelistedItemsDefNames":
                     _ = xmlReader.Read();
-                    while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
+                    while (xmlReader is { Name: "li", NodeType: XmlNodeType.Element })
                     {
                         _ = whitelistedItemsDefNames.Add(xmlReader.ReadElementContentAsString());
                     }
@@ -992,7 +998,7 @@ internal class ImportLoadoutsDialog : Window
                     break;
                 case "BlacklistedItemsDefNames":
                     _ = xmlReader.Read();
-                    while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
+                    while (xmlReader is { Name: "li", NodeType: XmlNodeType.Element })
                     {
                         _ = blacklistedItemsDefNames.Add(xmlReader.ReadElementContentAsString());
                     }
@@ -1054,7 +1060,7 @@ internal class ImportLoadoutsDialog : Window
                     break;
                 case "StatWeights":
                     _ = xmlReader.Read();
-                    while (xmlReader.Name == "li" && xmlReader.NodeType == XmlNodeType.Element)
+                    while (xmlReader is { Name: "li", NodeType: XmlNodeType.Element })
                     {
                         _ = xmlReader.Read();
                         statWeights.Add(ReadStatWeightData(xmlReader));

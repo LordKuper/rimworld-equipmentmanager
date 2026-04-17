@@ -52,6 +52,10 @@
       <HintPath>..\..\..\Games\Steam\steamapps\common\RimWorld\RimWorldWin64_Data\Managed\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="LordKuper.Common">
+      <HintPath>..\..\rimworld-common\1.6\Assemblies\LordKuper.Common.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="SimpleSidearms">
       <HintPath>..\..\..\Games\Steam\steamapps\workshop\content\294100\927155256\v1.6\Assemblies\SimpleSidearms.dll</HintPath>
       <Private>False</Private>
@@ -83,13 +87,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CombatExtendedHelper.cs" />
-    <Compile Include="CustomToolStats.cs" />
-    <Compile Include="CustomRangedWeaponStats.cs" />
-    <Compile Include="CustomMeleeWeaponStats.cs" />
-    <Compile Include="CustomWidgets\ButtonImageToggle.cs" />
-    <Compile Include="CustomWidgets\CheckBox.cs" />
-    <Compile Include="CustomWidgets\LabelInput.cs" />
-    <Compile Include="CustomWidgets\PawnBox.cs" />
+    <Compile Include="LegacyCustomStatDefs.cs" />
     <Compile Include="CustomWidgets\UiHelpers.cs" />
     <Compile Include="DefOfs\PawnColumnDefOf.cs" />
     <Compile Include="EquipmentManagerGameComponent.cs" />
@@ -110,18 +108,12 @@
     <Compile Include="MeleeWeaponCache.cs" />
     <Compile Include="RangedWeaponCache.cs" />
     <Compile Include="RangedWeaponRule.cs" />
-    <Compile Include="RimworldTime.cs" />
     <Compile Include="PawnCapacityWeight.cs" />
-    <Compile Include="StatHelper.cs" />
-    <Compile Include="PawnCapacityLimit.cs" />
-    <Compile Include="SkillLimit.cs" />
-    <Compile Include="StatLimit.cs" />
+    <Compile Include="EquipmentManagerStatDefs.cs" />
     <Compile Include="SkillWeight.cs" />
-    <Compile Include="StatWeight.cs" />
     <Compile Include="ToolCache.cs" />
     <Compile Include="ToolRule.cs" />
     <Compile Include="MeleeWeaponRule.cs" />
-    <Compile Include="CustomWidgets\ThingBox.cs" />
     <Compile Include="Windows\LogDialog.cs" />
     <Compile Include="Windows\ImportLoadoutsDialog.cs" />
     <Compile Include="Windows\ManageLoadoutsDialog.cs" />

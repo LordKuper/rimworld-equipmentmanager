@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using LordKuper.Common;
+using LordKuper.Common.Filters.Limits;
 using Verse;
 
 namespace EquipmentManager;
@@ -20,8 +22,9 @@ internal partial class EquipmentManagerGameComponent
         return loadout;
     }
 
-    public void AddLoadout(Loadout loadout)
+    public void AddLoadout([NotNull] Loadout loadout)
     {
+        loadout.NormalizeLegacyCustomStatDefNames();
         var existingLoadout = _loadouts.FirstOrDefault(l => l.Id == loadout.Id);
         if (existingLoadout != null) { _ = _loadouts.Remove(existingLoadout); }
         _loadouts.Add(loadout);
@@ -67,8 +70,8 @@ internal partial class EquipmentManagerGameComponent
         }
         foreach (var skillLimit in loadout.SkillLimits)
         {
-            newLoadout.SkillLimits.Add(new SkillLimit(skillLimit.SkillDefName, skillLimit.MinValue,
-                skillLimit.MaxValue));
+            newLoadout.SkillLimits.Add(new PawnSkillLimit(skillLimit.SkillDefName,
+                skillLimit.MinValue, skillLimit.MaxValue));
         }
         foreach (var skillWeight in loadout.SkillWeights)
         {
@@ -117,7 +120,7 @@ internal partial class EquipmentManagerGameComponent
     public Loadout GetLoadout([NotNull] Pawn pawn)
     {
         if (pawn == null) { throw new ArgumentNullException(nameof(pawn)); }
-        if (_pawnLoadouts == null) { _pawnLoadouts = []; }
+        _pawnLoadouts ??= [];
         return GetLoadout(GetPawnLoadout(pawn).LoadoutId);
     }
 
@@ -131,7 +134,7 @@ internal partial class EquipmentManagerGameComponent
     public PawnLoadout GetPawnLoadout([NotNull] Pawn pawn)
     {
         if (pawn == null) { throw new ArgumentNullException(nameof(pawn)); }
-        if (_pawnLoadouts == null) { _pawnLoadouts = []; }
+        _pawnLoadouts ??= [];
         var pawnLoadout = _pawnLoadouts.FirstOrDefault(pl =>
             pl.Pawn != null && pl.Pawn.thingIDNumber == pawn.thingIDNumber);
         if (pawnLoadout != null) { return pawnLoadout; }
@@ -143,7 +146,7 @@ internal partial class EquipmentManagerGameComponent
     public void SetPawnLoadout([NotNull] Pawn pawn, [CanBeNull] Loadout loadout, bool automatic)
     {
         if (pawn == null) { throw new ArgumentNullException(nameof(pawn)); }
-        if (_pawnLoadouts == null) { _pawnLoadouts = []; }
+        _pawnLoadouts ??= [];
         var pawnLoadout = _pawnLoadouts.FirstOrDefault(pl =>
             pl.Pawn != null && pl.Pawn.thingIDNumber == pawn.thingIDNumber);
         if (pawnLoadout != null)

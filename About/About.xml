@@ -22,9 +22,19 @@
 			<steamWorkshopUrl>steam://url/CommunityFilePage/927155256</steamWorkshopUrl>
 		</li>
 	</modDependencies>
+	<modDependenciesByVersion>
+		<v1.6>
+			<li>
+				<packageId>LordKuper.Common</packageId>
+				<displayName>LordKuper.Common</displayName>
+				<steamWorkshopUrl>steam://url/CommunityFilePage/3531352422</steamWorkshopUrl>
+			</li>
+		</v1.6>
+	</modDependenciesByVersion>
 	<loadAfter>
 		<li>brrainz.harmony</li>
 		<li>petetimessix.simplesidearms</li>
+		<li>LordKuper.Common</li>
 		<li>OskarPotocki.VanillaFactionsExpanded.Core</li>
 		<li>CETeam.CombatExtended</li>
 	</loadAfter>

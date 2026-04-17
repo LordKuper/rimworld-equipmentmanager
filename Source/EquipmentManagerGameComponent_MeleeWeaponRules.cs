@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using LordKuper.Common;
 using RimWorld;
 using Verse;
 
@@ -33,8 +34,9 @@ internal partial class EquipmentManagerGameComponent
         return meleeWeaponRule;
     }
 
-    public void AddMeleeWeaponRule(MeleeWeaponRule meleeWeaponRule)
+    public void AddMeleeWeaponRule([NotNull] MeleeWeaponRule meleeWeaponRule)
     {
+        meleeWeaponRule.NormalizeLegacyCustomStatDefNames();
         var existingRule = _meleeWeaponRules.FirstOrDefault(rule => rule.Id == meleeWeaponRule.Id);
         if (existingRule != null) { _ = _meleeWeaponRules.Remove(existingRule); }
         _meleeWeaponRules.Add(meleeWeaponRule);
@@ -91,7 +93,7 @@ internal partial class EquipmentManagerGameComponent
     }
 
     [NotNull]
-    public MeleeWeaponCache GetMeleeWeaponCache([NotNull] Thing thing, [NotNull] RimworldTime time)
+    public MeleeWeaponCache GetMeleeWeaponCache([NotNull] Thing thing, RimWorldTime time)
     {
         if (!_meleeWeaponsCache.TryGetValue(thing, out var cache))
         {
@@ -103,8 +105,7 @@ internal partial class EquipmentManagerGameComponent
     }
 
     [NotNull]
-    public MeleeWeaponCache GetMeleeWeaponDefCache([NotNull] ThingDef thingDef,
-        [NotNull] RimworldTime time)
+    public MeleeWeaponCache GetMeleeWeaponDefCache([NotNull] ThingDef thingDef, RimWorldTime time)
     {
         if (!_meleeWeaponDefsCache.TryGetValue(thingDef, out var cache))
         {
