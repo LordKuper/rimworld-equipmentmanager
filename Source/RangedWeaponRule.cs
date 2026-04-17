@@ -12,6 +12,7 @@ namespace EquipmentManager;
 
 internal class RangedWeaponRule : ItemRule
 {
+    private static HashSet<ThingDef> _allRelevantThings;
     private int _ammoCount;
     private bool? _explosive;
     private bool? _manualCast;
@@ -33,8 +34,6 @@ internal class RangedWeaponRule : ItemRule
         _ammoCount = ammoCount;
     }
 
-    private static HashSet<ThingDef> _allRelevantThings;
-
     [NotNull]
     public static HashSet<ThingDef> AllRelevantThings
     {
@@ -48,12 +47,6 @@ internal class RangedWeaponRule : ItemRule
             }
             return _allRelevantThings;
         }
-    }
-
-    public static void ResetCache()
-    {
-        _allRelevantThings = null;
-        ResetEquipmentManagerCache();
     }
 
     public int AmmoCount
@@ -80,11 +73,9 @@ internal class RangedWeaponRule : ItemRule
             StatWeights =
             [
                 ..DefaultStatWeights.Union([
-                    new StatWeight(
-                        RangedWeaponStats.GetStatDefName(RangedWeaponStat.Dpsa), 2.0f,
+                    new StatWeight(RangedWeaponStats.GetStatDefName(RangedWeaponStat.Dpsa), 2.0f,
                         false),
-                    new StatWeight(
-                        RangedWeaponStats.GetStatDefName(RangedWeaponStat.Range), 0.5f,
+                    new StatWeight(RangedWeaponStats.GetStatDefName(RangedWeaponStat.Range), 0.2f,
                         false)
                 ])
             ],
@@ -100,14 +91,11 @@ internal class RangedWeaponRule : ItemRule
             StatWeights =
             [
                 ..DefaultStatWeights.Union([
-                    new StatWeight(
-                        RangedWeaponStats.GetStatDefName(RangedWeaponStat.Warmup),
-                        -2.0f, false),
-                    new StatWeight(
-                        RangedWeaponStats.GetStatDefName(RangedWeaponStat.DpsaShort),
+                    new StatWeight(RangedWeaponStats.GetStatDefName(RangedWeaponStat.Warmup), -2.0f,
+                        false),
+                    new StatWeight(RangedWeaponStats.GetStatDefName(RangedWeaponStat.DpsaShort),
                         1.0f, false),
-                    new StatWeight(
-                        RangedWeaponStats.GetStatDefName(RangedWeaponStat.Dpsa), 0.5f,
+                    new StatWeight(RangedWeaponStats.GetStatDefName(RangedWeaponStat.Dpsa), 0.5f,
                         false)
                 ])
             ],
@@ -129,14 +117,11 @@ internal class RangedWeaponRule : ItemRule
                     new StatWeight(
                         RangedWeaponStats.GetStatDefName(RangedWeaponStat.TicksBetweenBurstShots),
                         -2.0f, false),
-                    new StatWeight(
-                        RangedWeaponStats.GetStatDefName(RangedWeaponStat.Warmup),
-                        -0.5f, false),
-                    new StatWeight(
-                        RangedWeaponStats.GetStatDefName(RangedWeaponStat.Dpsa), 1.0f,
+                    new StatWeight(RangedWeaponStats.GetStatDefName(RangedWeaponStat.Warmup), -0.5f,
                         false),
-                    new StatWeight(
-                        RangedWeaponStats.GetStatDefName(RangedWeaponStat.Range), 0.5f,
+                    new StatWeight(RangedWeaponStats.GetStatDefName(RangedWeaponStat.Dpsa), 1.0f,
+                        false),
+                    new StatWeight(RangedWeaponStats.GetStatDefName(RangedWeaponStat.Range), 0.2f,
                         false),
                     new StatWeight("RangedWeapon_Cooldown", -1.5f, false)
                 ])
@@ -153,21 +138,16 @@ internal class RangedWeaponRule : ItemRule
             StatWeights =
             [
                 ..DefaultStatWeights.Union([
-                    new StatWeight(
-                        RangedWeaponStats.GetStatDefName(RangedWeaponStat.Range), 2.0f,
+                    new StatWeight(RangedWeaponStats.GetStatDefName(RangedWeaponStat.Range), 2.0f,
                         false),
-                    new StatWeight(
-                        RangedWeaponStats.GetStatDefName(RangedWeaponStat.Damage), 1.5f,
+                    new StatWeight(RangedWeaponStats.GetStatDefName(RangedWeaponStat.Damage), 1.5f,
                         false),
-                    new StatWeight(
-                        RangedWeaponStats.GetStatDefName(RangedWeaponStat.DpsaLong),
+                    new StatWeight(RangedWeaponStats.GetStatDefName(RangedWeaponStat.DpsaLong),
                         1.0f, false),
-                    new StatWeight(
-                        RangedWeaponStats.GetStatDefName(RangedWeaponStat.Dpsa), 0.5f,
+                    new StatWeight(RangedWeaponStats.GetStatDefName(RangedWeaponStat.Dpsa), 0.5f,
                         false),
-                    new StatWeight(
-                        RangedWeaponStats.GetStatDefName(RangedWeaponStat.StoppingPower), 0.5f,
-                        false)
+                    new StatWeight(RangedWeaponStats.GetStatDefName(RangedWeaponStat.StoppingPower),
+                        0.5f, false)
                 ])
             ],
             BlacklistedItemsDefNames = [..DefaultBlacklist],
@@ -179,8 +159,7 @@ internal class RangedWeaponRule : ItemRule
     public new static IEnumerable<StatWeight> DefaultStatWeights =>
         new[]
         {
-            new StatWeight(
-                RangedWeaponStats.GetStatDefName(RangedWeaponStat.ArmorPenetration),
+            new StatWeight(RangedWeaponStats.GetStatDefName(RangedWeaponStat.ArmorPenetration),
                 0.2f, false)
         }.Union(ItemRule.DefaultStatWeights);
 
@@ -269,6 +248,12 @@ internal class RangedWeaponRule : ItemRule
         var comp = thing.TryGetComp<CompForbiddable>();
         return (comp == null || !comp.Forbidden) && (GetWhitelistedItems().Contains(thing.def) ||
             (GetGloballyAvailableItems().Contains(thing.def) && SatisfiesLimits(thing, time)));
+    }
+
+    public static void ResetCache()
+    {
+        _allRelevantThings = null;
+        ResetEquipmentManagerCache();
     }
 
     private bool SatisfiesLimits([NotNull] Thing thing, RimWorldTime time)
