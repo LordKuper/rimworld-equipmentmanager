@@ -7,8 +7,8 @@ namespace EquipmentManager.Windows;
 
 internal class LogDialog : Window
 {
-    private static EquipmentManagerGameComponent _equipmentManager;
-    private static Vector2 _scrollPosition;
+    private EquipmentManagerGameComponent _equipmentManager;
+    private Vector2 _scrollPosition;
     private float _listingViewHeight;
 
     public LogDialog()
@@ -23,13 +23,13 @@ internal class LogDialog : Window
         absorbInputAroundWindow = false;
     }
 
-    private static EquipmentManagerGameComponent EquipmentManager =>
+    private EquipmentManagerGameComponent EquipmentManager =>
         _equipmentManager ??= Current.Game.GetComponent<EquipmentManagerGameComponent>();
 
     public override Vector2 InitialSize =>
         UiHelpers.GetWindowSize(new Vector2(500f, 500f), new Vector2(1000f, 1000f));
 
-    private static void CopyAllMessagesToClipboard()
+    private void CopyAllMessagesToClipboard()
     {
         var stringBuilder = new StringBuilder();
         foreach (var message in EquipmentManager.GetLog())
@@ -45,7 +45,8 @@ internal class LogDialog : Window
         var anchor = Text.Anchor;
         Text.Font = GameFont.Tiny;
         var widgetRow = new WidgetRow(0.0f, 0.0f, maxWidth: inRect.width);
-        if (widgetRow.ButtonText("Copy to clipboard", "Copy all messages to the clipboard."))
+        if (widgetRow.ButtonText(Resources.Strings.Loadouts.CopyToClipboard,
+                Resources.Strings.Loadouts.CopyToClipboardTooltip))
         {
             CopyAllMessagesToClipboard();
         }

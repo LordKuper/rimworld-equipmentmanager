@@ -29,22 +29,30 @@ internal class ToolRule : ItemRule
         _ranged = ranged;
     }
 
+    private static HashSet<ThingDef> _allRelevantThings;
+
     [NotNull]
     public static HashSet<ThingDef> AllRelevantThings
     {
         get
         {
-            if (field == null || field.Count == 0)
+            if (_allRelevantThings == null || _allRelevantThings.Count == 0)
             {
                 var relevantStats = EquipmentManager.GetWorkTypeRules()
                     .SelectMany(rule => rule.RequiredStats).ToHashSet();
-                field = new HashSet<ThingDef>(DefDatabase<ThingDef>.AllDefs.Where(def =>
-                    def.IsWeapon && !def.destroyOnDrop && (def.statBases ?? [])
-                    .Union(def.equippedStatOffsets ?? [])
-                    .Any(sm => relevantStats.Contains(sm.stat))));
+                _allRelevantThings = new HashSet<ThingDef>(DefDatabase<ThingDef>.AllDefs.Where(
+                    def => def.IsWeapon && !def.destroyOnDrop && (def.statBases ?? [])
+                        .Union(def.equippedStatOffsets ?? [])
+                        .Any(sm => relevantStats.Contains(sm.stat))));
             }
-            return field;
+            return _allRelevantThings;
         }
+    }
+
+    public static void ResetCache()
+    {
+        _allRelevantThings = null;
+        ResetEquipmentManagerCache();
     }
 
     [NotNull] public static IEnumerable<string> DefaultBlacklist => [];

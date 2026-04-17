@@ -94,7 +94,7 @@
     <Compile Include="EquipmentManagerGameComponent_Log.cs" />
     <Compile Include="EquipmentManagerGameComponent_WorkTypes.cs" />
     <Compile Include="EquipmentManagerGameComponent_ToolRules.cs" />
-    <Compile Include="EquipmentManagerGameComponent_RangedWeaponRules .cs" />
+    <Compile Include="EquipmentManagerGameComponent_RangedWeaponRules.cs" />
     <Compile Include="EquipmentManagerGameComponent_StatRanges.cs" />
     <Compile Include="EquipmentManagerGameComponent_MeleeWeaponRules.cs" />
     <Compile Include="EquipmentManagerGameComponent_Loadouts.cs" />

@@ -54,6 +54,12 @@ internal static class Resources
             internal static readonly string Log =
                 $"EquipmentManager.Loadouts.{nameof(Log)}".Translate();
 
+            internal static readonly string CopyToClipboard =
+                $"EquipmentManager.Loadouts.{nameof(CopyToClipboard)}".Translate();
+
+            internal static readonly string CopyToClipboardTooltip =
+                $"EquipmentManager.Loadouts.{nameof(CopyToClipboardTooltip)}".Translate();
+
             internal static readonly string ManageLoadouts =
                 $"EquipmentManager.Loadouts.{nameof(ManageLoadouts)}".Translate();
 

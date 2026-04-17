@@ -32,8 +32,7 @@ internal class Loadout : PawnColumnWorker
             new()
             {
                 option = new FloatMenuOption($"* {Resources.Strings.Loadouts.AutoSelect}",
-                    () => EquipmentManager.SetPawnLoadout(pawn,
-                        EquipmentManager.GetLoadout(0), true))
+                    () => EquipmentManager.SetPawnLoadout(pawn, null, true))
             }
         };
         elements.AddRange(loadouts.Select(currentLoadout =>
@@ -109,5 +108,10 @@ internal class Loadout : PawnColumnWorker
     public override int GetOptimalWidth(PawnTable table)
     {
         return Mathf.Clamp(Mathf.CeilToInt(251f), GetMinWidth(table), GetMaxWidth(table));
+    }
+
+    internal static void ResetEquipmentManagerCache()
+    {
+        _equipmentManager = null;
     }
 }

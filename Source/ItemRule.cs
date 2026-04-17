@@ -59,14 +59,12 @@ internal class ItemRule : IExposable
         CombatExtendedHelper.CombatExtended
             ? new[]
             {
-                new StatWeight("Mass", -0.1f, false),
-                new StatWeight("Bulk", -0.1f, false),
+                new StatWeight("Mass", -0.1f, false), new StatWeight("Bulk", -0.1f, false),
                 new StatWeight("MarketValue", 0.1f, false)
             }
             : new[]
             {
-                new StatWeight("Mass", -0.1f, false),
-                new StatWeight("MarketValue", 0.1f, false)
+                new StatWeight("Mass", -0.1f, false), new StatWeight("MarketValue", 0.1f, false)
             };
 
     protected static EquipmentManagerGameComponent EquipmentManager =>
@@ -165,6 +163,17 @@ internal class ItemRule : IExposable
         UpdateExclusiveItems();
     }
 
+    internal virtual void NormalizeLegacyCustomStatDefNames()
+    {
+        StatWeights = StatWeights?.Select(LegacyCustomStatDefs.NormalizeStatWeight).ToList() ?? [];
+        StatLimits = StatLimits?.Select(LegacyCustomStatDefs.NormalizeStatLimit).ToList() ?? [];
+    }
+
+    protected static void ResetEquipmentManagerCache()
+    {
+        _equipmentManager = null;
+    }
+
     public void SetStatLimit([NotNull] StatDef statDef, float? min, float? max)
     {
         if (statDef == null) { throw new ArgumentNullException(nameof(statDef)); }
@@ -190,12 +199,6 @@ internal class ItemRule : IExposable
             StatWeights.Add(statWeight);
         }
         statWeight.Weight = weight;
-    }
-
-    internal virtual void NormalizeLegacyCustomStatDefNames()
-    {
-        StatWeights = StatWeights?.Select(LegacyCustomStatDefs.NormalizeStatWeight).ToList() ?? [];
-        StatLimits = StatLimits?.Select(LegacyCustomStatDefs.NormalizeStatLimit).ToList() ?? [];
     }
 
     private void UpdateExclusiveItems()

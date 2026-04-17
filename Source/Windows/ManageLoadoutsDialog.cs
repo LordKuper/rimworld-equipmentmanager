@@ -14,9 +14,9 @@ namespace EquipmentManager.Windows;
 
 internal class ManageLoadoutsDialog : Window
 {
-    private static Vector2 _availablePawnsScrollPosition;
-    private static EquipmentManagerGameComponent _equipmentManager;
-    private static Vector2 _scrollPosition;
+    private Vector2 _availablePawnsScrollPosition;
+    private EquipmentManagerGameComponent _equipmentManager;
+    private Vector2 _scrollPosition;
     private float _scrollViewHeight;
 
     public ManageLoadoutsDialog(Loadout selectedLoadout)
@@ -31,7 +31,7 @@ internal class ManageLoadoutsDialog : Window
 
     private int AvailablePawnsRowCount => InitialSize.y < MaxSize.y ? 2 : 3;
 
-    private static EquipmentManagerGameComponent EquipmentManager =>
+    private EquipmentManagerGameComponent EquipmentManager =>
         _equipmentManager ??= Current.Game.GetComponent<EquipmentManagerGameComponent>();
 
     public override Vector2 InitialSize =>
@@ -143,8 +143,10 @@ internal class ManageLoadoutsDialog : Window
             new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
                 UiHelpers.ListRowHeight), Resources.Strings.Loadouts.PriorityLabel,
             Resources.Strings.Loadouts.PriorityTooltip);
-        Widgets.HorizontalSlider(priorityRect, ref SelectedLoadout.Priority, new FloatRange(0, 10),
-            $"{SelectedLoadout.Priority:N0}", 1f);
+        var priorityFloat = (float)SelectedLoadout.Priority;
+        Widgets.HorizontalSlider(priorityRect, ref priorityFloat, new FloatRange(0, 10),
+            $"{priorityFloat:N0}", 1f);
+        SelectedLoadout.Priority = (int)priorityFloat;
         var settingsRect = new Rect(rect.x, priorityRect.yMax + UiHelpers.ElementGap, rect.width,
             UiHelpers.ListRowHeight);
         var columnWidth =
@@ -1073,7 +1075,7 @@ internal class ManageLoadoutsDialog : Window
         CheckSelectedLoadoutHasName();
     }
 
-    private static void ResetScrollPositions()
+    private void ResetScrollPositions()
     {
         _scrollPosition.Set(0f, 0f);
         _availablePawnsScrollPosition.Set(0f, 0f);

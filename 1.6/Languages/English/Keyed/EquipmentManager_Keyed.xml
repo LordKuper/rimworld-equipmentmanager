@@ -13,6 +13,8 @@
 	<EquipmentManager.Loadouts.ManageWeaponRules>Manage rules</EquipmentManager.Loadouts.ManageWeaponRules>
 	<EquipmentManager.Loadouts.ImportLoadouts>Import loadouts</EquipmentManager.Loadouts.ImportLoadouts>
 	<EquipmentManager.Loadouts.Log>Log</EquipmentManager.Loadouts.Log>
+	<EquipmentManager.Loadouts.CopyToClipboard>Copy to clipboard</EquipmentManager.Loadouts.CopyToClipboard>
+	<EquipmentManager.Loadouts.CopyToClipboardTooltip>Copy all messages to the clipboard.</EquipmentManager.Loadouts.CopyToClipboardTooltip>
 	<EquipmentManager.Loadouts.SavedGamesListHeader>Saved games</EquipmentManager.Loadouts.SavedGamesListHeader>
 	<EquipmentManager.Loadouts.LoadoutListHeader>Loadouts</EquipmentManager.Loadouts.LoadoutListHeader>
 	<EquipmentManager.Loadouts.ImportData>Import</EquipmentManager.Loadouts.ImportData>
