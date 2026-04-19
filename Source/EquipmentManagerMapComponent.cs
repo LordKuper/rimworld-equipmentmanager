@@ -471,11 +471,13 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
                         }
                         pawn.AssignedWeapons.Add(bestWeapon, "melee sidearm");
                         assignedByOthers.Add(bestWeapon);
-                        if (carriedWeapons.Contains(bestWeapon) &&
-                            !sidearmMemory.RememberedWeapons.Contains(
-                                bestWeapon.toThingDefStuffDefPair()))
+                        if (carriedWeapons.Contains(bestWeapon))
                         {
-                            sidearmMemory.InformOfAddedSidearm(bestWeapon);
+                            if (!sidearmMemory.RememberedWeapons.Contains(
+                                    bestWeapon.toThingDefStuffDefPair()))
+                            {
+                                sidearmMemory.InformOfAddedSidearm(bestWeapon);
+                            }
                         }
                         else
                         {
@@ -495,11 +497,13 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
                         {
                             pawn.AssignedWeapons.Add(weapon, "melee sidearm");
                             assignedByOthers.Add(weapon);
-                            if (carriedWeapons.Contains(weapon) &&
-                                !sidearmMemory.RememberedWeapons.Contains(
-                                    weapon.toThingDefStuffDefPair()))
+                            if (carriedWeapons.Contains(weapon))
                             {
-                                sidearmMemory.InformOfAddedSidearm(weapon);
+                                if (!sidearmMemory.RememberedWeapons.Contains(
+                                        weapon.toThingDefStuffDefPair()))
+                                {
+                                    sidearmMemory.InformOfAddedSidearm(weapon);
+                                }
                             }
                             else
                             {
@@ -607,11 +611,13 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
                         }
                         pawn.AssignedWeapons.Add(bestWeapon, "ranged sidearm");
                         assignedByOthers.Add(bestWeapon);
-                        if (carriedWeapons.Contains(bestWeapon) &&
-                            !sidearmMemory.RememberedWeapons.Contains(
-                                bestWeapon.toThingDefStuffDefPair()))
+                        if (carriedWeapons.Contains(bestWeapon))
                         {
-                            sidearmMemory.InformOfAddedSidearm(bestWeapon);
+                            if (!sidearmMemory.RememberedWeapons.Contains(
+                                    bestWeapon.toThingDefStuffDefPair()))
+                            {
+                                sidearmMemory.InformOfAddedSidearm(bestWeapon);
+                            }
                         }
                         else
                         {
@@ -634,11 +640,13 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
                         {
                             pawn.AssignedWeapons.Add(weapon, "ranged sidearm");
                             assignedByOthers.Add(weapon);
-                            if (carriedWeapons.Contains(weapon) &&
-                                !sidearmMemory.RememberedWeapons.Contains(
-                                    weapon.toThingDefStuffDefPair()))
+                            if (carriedWeapons.Contains(weapon))
                             {
-                                sidearmMemory.InformOfAddedSidearm(weapon);
+                                if (!sidearmMemory.RememberedWeapons.Contains(
+                                        weapon.toThingDefStuffDefPair()))
+                                {
+                                    sidearmMemory.InformOfAddedSidearm(weapon);
+                                }
                             }
                             else
                             {

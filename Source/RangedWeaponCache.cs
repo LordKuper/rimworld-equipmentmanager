@@ -203,12 +203,21 @@ internal class RangedWeaponCache([NotNull] Thing thing) : ItemCache
         {
             throw new ArgumentNullException(nameof(projectileProperties));
         }
-        try { Damage = projectileProperties.GetDamageAmount(Thing); }
-        catch (Exception e)
+        if (projectileProperties.damageDef == null)
         {
             Log.Warning(
-                $"Equipment Manager: Could not get projectile damage for {Thing.LabelCapNoCount}: {e.Message}");
+                $"Equipment Manager: Projectile for {Thing.LabelCapNoCount} has no damageDef, damage set to 0");
             Damage = 0;
+        }
+        else
+        {
+            try { Damage = projectileProperties.GetDamageAmount(Thing); }
+            catch (Exception e)
+            {
+                Log.Warning(
+                    $"Equipment Manager: Could not get projectile damage for {Thing.LabelCapNoCount}: {e.Message}");
+                Damage = 0;
+            }
         }
         StoppingPower = projectileProperties.stoppingPower;
         try { ArmorPenetration = projectileProperties.GetArmorPenetration(Thing); }
@@ -223,7 +232,13 @@ internal class RangedWeaponCache([NotNull] Thing thing) : ItemCache
     private void ReadProjectilePropertiesCombatExtended(
         [NotNull] ProjectileProperties projectileProperties)
     {
-        Damage = projectileProperties.GetDamageAmount(Thing);
+        if (projectileProperties.damageDef == null)
+        {
+            Log.Warning(
+                $"Equipment Manager: Projectile for {Thing.LabelCapNoCount} has no damageDef, damage set to 0");
+            Damage = 0;
+        }
+        else { Damage = projectileProperties.GetDamageAmount(Thing); }
         StoppingPower = projectileProperties.stoppingPower;
         if (projectileProperties.GetType() != CombatExtendedHelper.ProjectilePropertiesType)
         {
