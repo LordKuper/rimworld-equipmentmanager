@@ -18,7 +18,6 @@ internal partial class EquipmentManagerGameComponent : GameComponent
         ExposeData_MeleeWeaponRules();
         ExposeData_RangedWeaponRules();
         ExposeData_Loadouts();
-        ExposeData_StatRanges();
     }
 
     public override void FinalizeInit()
@@ -34,7 +33,6 @@ internal partial class EquipmentManagerGameComponent : GameComponent
         foreach (var rule in GetMeleeWeaponRules()) { rule.NormalizeLegacyCustomStatDefNames(); }
         foreach (var rule in GetRangedWeaponRules()) { rule.NormalizeLegacyCustomStatDefNames(); }
         foreach (var rule in GetToolRules()) { rule.NormalizeLegacyCustomStatDefNames(); }
-        if (_statRanges != null) { _statRanges = LegacyCustomStatDefs.NormalizeStatRanges(_statRanges); }
         foreach (var rule in GetMeleeWeaponRules()) { rule.UpdateGloballyAvailableItems(); }
         foreach (var rule in GetRangedWeaponRules()) { rule.UpdateGloballyAvailableItems(); }
         foreach (var rule in GetToolRules()) { rule.UpdateGloballyAvailableItems(); }

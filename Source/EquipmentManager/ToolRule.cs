@@ -155,7 +155,7 @@ internal class ToolRule : ItemRule
         if (def == null) { throw new ArgumentNullException(nameof(def)); }
         var cache = EquipmentManager.GetToolDefCache(def, time);
         return StatWeights.Where(statWeight => statWeight.StatDef != null).Sum(statWeight =>
-            EquipmentManager.NormalizeStatValue(statWeight.StatDef,
+            StatRanges.NormalizeStatValue(statWeight.StatDef,
                 cache.GetStatValueDeviation(statWeight.StatDef, workTypeDefs)) * statWeight.Weight);
     }
 
@@ -165,7 +165,7 @@ internal class ToolRule : ItemRule
         if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
         var cache = EquipmentManager.GetToolCache(thing, time);
         var score = StatWeights.Where(sw => sw.StatDef != null).Sum(statWeight =>
-            EquipmentManager.NormalizeStatValue(statWeight.StatDef,
+            StatRanges.NormalizeStatValue(statWeight.StatDef,
                 cache.GetStatValueDeviation(statWeight.StatDef, workTypeDefs)) * statWeight.Weight);
         if (thing.def.useHitPoints)
         {
@@ -220,7 +220,7 @@ internal class ToolRule : ItemRule
             .Union(StatLimits.Where(sl => sl.StatDef != null).Select(sl => sl.StatDef));
         foreach (var stat in stats)
         {
-            EquipmentManager.UpdateStatRange(stat, cache.GetStatValueDeviation(stat, workTypeDefs));
+            StatRanges.NormalizeStatValue(stat, cache.GetStatValueDeviation(stat, workTypeDefs));
         }
     }
 }

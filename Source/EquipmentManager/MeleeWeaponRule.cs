@@ -179,7 +179,7 @@ internal class MeleeWeaponRule : ItemRule
         if (def == null) { throw new ArgumentNullException(nameof(def)); }
         var cache = EquipmentManager.GetMeleeWeaponDefCache(def, time);
         return StatWeights.Where(statWeight => statWeight.StatDef != null).Sum(statWeight =>
-            EquipmentManager.NormalizeStatValue(statWeight.StatDef,
+            StatRanges.NormalizeStatValue(statWeight.StatDef,
                 cache.GetStatValueDeviation(statWeight.StatDef)) * statWeight.Weight);
     }
 
@@ -188,7 +188,7 @@ internal class MeleeWeaponRule : ItemRule
         if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
         var cache = EquipmentManager.GetMeleeWeaponCache(thing, time);
         var score = StatWeights.Where(sw => sw.StatDef != null).Sum(statWeight =>
-            EquipmentManager.NormalizeStatValue(statWeight.StatDef,
+            StatRanges.NormalizeStatValue(statWeight.StatDef,
                 cache.GetStatValueDeviation(statWeight.StatDef)) * statWeight.Weight);
         if (thing.def.useHitPoints)
         {
@@ -244,7 +244,7 @@ internal class MeleeWeaponRule : ItemRule
             .Union(StatLimits.Where(sl => sl.StatDef != null).Select(sl => sl.StatDef));
         foreach (var stat in stats)
         {
-            EquipmentManager.UpdateStatRange(stat, cache.GetStatValueDeviation(stat));
+            StatRanges.NormalizeStatValue(stat, cache.GetStatValueDeviation(stat));
         }
     }
 }

@@ -48,25 +48,6 @@ internal static class LegacyCustomStatDefs
     }
 
     [NotNull]
-    public static Dictionary<string, FloatRange> NormalizeStatRanges(
-        [NotNull] Dictionary<string, FloatRange> statRanges)
-    {
-        var normalized = new Dictionary<string, FloatRange>();
-        foreach ((var key, var value) in statRanges)
-        {
-            var normalizedKey = NormalizeStatDefName(key);
-            if (!normalized.TryGetValue(normalizedKey, out var current))
-            {
-                normalized[normalizedKey] = value;
-                continue;
-            }
-            normalized[normalizedKey] = new FloatRange(Math.Min(current.min, value.min),
-                Math.Max(current.max, value.max));
-        }
-        return normalized;
-    }
-
-    [NotNull]
     public static StatWeight NormalizeStatWeight([NotNull] StatWeight statWeight)
     {
         var normalizedName = NormalizeStatDefName(statWeight.StatDefName);
