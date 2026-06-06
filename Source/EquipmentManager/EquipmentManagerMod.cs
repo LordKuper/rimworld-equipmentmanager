@@ -9,11 +9,13 @@ namespace EquipmentManager;
 [UsedImplicitly]
 public class EquipmentManagerMod : Mod
 {
+    internal const string ModId = "LordKuper.EquipmentManager";
+
     public EquipmentManagerMod(ModContentPack content) : base(content)
     {
         Log.Message(
             $"Equipment Manager: Initializing (v.{Assembly.GetExecutingAssembly().GetName().Version})...");
-        var harmony = new Harmony("LordKuper.EquipmentManager");
+        var harmony = new Harmony(ModId);
         harmony.PatchAll(Assembly.GetExecutingAssembly());
         DetectVanillaFactionsExpandedCore();
         DetectCombatExtended();

@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="EquipmentManager/EquipmentManager.csproj" />
+  <Project Path="EquipmentManager.Tests/EquipmentManager.Tests.csproj" />
+</Solution>

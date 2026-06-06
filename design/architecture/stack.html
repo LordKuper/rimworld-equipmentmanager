@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<!--
+responsibility:
+  owns: current tech stack reference (languages, frameworks, runtime, infra)
+  excludes: build commands, architecture decisions, deployment ops
+  delegates_to: commands.yaml (commands), adr/ (decisions), runbooks (ops)
+provenance: reverse-engineered
+source: Source/EquipmentManager/EquipmentManager.csproj
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="ASD workflow">
+  <meta name="doc-type" content="stack">
+  <meta name="subsystem" content="—">
+  <meta name="sprint-id" content="—">
+  <meta name="status" content="approved">
+  <meta name="updated" content="2026-06-06">
+  <meta name="responsibility" content="current tech stack reference (languages, frameworks, runtime, infra)">
+  <meta name="provenance" content="reverse-engineered">
+  <meta name="source" content="Source/EquipmentManager/EquipmentManager.csproj">
+  <title>EquipmentManager — Tech Stack</title>
+  <style>
+    :root {
+      --fg: #1a1c1e; --bg: #fff; --muted: #5b6770; --accent: #0066cc;
+      --code-bg: #f4f6f8; --border: #d0d7de; --max: 1040px;
+      --card-bg: #fafbfc;
+      --ok: #1f883d; --warn: #b35900; --danger: #cf222e; --info: #0969da; --neutral: #5b6770;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --fg: #e6e6e6; --bg: #0e1116; --muted: #9aa4ad; --code-bg: #161b22; --border: #30363d;
+        --card-bg: #161b22;
+      }
+    }
+    html, body { margin: 0; padding: 0; }
+    * { box-sizing: border-box; }
+    body { font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--fg); background: var(--bg); }
+    .layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: 100vh; }
+    .content { min-width: 0; }
+    header, main, footer { max-width: var(--max); margin: 0 auto; padding: 16px 24px; }
+    header { border-bottom: 1px solid var(--border); }
+    header h1 { margin: 4px 0 8px; font-size: 1.9rem; }
+    .badges span { display: inline-block; padding: 2px 8px; margin-right: 6px; font-size: 0.75rem; border: 1px solid var(--border); border-radius: 4px; color: var(--muted); background: var(--bg); }
+    .badges .provenance-reverse-engineered { color: var(--warn); border-color: var(--warn); }
+    .badges .status-approved { color: var(--ok); border-color: var(--ok); }
+    .stats { margin-top: 6px; font-size: 0.85rem; color: var(--muted); }
+    .stats .chip { display: inline-block; padding: 1px 8px; margin-right: 6px; border-radius: 10px; background: var(--code-bg); border: 1px solid var(--border); }
+    nav.toc { position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto; padding: 18px 14px; border-right: 1px solid var(--border); background: var(--card-bg); font-size: 0.9rem; }
+    nav.toc .toc-title { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 8px; padding-left: 6px; }
+    nav.toc ol { list-style: none; margin: 0; padding: 0; counter-reset: tocn; }
+    nav.toc li { margin: 2px 0; counter-increment: tocn; }
+    nav.toc a { display: block; padding: 4px 8px; border-radius: 4px; color: var(--fg); text-decoration: none; border-left: 2px solid transparent; }
+    nav.toc a:hover { background: var(--code-bg); color: var(--accent); }
+    nav.toc a::before { content: counter(tocn) ". "; color: var(--muted); font-variant-numeric: tabular-nums; }
+    @media (max-width: 880px) {
+      .layout { grid-template-columns: 1fr; }
+      nav.toc { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--border); }
+    }
+    h2, h3 { line-height: 1.25; margin-top: 1.6em; }
+    h2 { border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+    a { color: var(--accent); }
+    code { font-family: ui-monospace, "Cascadia Code", Menlo, monospace; background: var(--code-bg); padding: 1px 5px; border-radius: 3px; font-size: 0.9em; }
+    table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+    th, td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; vertical-align: top; }
+    th { background: var(--code-bg); }
+    tbody tr:nth-child(even) td { background: var(--card-bg); }
+    footer { color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--border); margin-top: 32px; }
+    section.callout { border-left: 4px solid var(--border); padding: 8px 14px; background: var(--card-bg); border-radius: 4px; }
+    section.callout.warn { border-left-color: var(--warn); }
+    section.callout.warn h2::before { content: "⊘ "; color: var(--warn); }
+    section.hero { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; }
+    table.tech-table .ver { font-variant-numeric: tabular-nums; color: var(--muted); }
+    .chip { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 0.78rem; border: 1px solid var(--border); }
+    .chip.area { background: var(--code-bg); color: var(--muted); }
+    .chip.risk-high { background: var(--code-bg); color: var(--danger); border-color: var(--danger); }
+    .chip.risk-medium { background: var(--code-bg); color: var(--warn); border-color: var(--warn); }
+    .chip.risk-low { background: var(--code-bg); color: var(--ok); border-color: var(--ok); }
+    .principle-list { list-style: none; padding: 0; }
+    .principle-list li { background: var(--card-bg); border: 1px solid var(--border); border-left: 3px solid var(--info); border-radius: 6px; padding: 8px 12px; margin: 6px 0; }
+    .principle-list li strong { color: var(--info); }
+    @media print { nav.toc { background: none; border: 1px solid var(--border); } a { color: inherit; text-decoration: none; } footer { page-break-before: always; } tr, li { break-inside: avoid; } }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav class="toc" aria-label="Table of contents">
+      <p class="toc-title">Contents</p>
+      <ol>
+        <li><a href="#languages">Languages</a></li>
+        <li><a href="#frameworks">Frameworks / libraries</a></li>
+        <li><a href="#runtime-infrastructure">Runtime / infrastructure</a></li>
+        <li><a href="#tooling">Tooling</a></li>
+        <li><a href="#constraints">Constraints</a></li>
+        <li><a href="#knowledge-gap">Knowledge-gap risk</a></li>
+      </ol>
+    </nav>
+    <div class="content">
+      <header>
+        <div class="badges">
+          <span>stack</span>
+          <span class="status-approved">approved</span>
+          <span class="provenance-reverse-engineered">reverse-engineered — EquipmentManager.csproj</span>
+        </div>
+        <h1>EquipmentManager — Tech Stack</h1>
+        <div class="stats"><span class="chip">RimWorld mod</span><span class="chip">net48</span><span class="chip">versions verified 2026-06-06</span></div>
+      </header>
+      <main>
+
+<section id="languages">
+  <h2>Languages</h2>
+  <table class="tech-table">
+    <thead><tr><th>Language</th><th>Version</th><th>Used in</th></tr></thead>
+    <tbody>
+      <tr><td><strong>C#</strong></td><td class="ver"><code>LangVersion latest</code>, compiled for <code>net48</code></td><td><span class="chip area">production + tests</span></td></tr>
+    </tbody>
+  </table>
+  <p><b>Nullability</b>: target standard is <code>&lt;Nullable&gt;enable&lt;/Nullable&gt;</code> for all projects. The test project already enables it; the production project does <b>not</b> yet — flipping it surfaces ~148 warnings that fail the build under <code>TreatWarningsAsErrors</code>, so the production nullable migration is scheduled as the first sprint, not done ad hoc.</p>
+</section>
+
+<section id="frameworks">
+  <h2>Frameworks / libraries</h2>
+  <table class="tech-table">
+    <thead><tr><th>Name</th><th>Version</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><strong>RimWorld <code>Assembly-CSharp</code></strong></td><td class="ver">game-bound (1.3–1.6)</td><td>Core game API the mod patches/extends; HintPath reference, not NuGet</td></tr>
+      <tr><td><strong>UnityEngine.CoreModule</strong></td><td class="ver">game-bound</td><td>Unity runtime types used by RimWorld</td></tr>
+      <tr><td><strong>UnityEngine.IMGUIModule</strong></td><td class="ver">game-bound</td><td>Immediate-mode GUI for mod settings/windows</td></tr>
+      <tr><td><strong>UnityEngine.TextRenderingModule</strong></td><td class="ver">game-bound</td><td>Text rendering for UI</td></tr>
+      <tr><td><strong>Lib.Harmony</strong></td><td class="ver">2.4.2 (compile-only)</td><td>Runtime method patching; runtime copy supplied by the Harmony mod (<code>ExcludeAssets=runtime</code>)</td></tr>
+      <tr><td><strong>LordKuper.Common</strong></td><td class="ver">upstream, 1.6 (compile-only)</td><td>Shared stat/filter/helper library; upstream integration contract, not forked</td></tr>
+      <tr><td><strong>SimpleSidearms</strong></td><td class="ver">workshop 927155256, v1.6 (compile-only)</td><td>Sidearm-loadout integration target</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="runtime-infrastructure">
+  <h2>Runtime / infrastructure</h2>
+  <table class="tech-table">
+    <thead><tr><th>Component</th><th>Version</th><th>Role</th></tr></thead>
+    <tbody>
+      <tr><td><strong>.NET Framework runtime</strong></td><td class="ver">net48 (Mono, hosted by RimWorld)</td><td><span class="chip area">execution target</span></td></tr>
+      <tr><td><strong>RimWorld game</strong></td><td class="ver">1.3 / 1.4 / 1.5 / 1.6</td><td><span class="chip area">host process; loads from 1.6/Assemblies/</span></td></tr>
+      <tr><td><strong>Harmony (mod)</strong></td><td class="ver">brrainz.harmony (workshop 2009463077)</td><td><span class="chip area">hard runtime dependency</span></td></tr>
+      <tr><td><strong>Simple Sidearms (mod)</strong></td><td class="ver">petetimessix.simplesidearms (927155256)</td><td><span class="chip area">hard runtime dependency</span></td></tr>
+      <tr><td><strong>LordKuper.Common (mod)</strong></td><td class="ver">workshop 3531352422</td><td><span class="chip area">hard runtime dependency, v1.6 only</span></td></tr>
+      <tr><td><strong>Steam Workshop</strong></td><td class="ver">—</td><td><span class="chip area">distribution channel (published)</span></td></tr>
+    </tbody>
+  </table>
+  <p><b>Soft-ordering</b> (<code>loadAfter</code>, not dependencies): Vanilla Factions Expanded Core (<code>OskarPotocki.VanillaFactionsExpanded.Core</code>) and Combat Extended (<code>CETeam.CombatExtended</code>). Both are optional and bound reflectively via Harmony <code>AccessTools</code> / <code>MethodDelegate</code> (<code>CombatExtendedHelper.cs</code>), in contrast to the hard deps which use direct typed references.</p>
+</section>
+
+<section id="tooling">
+  <h2>Tooling</h2>
+  <table class="tech-table">
+    <thead><tr><th>Tool</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><strong>dotnet SDK</strong> <span class="ver">10.0.300</span></td><td>MSBuild build/test/format driver (machine-resolved, no <code>global.json</code>); builds the <code>.slnx</code> solution</td></tr>
+      <tr><td><strong>MSBuild (via dotnet)</strong></td><td><code>build: dotnet build Source/EquipmentManager.slnx -c Release</code></td></tr>
+      <tr><td><strong>dotnet test</strong></td><td><code>dotnet test Source/EquipmentManager.slnx</code></td></tr>
+      <tr><td><strong>dotnet format</strong></td><td><code>lint: dotnet format … --verify-no-changes</code>; fix: <code>dotnet format …</code></td></tr>
+      <tr><td><strong>Microsoft.CodeAnalysis.NetAnalyzers</strong> <span class="ver">9.0.0</span></td><td>Roslyn CA analyzers; build-breaking under <code>TreatWarningsAsErrors</code> + <code>WarningLevel 9999</code>. Deliberate pin to .NET 9 band (latest 10.0.300 = future upgrade candidate)</td></tr>
+      <tr><td><strong>JetBrains ReSharper GlobalTools (<code>jb</code>)</strong> <span class="ver">2026.1.2</span></td><td><code>jb cleanupcode</code> (pre-build) + <code>jb inspectcode</code> → SARIF (post-lint; verify zero error/warning)</td></tr>
+      <tr><td><strong>Microsoft.NET.Test.Sdk</strong> <span class="ver">18.6.0</span></td><td>Test host/platform</td></tr>
+      <tr><td><strong>NUnit</strong> <span class="ver">4.6.1</span></td><td>Test framework (4.x; asserts via FluentAssertions, not <code>Assert.*</code>)</td></tr>
+      <tr><td><strong>NUnit3TestAdapter</strong> <span class="ver">6.2.0</span></td><td>VSTest adapter (runs NUnit 4 tests despite the "3" in the name)</td></tr>
+      <tr><td><strong>FluentAssertions</strong> <span class="ver">7.2.2</span></td><td>Assertion library; <b>pinned to 7.x (Apache-2.0)</b> — 8.x is commercially licensed</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="constraints" class="callout warn">
+  <h2>Constraints</h2>
+  <ul>
+    <li><b>FluentAssertions pinned to 7.x (Apache-2.0).</b> Never upgrade to 8.x — 8.x is commercially licensed (Xceed). License-driven hard constraint.</li>
+    <li><b>net48 target only.</b> Dictated by RimWorld's Mono runtime; cannot target modern .NET runtimes.</li>
+    <li><b>RimWorld assemblies are not NuGet.</b> <code>Assembly-CSharp</code> + Unity modules are HintPath references resolved from a local RimWorld install (<code>RimWorldManagedDir</code> / <code>RIMWORLD_DIR</code>); build requires the game installed.</li>
+    <li><b>LordKuper.Common is upstream, read-only.</b> Consume its public surface; do not fork (resolved from <code>..\..\rimworld-common\1.6\Assemblies</code>, overridable via <code>LORDKUPER_COMMON_DIR</code>).</li>
+    <li><b>LordKuper.Common runtime dep is v1.6-only</b> (<code>modDependenciesByVersion</code>); 1.3–1.5 do not depend on it at runtime.</li>
+    <li><b>SimpleSidearms reference resolved from a local Workshop path</b> (<code>SimpleSidearmsDir</code> / <code>SIMPLE_SIDEARMS_DIR</code>); compile-only.</li>
+    <li><b>Compile-only references must not ship.</b> Harmony <code>ExcludeAssets=runtime</code>; LordKuper.Common / SimpleSidearms <code>Private=False</code> — runtime copies come from the player's installed mods.</li>
+    <li><b>Warnings-as-errors, all configs.</b> <code>TreatWarningsAsErrors=true</code>, <code>WarningLevel 9999</code> — any analyzer warning fails the build.</li>
+    <li><b>Published mod.</b> Live on Steam Workshop; changes affect existing subscribers and saved games.</li>
+  </ul>
+</section>
+
+<section id="knowledge-gap" class="hero">
+  <h2>Knowledge-gap risk</h2>
+  <p>Per-tech risk vs LLM training cutoff (all versions verified latest-stable on 2026-06-06). Detailed notes per tech live in <code>design/architecture/tech-reference/</code>.</p>
+  <ul>
+    <li><span class="chip risk-high">HIGH</span> <strong>LordKuper.Common</strong> — private upstream, zero training coverage; consumed surface grep-confirmed only.</li>
+    <li><span class="chip risk-medium">MEDIUM</span> RimWorld / Unity API (game-bound) · SimpleSidearms (modding API) · NUnit 4.x (API differs from 3.x) · dotnet SDK 10.x toolchain · jb 2026.1.2 CLI/SARIF · NetAnalyzers pin (9.0.0 vs latest 10.0.300).</li>
+    <li><span class="chip risk-low">LOW</span> C# / net48 · Lib.Harmony 2.4.2 · Microsoft.NET.Test.Sdk 18.6.0 · NUnit3TestAdapter 6.2.0 · FluentAssertions 7.2.2 usage (HIGH only if upgraded past 7.x unaware).</li>
+  </ul>
+  <p><b>Overall: HIGH</b> (driven by the LordKuper.Common upstream dependency).</p>
+</section>
+
+      </main>
+      <footer>by asd-architect | 2026-06-06 | sprint —</footer>
+    </div>
+  </div>
+</body>
+</html>
