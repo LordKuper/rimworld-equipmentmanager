@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<!--
+responsibility:
+  owns: product requirements (sprint draft full scope, or persistent per-subsystem feature set)
+  excludes: ui mockups, design decisions, code, ux flows
+  delegates_to: ux-spec.html (ui + flows), adr.html (decisions)
+provenance: original
+source: ""
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="ASD workflow">
+  <meta name="doc-type" content="PRD">
+  <meta name="subsystem" content="sprint">
+  <meta name="sprint-id" content="001-full-audit-alignment">
+  <meta name="status" content="draft">
+  <meta name="updated" content="2026-06-07">
+  <meta name="responsibility" content="product requirements (sprint remediation acceptance)">
+  <meta name="provenance" content="original">
+  <meta name="source" content="">
+  <title>EquipmentManager — Remediation PRD (sprint 001-full-audit-alignment)</title>
+  <style>
+    :root {
+      --fg: #1a1c1e; --bg: #fff; --muted: #5b6770; --accent: #0066cc;
+      --code-bg: #f4f6f8; --border: #d0d7de; --max: 1040px;
+      --card-bg: #fafbfc;
+      --ok: #1f883d; --warn: #b35900; --danger: #cf222e; --info: #0969da; --neutral: #5b6770;
+      --chip-must-bg: #ffebe9; --chip-must-fg: #cf222e;
+      --chip-should-bg: #fff5e1; --chip-should-fg: #9a6700;
+      --chip-may-bg: #ddf4ff; --chip-may-fg: #0969da;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --fg: #e6e6e6; --bg: #0e1116; --muted: #9aa4ad; --code-bg: #161b22; --border: #30363d;
+        --card-bg: #161b22;
+        --chip-must-bg: #3b1416; --chip-must-fg: #ff7b72;
+        --chip-should-bg: #2d2410; --chip-should-fg: #e3b341;
+        --chip-may-bg: #0d2538; --chip-may-fg: #58a6ff;
+      }
+    }
+    html, body { margin: 0; padding: 0; }
+    * { box-sizing: border-box; }
+    body { font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--fg); background: var(--bg); }
+    .layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: 100vh; }
+    .content { min-width: 0; }
+    header, main, footer { max-width: var(--max); margin: 0 auto; padding: 16px 24px; }
+    header { border-bottom: 1px solid var(--border); }
+    header h1 { margin: 4px 0 8px; font-size: 1.9rem; }
+    .badges span { display: inline-block; padding: 2px 8px; margin-right: 6px; font-size: 0.75rem; border: 1px solid var(--border); border-radius: 4px; color: var(--muted); background: var(--bg); }
+    .badges .provenance-reverse-engineered, .badges .provenance-migrated { color: var(--warn); border-color: var(--warn); }
+    .badges .status-draft       { color: var(--neutral); border-color: var(--neutral); }
+    .badges .status-in-review   { color: var(--warn);    border-color: var(--warn); }
+    .badges .status-approved    { color: var(--ok);      border-color: var(--ok); }
+    .badges .status-locked      { color: var(--info);    border-color: var(--info); }
+    .stats { margin-top: 6px; font-size: 0.85rem; color: var(--muted); }
+    .stats .chip { display: inline-block; padding: 1px 8px; margin-right: 6px; border-radius: 10px; background: var(--code-bg); border: 1px solid var(--border); }
+    nav.toc { position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto; padding: 18px 14px; border-right: 1px solid var(--border); background: var(--card-bg); font-size: 0.9rem; }
+    nav.toc .toc-title { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 8px; padding-left: 6px; }
+    nav.toc ol { list-style: none; margin: 0; padding: 0; counter-reset: tocn; }
+    nav.toc li { margin: 2px 0; counter-increment: tocn; }
+    nav.toc a { display: block; padding: 4px 8px; border-radius: 4px; color: var(--fg); text-decoration: none; border-left: 2px solid transparent; }
+    nav.toc a:hover { background: var(--code-bg); color: var(--accent); }
+    nav.toc a.active { background: var(--code-bg); color: var(--accent); border-left-color: var(--accent); font-weight: 600; }
+    nav.toc a::before { content: counter(tocn) ". "; color: var(--muted); font-variant-numeric: tabular-nums; }
+    @media (max-width: 880px) {
+      .layout { grid-template-columns: 1fr; }
+      nav.toc { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--border); }
+    }
+    h2, h3, h4 { line-height: 1.25; margin-top: 1.6em; }
+    h2 { border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+    a { color: var(--accent); }
+    code, pre { font-family: ui-monospace, "Cascadia Code", Menlo, monospace; }
+    code { background: var(--code-bg); padding: 1px 5px; border-radius: 3px; font-size: 0.9em; }
+    pre { background: var(--code-bg); padding: 12px; border-radius: 6px; overflow-x: auto; }
+    pre code { background: none; padding: 0; }
+    table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+    th, td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; vertical-align: top; }
+    th { background: var(--code-bg); position: sticky; top: 0; z-index: 1; }
+    tbody tr:nth-child(even) td { background: var(--card-bg); }
+    blockquote { border-left: 3px solid var(--accent); margin: 0; padding: 4px 14px; color: var(--muted); }
+    footer { color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--border); margin-top: 32px; }
+    .lede { font-size: 1.08rem; color: var(--fg); }
+    section.hero { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; }
+    section.callout { border-left: 4px solid var(--border); padding: 8px 14px; background: var(--card-bg); border-radius: 4px; }
+    section.callout.warn { border-left-color: var(--warn); }
+    section.callout.warn h2::before { content: "⊘ "; color: var(--warn); }
+    ol.goal-grid { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px; }
+    ol.goal-grid li { background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; display: flex; gap: 10px; }
+    ol.goal-grid .num { flex: 0 0 auto; font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; }
+    ol.goal-grid p { margin: 0; }
+    details.role-group { border: 1px solid var(--border); border-radius: 6px; margin: 8px 0; background: var(--card-bg); }
+    details.role-group > summary { cursor: pointer; padding: 8px 12px; font-weight: 600; }
+    details.role-group > summary .count { display: inline-block; margin-left: 6px; padding: 0 7px; border-radius: 10px; background: var(--code-bg); border: 1px solid var(--border); font-weight: 400; font-size: 0.8rem; color: var(--muted); }
+    details.role-group ul.stories { margin: 0; padding: 4px 16px 12px 28px; }
+    ul.stories li { margin: 4px 0; }
+    ul.stories b { color: var(--accent); font-weight: 600; }
+    table.ac-table td:first-child { white-space: nowrap; font-variant-numeric: tabular-nums; font-weight: 600; }
+    .chip { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 0.78rem; border: 1px solid var(--border); }
+    .chip.area { background: var(--code-bg); color: var(--muted); }
+    .chip.prio-must   { background: var(--chip-must-bg);   color: var(--chip-must-fg); border-color: var(--chip-must-fg); }
+    .chip.prio-should { background: var(--chip-should-bg); color: var(--chip-should-fg); border-color: var(--chip-should-fg); }
+    .chip.prio-may    { background: var(--chip-may-bg);    color: var(--chip-may-fg); border-color: var(--chip-may-fg); }
+    ul.non-goals { margin: 0; padding-left: 22px; }
+    ul.non-goals li::marker { content: "⊘  "; color: var(--warn); }
+    @media print {
+      nav.toc { background: none; border: 1px solid var(--border); }
+      a { color: inherit; text-decoration: none; }
+      footer { page-break-before: always; }
+      details.role-group[open] > summary { list-style: none; }
+      details.role-group { break-inside: avoid; }
+      tr, li { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav class="toc" aria-label="Table of contents">
+      <p class="toc-title">Contents</p>
+      <ol>
+        <li><a href="#problem">Problem</a></li>
+        <li><a href="#goals">Goals</a></li>
+        <li><a href="#user-stories">User stories</a></li>
+        <li><a href="#sequencing">Sequencing constraint</a></li>
+        <li><a href="#ac-reuse">AC — Reuse / consolidation</a></li>
+        <li><a href="#ac-nullable">AC — Nullable migration</a></li>
+        <li><a href="#ac-defects">AC — Correctness / defects</a></li>
+        <li><a href="#ac-simplification">AC — Simplification</a></li>
+        <li><a href="#ac-performance">AC — Performance</a></li>
+        <li><a href="#ac-standards">AC — Standard conformance</a></li>
+        <li><a href="#ac-tests">AC — Test coverage</a></li>
+        <li><a href="#ac-upstream">AC — Upstream contract</a></li>
+        <li><a href="#ac-localization">AC — Localization</a></li>
+        <li><a href="#ac-docs">AC — Doc reconciliation</a></li>
+        <li><a href="#traceability">Traceability</a></li>
+        <li><a href="#non-goals">Non-goals</a></li>
+      </ol>
+    </nav>
+    <div class="content">
+      <header>
+        <div class="badges">
+          <span>PRD</span>
+          <span>sprint</span>
+          <span class="status-draft">draft</span>
+        </div>
+        <h1>EquipmentManager — Remediation PRD</h1>
+        <div class="stats">3 goals · 9 stories · 41 AC · 6 non-goals · updated 2026-06-07</div>
+      </header>
+      <main>
+
+<section id="problem" class="hero">
+  <h2>Problem</h2>
+  <p class="lede">This is not a feature sprint. The full audit (<a href="../audit.md">audit.md</a>) catalogued 25 code findings (C-1…C-25), 8 reuse/consolidation findings (RU-1…RU-8), and 6 documentation items (DM-1…DM-6) against the EquipmentManager codebase and design corpus. This PRD converts every <em>confirmed</em> remediation item into objectively verifiable acceptance criteria so the implementation-review phase has concrete, traceable targets. The "user" here is the mod maintainer; the value delivered is a codebase that is defect-free, simplified, standards-conformant, performant, consolidated onto <code>LordKuper.Common</code> (no reimplementation of shared utilities), and fully nullable-aware — without changing any player-facing behavior beyond the correctness fixes the audit identified.</p>
+</section>
+
+<section id="goals">
+  <h2>Goals</h2>
+  <ol class="goal-grid">
+    <li><span class="num">G1</span><p>Land the headline production nullable migration: <code>Nullable enable</code> on the production csproj, build green under <code>TreatWarningsAsErrors</code>, all NRT sites resolved, and JetBrains nullability attributes replaced with real nullable reference types.</p></li>
+    <li><span class="num">G2</span><p>Remediate every audit-confirmed defect, simplification, performance, standard-conformance, and reuse/consolidation finding — or record it explicitly as deferred with rationale — while keeping upstream consumption contract-correct (no forking).</p></li>
+    <li><span class="num">G3</span><p>Reconcile design docs and tests with the post-remediation code: extend unit coverage for the audited pure-logic units, and close identified doc-drift so the corpus matches reality.</p></li>
+  </ol>
+</section>
+
+<section id="user-stories">
+  <h2>User stories</h2>
+  <p>The single role for this remediation sprint is the <strong>mod maintainer</strong> (LordKuper / future contributors). Stories are grouped by workstream; each maps to an acceptance-criteria block below.</p>
+  <details class="role-group" open>
+    <summary>Mod maintainer <span class="count">9</span></summary>
+    <ul class="stories">
+      <li><b>as</b> a maintainer, <b>I want</b> the production project to compile under <code>Nullable enable</code> with zero warnings and no leftover JetBrains nullability attributes, <b>so that</b> nullability intent is enforced by the compiler instead of stale annotations. <em>(US1 → AC group: Nullable migration)</em></li>
+      <li><b>as</b> a maintainer, <b>I want</b> the stat-range and tool-cache scoring defects fixed, <b>so that</b> weapon/tool assignment decisions are computed correctly rather than from stale or first-sample-skewed values. <em>(US2 → AC group: Correctness / defects)</em></li>
+      <li><b>as</b> a maintainer, <b>I want</b> EM's local reimplementations of <code>LordKuper.Common</code> utilities deleted and replaced with the library's public surface, <b>so that</b> the anti-pillar "not a reimplementation of shared utilities" holds and there is one source of truth. <em>(US3 → AC group: Reuse / consolidation)</em></li>
+      <li><b>as</b> a maintainer, <b>I want</b> dead duplicate guard clauses removed, <b>so that</b> the codebase carries no accidental complexity. <em>(US4 → AC group: Simplification)</em></li>
+      <li><b>as</b> a maintainer, <b>I want</b> the hot-path assignment pipeline's redundant per-pawn allocations and linear scans eliminated, <b>so that</b> the tick cost scales acceptably with colony size. <em>(US5 → AC group: Performance)</em></li>
+      <li><b>as</b> a maintainer, <b>I want</b> all diagnostics routed through the project <code>Logger</code> wrapper and the solution consistently formatted, <b>so that</b> the code conforms to <code>custom-coding-rules.md</code>. <em>(US6 → AC group: Standard conformance)</em></li>
+      <li><b>as</b> a maintainer, <b>I want</b> genuine unit tests around the audited pure-logic units, <b>so that</b> the defect fixes are characterized and regressions are caught. <em>(US7 → AC group: Test coverage)</em></li>
+      <li><b>as</b> a maintainer, <b>I want</b> verification that <code>LordKuper.Common</code> and SimpleSidearms are still consumed contract-correctly with no forking, <b>so that</b> the upstream integration stays intact through the consolidation. <em>(US8 → AC group: Upstream contract)</em></li>
+      <li><b>as</b> a maintainer, <b>I want</b> the design docs reconciled with the post-remediation code and localization verified clean, <b>so that</b> the corpus does not mislead future contributors. <em>(US9 → AC groups: Localization, Doc reconciliation)</em></li>
+    </ul>
+  </details>
+</section>
+
+<section id="sequencing" class="callout">
+  <h2>Sequencing constraint</h2>
+  <p>One ordering constraint is load-bearing across the AC groups and is itself an acceptance criterion (<a href="#AC-1">AC-1</a>): the non-breaking reuse deletes (RU-3 <code>ItemCache</code>, RU-4 <code>EquipmentManagerStatDefs</code>, RU-6 <code>GetWindowSize</code>) and the approved RU-1 (<code>WorkTypeRule</code> → <code>Common.WorkTypeThingRule</code>) and RU-2 (<code>StatRanges</code>) migrations MUST land <strong>before</strong> the production nullable flip (AC group: Nullable migration). Deleting these files first removes the single largest nullable hotspot (<code>WorkTypeRule.cs</code>, 36 distinct NRT sites) and the wrapper files, so the nullable migration is performed only on code that survives. Annotating code that is about to be deleted is wasted and forbidden by AC-1.</p>
+</section>
+
+<section id="ac-reuse">
+  <h2>Acceptance criteria — Reuse / consolidation (US3)</h2>
+  <table class="ac-table">
+    <thead><tr><th>ID</th><th>Criterion</th><th>Area</th><th>Priority</th></tr></thead>
+    <tbody>
+      <tr id="AC-1"><td><a href="#AC-1">AC-1</a></td><td><b>Sequencing:</b> the reuse deletes/migrations RU-1, RU-2, RU-3, RU-4, RU-6 land and build green <em>before</em> <code>Nullable enable</code> is set on the production csproj. Verify: in git history the commit(s) deleting/migrating <code>WorkTypeRule.cs</code>, <code>EquipmentManagerGameComponent_StatRanges.cs</code>, <code>ItemCache.cs</code>, <code>EquipmentManagerStatDefs.cs</code> and the <code>GetWindowSize</code> body precede the commit adding <code>&lt;Nullable&gt;enable&lt;/Nullable&gt;</code>; no deleted file is annotated with NRT in the interim.</td><td><span class="chip area">reuse · sequencing</span></td><td><span class="chip prio-must">must</span></td></tr>
+      <tr id="AC-2"><td><a href="#AC-2">AC-2</a></td><td><b>RU-1:</b> <code>WorkTypeRule.cs</code> is deleted; EM consumes <code>LordKuper.Common.WorkTypeThingRule</code> (+ <code>WorkTypeStatMap</code>). No save-migration shim is added (<code>backward_compat=none</code>). Verify: <code>grep -r "class WorkTypeRule"</code> under <code>Source/EquipmentManager/</code> returns nothing; <code>WorkTypeThingRule</code> is referenced; build green.</td><td><span class="chip area">reuse</span></td><td><span class="chip prio-must">must</span></td></tr>
+      <tr id="AC-3"><td><a href="#AC-3">AC-3</a></td><td><b>RU-2:</b> EM's duplicate stat-range code is deleted — the <code>_statRanges</code> instance dict, <code>ExposeData_StatRanges</code>, and <code>LegacyCustomStatDefs.NormalizeStatRanges</code> are removed; EM consumes <code>Common.StatRanges</code> (public as of rimworld-common commit <code>17199b6</code>). Verify: <code>grep -r "NormalizeStatRanges\|ExposeData_StatRanges\|_statRanges"</code> returns nothing; <code>EquipmentManagerGameComponent_StatRanges.cs</code> is deleted; <code>Common.StatRanges</code> is referenced; build green.</td><td><span class="chip area">reuse</span></td><td><span class="chip prio-must">must</span></td></tr>
+      <tr id="AC-4"><td><a href="#AC-4">AC-4</a></td><td><b>RU-3:</b> <code>ItemCache.cs</code> is deleted and the weapon/tool caches re-base on <code>Common.ThingCache</code> (or the duplicated dictionary+clear is otherwise removed). Verify: <code>grep -r "class ItemCache"</code> returns nothing; the cache types reference <code>ThingCache</code>; build green.</td><td><span class="chip area">reuse</span></td><td><span class="chip prio-should">should</span></td></tr>
+      <tr id="AC-5"><td><a href="#AC-5">AC-5</a></td><td><b>RU-4:</b> <code>EquipmentManagerStatDefs.cs</code> is deleted; its five category call-sites are inlined to <code>Common.Helpers.StatHelper.GetStatsByCategory(StatCategory.X)</code>. Verify: <code>grep -r "EquipmentManagerStatDefs"</code> returns nothing; build green.</td><td><span class="chip area">reuse</span></td><td><span class="chip prio-should">should</span></td></tr>
+      <tr id="AC-6"><td><a href="#AC-6">AC-6</a></td><td><b>RU-6:</b> <code>UiHelpers.GetWindowSize</code> is deleted; call-sites use <code>Common.UI.Windows.GetWindowSize</code>. EM-specific <code>UiHelpers</code> members (<code>CycleSettingValue</code>, <code>GetSettingCheckboxState</code>, <code>ValidNameRegex</code>, gap/label helpers) are retained. Verify: <code>grep -n "GetWindowSize" CustomWidgets/UiHelpers.cs</code> shows no local definition; <code>Windows.GetWindowSize</code> is referenced; build green.</td><td><span class="chip area">reuse</span></td><td><span class="chip prio-should">should</span></td></tr>
+      <tr id="AC-7"><td><a href="#AC-7">AC-7</a></td><td><b>RU-7 (gated on RU-1):</b> if RU-1 lands, the hand-rolled work-type rule editor tab in <code>ManageWeaponRulesDialog_WorkTypes.cs</code> adopts <code>Common.UI.Widgets.WorkTypeThingRuleWidget.DoWidgetTab(...)</code>, OR this AC is recorded as deferred with rationale (UI parity risk). Verify: either the widget is referenced, or a deferral note exists in the plan/PR.</td><td><span class="chip area">reuse · ui</span></td><td><span class="chip prio-may">may</span></td></tr>
+      <tr id="AC-8"><td><a href="#AC-8">AC-8</a></td><td><b>RU-5 (subsumed by RU-1):</b> the duplicated <code>DefaultWorkTypeStats</code> Cooking/Hunting/Doctor literal no longer exists EM-side. Verify: <code>grep -r "DefaultWorkTypeStats"</code> under <code>Source/EquipmentManager/</code> returns nothing (the literal lives only in Common). Auto-satisfied by AC-2.</td><td><span class="chip area">reuse</span></td><td><span class="chip prio-must">must</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="ac-nullable">
+  <h2>Acceptance criteria — Nullable migration (US1, headline)</h2>
+  <table class="ac-table">
+    <thead><tr><th>ID</th><th>Criterion</th><th>Area</th><th>Priority</th></tr></thead>
+    <tbody>
+      <tr id="AC-9"><td><a href="#AC-9">AC-9</a></td><td><b>C-1:</b> <code>&lt;Nullable&gt;enable&lt;/Nullable&gt;</code> is set on <code>Source/EquipmentManager/EquipmentManager.csproj</code> (or its <code>Directory.Build.props</code> scope for the production project). Verify: <code>grep -n "Nullable" Source/EquipmentManager/EquipmentManager.csproj</code> shows <code>enable</code>.</td><td><span class="chip area">nullable</span></td><td><span class="chip prio-must">must</span></td></tr>
+      <tr id="AC-10"><td><a href="#AC-10">AC-10</a></td><td><b>C-1:</b> a clean build of the production csproj is green — <strong>0 warnings, 0 errors</strong> — under the existing <code>WarningLevel 9999</code> + <code>TreatWarningsAsErrors</code>. Verify: <code>dotnet build Source/EquipmentManager/EquipmentManager.csproj -c Debug</code> exits 0 with no warning/error output.</td><td><span class="chip area">nullable</span></td><td><span class="chip prio-must">must</span></td></tr>
+      <tr id="AC-11"><td><a href="#AC-11">AC-11</a></td><td><b>C-1:</b> all NRT diagnostics surfaced by the flip (measured baseline: 131 distinct sites / 300 occurrences across 32 files on the pre-consolidation code; fewer after RU deletes) are resolved by real annotations/guards — not by blanket suppression (<code>#pragma warning disable</code> for CS86xx/CS9264 is not used to mask sites). Verify: <code>grep -rn "warning disable" Source/EquipmentManager/</code> shows no nullable-warning suppressions; build green per AC-10.</td><td><span class="chip area">nullable</span></td><td><span class="chip prio-must">must</span></td></tr>
+      <tr id="AC-12"><td><a href="#AC-12">AC-12</a></td><td><b>C-2:</b> all JetBrains nullability attributes (baseline 224 = 205 <code>[NotNull]</code> + 19 <code>[CanBeNull]</code>, plus any <code>[ItemNotNull]</code>) are removed in favor of real NRT (<code>T</code> vs <code>T?</code>). Verify: <code>grep -rn "\[NotNull\]\|\[CanBeNull\]\|\[ItemNotNull\]"</code> under <code>Source/EquipmentManager/</code> returns nothing.</td><td><span class="chip area">nullable · standard</span></td><td><span class="chip prio-must">must</span></td></tr>
+      <tr id="AC-13"><td><a href="#AC-13">AC-13</a></td><td><b>C-2:</b> <code>using JetBrains.Annotations;</code> is removed from every file that no longer references any JetBrains attribute; files still using <code>[UsedImplicitly]</code> (non-nullability, ~13 uses) retain the using. Verify: every remaining <code>using JetBrains.Annotations;</code> co-occurs with a <code>[UsedImplicitly]</code> (or other non-nullability JetBrains attribute) reference in the same file; build green.</td><td><span class="chip area">nullable · standard</span></td><td><span class="chip prio-must">must</span></td></tr>
+      <tr id="AC-14"><td><a href="#AC-14">AC-14</a></td><td><b>C-1/R-C3:</b> the CE reflection-delegate fields (in <code>CombatExtendedHelper.cs</code> and the weapon caches) remain nullable (<code>?</code>) with their existing null-guards — they are NOT converted to non-null or assigned <code>= null!</code> on the hot path. Verify: those fields are declared with <code>?</code>; CE-absent degradation paths still guard them.</td><td><span class="chip area">nullable</span></td><td><span class="chip prio-must">must</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="ac-defects">
+  <h2>Acceptance criteria — Correctness / defects (US2)</h2>
+  <table class="ac-table">
+    <thead><tr><th>ID</th><th>Criterion</th><th>Area</th><th>Priority</th></tr></thead>
+    <tbody>
+      <tr id="AC-15"><td><a href="#AC-15">AC-15</a></td><td><b>C-3:</b> <code>ToolCache.GetStatValue</code> no longer returns a stale WorkType score across differing <code>workTypeDefs</code> within one cache window — the cache entry is keyed by <code>(statDef, workTypeDefs)</code> for WorkType-dependent stats, or WorkType-dependent stats are not cached. Verify: assigning tools across multiple work types yields per-work-type-correct scores; covered by AC-29 test.</td><td><span class="chip area">defect</span></td><td><span class="chip prio-must">must</span></td></tr>
+      <tr id="AC-16"><td><a href="#AC-16">AC-16</a></td><td><b>C-4 (resolved via RU-2):</b> first-observation stat-range seeding is correct — a first observed value <code>v</code> yields range <code>[v,v]</code>, not <code>[0,v]</code>/<code>[v,0]</code>. Satisfied by consuming the fixed <code>Common.StatRanges</code> (commit <code>17199b6</code>) per AC-3; if RU-2 is sequenced late, an interim local one-line fix prevents scoring against the buggy copy. Verify: AC-25 test asserts <code>[v,v]</code> for the first sample.</td><td><span class="chip area">defect</span></td><td><span class="chip prio-must">must</span></td></tr>
+    </tbody>
+  </table>
+  <p class="stats">Note: C-5 (UpdateAmmo null map), C-6 (RangedWeaponCache accuracy-field reset), C-7 (pawn.skills/health guards), C-8 (per-Thing cache growth) are lower-severity defects the Architect catalogued; they are folded into the nullable pass (C-5/C-7 surface as CS86xx and are resolved by AC-9…AC-14) or are awareness/deferral items decided in the plan phase. They are listed in the traceability table but do not each carry a standalone must-have AC, in line with the Simplicity Default (no requirements invented beyond confirmed remediation).</p>
+</section>
+
+<section id="ac-simplification">
+  <h2>Acceptance criteria — Simplification (US4)</h2>
+  <table class="ac-table">
+    <thead><tr><th>ID</th><th>Criterion</th><th>Area</th><th>Priority</th></tr></thead>
+    <tbody>
+      <tr id="AC-17"><td><a href="#AC-17">AC-17</a></td><td><b>C-9 (auto-resolved by RU-1):</b> the four redundant nested duplicate-guard clauses in the former <code>WorkTypeRule.Initialize</code> no longer exist. Auto-satisfied because RU-1 deletes <code>WorkTypeRule</code> entirely (AC-2). Verify: <code>WorkTypeRule.cs</code> absent; no equivalent duplicate guards introduced in the migration.</td><td><span class="chip area">simplification</span></td><td><span class="chip prio-must">must</span></td></tr>
+      <tr id="AC-18"><td><a href="#AC-18">AC-18</a></td><td><b>C-10 (GATED — Complication Approval required):</b> the assignment-pipeline boilerplate extraction (shared candidate-filter helper + commit/queue-job helper, or the minimal area-restriction <code>Predicate&lt;Thing&gt;</code> factory) is PROPOSED, not mandated. It is implemented this sprint ONLY if a Complication Approval (What / Why / Justification / Alternatives) is granted; otherwise it is recorded as deferred. Verify: either an approved Complication Approval exists and the helper is present, or a deferral note exists. No new abstraction is added without that approval.</td><td><span class="chip area">simplification</span></td><td><span class="chip prio-may">may</span></td></tr>
+    </tbody>
+  </table>
+  <p class="stats">Note: C-11 (default-stat-weight <code>new</code>-shadowing smell) is low-priority and left unless the nullable pass naturally touches it; no standalone AC (Simplicity Default).</p>
+</section>
+
+<section id="ac-performance">
+  <h2>Acceptance criteria — Performance (US5)</h2>
+  <table class="ac-table">
+    <thead><tr><th>ID</th><th>Criterion</th><th>Area</th><th>Priority</th></tr></thead>
+    <tbody>
+      <tr id="AC-19"><td><a href="#AC-19">AC-19</a></td><td><b>C-12:</b> the <code>assignedByOthers</code> set is computed once per assignment pass and mutated incrementally, rather than rebuilt via <code>_pawnCache.Values.SelectMany(...)</code> once per pawn per pass (the O(pawns²×weapons) allocation). Verify: <code>grep -n "SelectMany" EquipmentManagerMapComponent.cs</code> shows the per-pawn rebuild pattern is gone from <code>AssignAllTools</code>/<code>AssignBestTool</code>/primary passes; the incremental <code>assignedByOthers.Add(...)</code> pattern is used consistently.</td><td><span class="chip area">performance</span></td><td><span class="chip prio-should">should</span></td></tr>
+      <tr id="AC-20"><td><a href="#AC-20">AC-20</a></td><td><b>C-13:</b> the per-tool-cache-update O(workTypes×rules) linear scan (<code>GetWorkTypeRules().FirstOrDefault(...)</code> inside the work-type loop) is replaced by a <code>Dictionary&lt;string, WorkTypeThingRule&gt;</code> lookup built once and invalidated on rule edit. Verify: <code>grep -n "FirstOrDefault" ToolCache.cs</code> shows the per-iteration scan is gone; a defName-keyed dictionary lookup is used.</td><td><span class="chip area">performance</span></td><td><span class="chip prio-should">should</span></td></tr>
+    </tbody>
+  </table>
+  <p class="stats">Note: C-14 (UI-only <code>GetGloballyAvailableItems</code> re-alloc) and C-15 (transient throwaway <code>Thing</code>s) are low-priority awareness items; no standalone AC.</p>
+</section>
+
+<section id="ac-standards">
+  <h2>Acceptance criteria — Standard conformance (US6)</h2>
+  <table class="ac-table">
+    <thead><tr><th>ID</th><th>Criterion</th><th>Area</th><th>Priority</th></tr></thead>
+    <tbody>
+      <tr id="AC-21"><td><a href="#AC-21">AC-21</a></td><td><b>C-16:</b> all 61 raw <code>Verse.Log.Error/Warning/Message</code> calls (across the 7 audited files) are routed through the project <code>Logger</code> wrapper (<code>Logger.LogError/LogWarning/LogMessage</code>), and the hand-typed <code>"Equipment Manager: "</code> literal prefixes are dropped (the wrapper prefixes via <code>EquipmentManagerMod.ModId</code>). Verify: <code>grep -rn "Verse.Log\.\|\bLog\.Error\|\bLog\.Warning\|\bLog\.Message"</code> under <code>Source/EquipmentManager/</code> returns only the <code>Logger.cs</code> wrapper body; no <code>"Equipment Manager: "</code> string literals remain.</td><td><span class="chip area">standard</span></td><td><span class="chip prio-must">must</span></td></tr>
+      <tr id="AC-22"><td><a href="#AC-22">AC-22</a></td><td><b>C-16 (consumption):</b> diagnostics route through the EM <code>Logger</code> wrapper (which injects <code>ModId</code> into <code>Common.Logger</code>), NOT directly to <code>Common.Logger</code> — preserving the intended wrapper pattern. Verify: call-sites use <code>Logger.Log*</code>, not bare <code>Common.Logger.Log*</code>.</td><td><span class="chip area">standard · upstream</span></td><td><span class="chip prio-must">must</span></td></tr>
+      <tr id="AC-23"><td><a href="#AC-23">AC-23</a></td><td><b>Formatting:</b> the solution is consistently formatted (<code>dotnet format</code> equivalent). Verify: <code>dotnet format Source/EquipmentManager.slnx --verify-no-changes</code> exits 0 (no diff). If the toolchain cannot run it on <code>.slnx</code>, run per-<code>.csproj</code>.</td><td><span class="chip area">standard</span></td><td><span class="chip prio-should">should</span></td></tr>
+      <tr id="AC-24"><td><a href="#AC-24">AC-24</a></td><td><b>C-17:</b> after the nullable flip, NetAnalyzers 9.0.0 reports 0 findings (baseline was already 0). Verify: build green per AC-10 includes the analyzer pass with no analyzer diagnostics.</td><td><span class="chip area">standard</span></td><td><span class="chip prio-must">must</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="ac-tests">
+  <h2>Acceptance criteria — Test coverage (US7)</h2>
+  <p>New tests use the existing isolation infrastructure (<code>StateIsolationTestBase</code>, <code>RimWorldAssemblyResolverFixture</code>); the base's <code>CachingTypes</code>/fields list is extended where a new test touches additional static state (R-C4). All new tests pass: <code>dotnet test Source/EquipmentManager.Tests/EquipmentManager.Tests.csproj</code> exits 0.</p>
+  <table class="ac-table">
+    <thead><tr><th>ID</th><th>Criterion</th><th>Area</th><th>Priority</th></tr></thead>
+    <tbody>
+      <tr id="AC-25"><td><a href="#AC-25">AC-25</a></td><td><b>C-18 (must cover C-4):</b> a unit test exercises the stat-range / <code>NormalizeStatValue</code> math (post-RU-2: the consumed <code>Common.StatRanges</code> behavior, or EM's interim local fix) and explicitly asserts the first-sample <code>[v,v]</code> correctness that C-4 broke. Verify: a passing test asserting first-observation range equals <code>[v,v]</code> exists.</td><td><span class="chip area">test</span></td><td><span class="chip prio-must">must</span></td></tr>
+      <tr id="AC-26"><td><a href="#AC-26">AC-26</a></td><td><b>C-19:</b> a test covers work-type default-stat-weight assembly and the dedup invariant (no duplicate StatWeights; required-stats intersection) against the migrated <code>WorkTypeThingRule</code>/<code>WorkTypeStatMap</code> path. Verify: passing test exists.</td><td><span class="chip area">test</span></td><td><span class="chip prio-should">should</span></td></tr>
+      <tr id="AC-27"><td><a href="#AC-27">AC-27</a></td><td><b>C-20:</b> a test covers <code>ItemRule</code>/<code>Loadout</code> <code>Initialize</code> null-coalescing and <code>NormalizeLegacyCustomStatDefNames</code> round-trips (legacy stat-name migration). Verify: passing test exists.</td><td><span class="chip area">test</span></td><td><span class="chip prio-should">should</span></td></tr>
+      <tr id="AC-28"><td><a href="#AC-28">AC-28</a></td><td><b>C-21:</b> table-driven tests cover <code>Loadout.IsAvailable</code> predicate branches (traits, work capacities, passion/capacity/stat/skill limits). Verify: passing tests exist.</td><td><span class="chip area">test</span></td><td><span class="chip prio-should">should</span></td></tr>
+      <tr id="AC-29"><td><a href="#AC-29">AC-29</a></td><td><b>C-22 + C-3:</b> tests cover <code>RangedWeaponRule.AmmoCount</code> gating, <code>Loadout.PrimaryRuleType</code> setter-clear logic, <code>*Rule.CopyX</code> deep-copy completeness, and the C-3 tool-cache composite-key correctness (differing work-type sets yield differing scores). Verify: passing tests exist, including one asserting the C-3 fix.</td><td><span class="chip area">test</span></td><td><span class="chip prio-may">may</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="ac-upstream">
+  <h2>Acceptance criteria — Upstream contract (US8)</h2>
+  <table class="ac-table">
+    <thead><tr><th>ID</th><th>Criterion</th><th>Area</th><th>Priority</th></tr></thead>
+    <tbody>
+      <tr id="AC-30"><td><a href="#AC-30">AC-30</a></td><td><b>C-23:</b> <code>LordKuper.Common</code> is consumed only via its public surface (post-consolidation this now includes <code>WorkTypeThingRule</code>, <code>WorkTypeStatMap</code>, <code>StatRanges</code>, <code>ThingCache</code>, <code>StatHelper</code>, <code>UI.Windows</code>); the dll is still a compile-only <code>Private=False</code> reference and is NOT forked or copied into the repo. Verify: no Common source is vendored; reference remains compile-only; build resolves against the rebuilt Common dll.</td><td><span class="chip area">upstream</span></td><td><span class="chip prio-must">must</span></td></tr>
+      <tr id="AC-31"><td><a href="#AC-31">AC-31</a></td><td><b>C-24:</b> SimpleSidearms remains a hard compile-only typed reference; the upstream type name <code>WeaponAssingment</code> (SimpleSidearms' own misspelling) is consumed as-is and is NOT "corrected". Verify: <code>grep -rn "WeaponAssingment"</code> still references the SimpleSidearms type; no rename attempted.</td><td><span class="chip area">upstream</span></td><td><span class="chip prio-must">must</span></td></tr>
+      <tr id="AC-32"><td><a href="#AC-32">AC-32</a></td><td><b>C-25:</b> CE integration stays entirely reflective (<code>AccessTools</code> type/field/method-delegate lookup with graceful degradation); no compile-time CE reference is introduced. Verify: no CE assembly reference in the csproj; CE binding remains via <code>CombatExtendedHelper</code> reflection.</td><td><span class="chip area">upstream</span></td><td><span class="chip prio-must">must</span></td></tr>
+      <tr id="AC-33"><td><a href="#AC-33">AC-33</a></td><td><b>Kept-local invariant:</b> the deliberately EM-local types confirmed non-duplicate (<code>SkillWeight</code>, <code>PawnCapacityWeight</code>, <code>PassionLimit</code>, the weapon-scoring caches, <code>CombatExtendedHelper</code>, <code>LegacyCustomStatDefs</code>, the <code>Logger</code> wrapper) are retained — not deleted in over-eager consolidation. Verify: these types still exist post-sprint.</td><td><span class="chip area">upstream</span></td><td><span class="chip prio-must">must</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="ac-localization">
+  <h2>Acceptance criteria — Localization (US9)</h2>
+  <table class="ac-table">
+    <thead><tr><th>ID</th><th>Criterion</th><th>Area</th><th>Priority</th></tr></thead>
+    <tbody>
+      <tr id="AC-34"><td><a href="#AC-34">AC-34</a></td><td><b>DM-6:</b> localization is verified clean — no remediation required. All user-facing UI text resolves through <code>Resources.Strings</code> (<code>.Translate()</code>); the 61 raw <code>Verse.Log.*</code> literals are dev-console diagnostics, not player UI, and are handled by AC-21 as a standard issue (no keying). Verify: no hardcoded string literals passed to UI primitives (<code>Widgets.Label</code>/tooltips/buttons) outside <code>Resources.Strings</code>.</td><td><span class="chip area">localization</span></td><td><span class="chip prio-must">must</span></td></tr>
+      <tr id="AC-35"><td><a href="#AC-35">AC-35</a></td><td><b>DM-6 (no-regression):</b> if any remediation introduces a new user-facing string, it is added to <code>Resources.Strings</code> + the Keyed XML (1.3–1.6) in the same change. Verify: no new <code>.Translate()</code> key lacks a Keyed entry; no new raw UI literal is introduced.</td><td><span class="chip area">localization</span></td><td><span class="chip prio-must">must</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="ac-docs">
+  <h2>Acceptance criteria — Doc reconciliation (US9)</h2>
+  <table class="ac-table">
+    <thead><tr><th>ID</th><th>Criterion</th><th>Area</th><th>Priority</th></tr></thead>
+    <tbody>
+      <tr id="AC-36"><td><a href="#AC-36">AC-36</a></td><td><b>DM-1:</b> <code>design/architecture/stack.html</code> Languages section is reconciled — the "production does not yet enable Nullable … scheduled as first sprint" statement is replaced to reflect <code>Nullable enable</code> active and JetBrains nullability attributes removed. Verify: the stale statement is gone; the new statement matches the post-AC-9 csproj. (Reconciled in design-promote, coupled to AC-9.)</td><td><span class="chip area">doc-drift</span></td><td><span class="chip prio-must">must</span></td></tr>
+      <tr id="AC-37"><td><a href="#AC-37">AC-37</a></td><td><b>DM-2:</b> <code>design/product/concept.html</code> + <code>design/architecture/tech-reference/*.md</code> are re-verified against post-remediation code; the "not a reimplementation of shared utilities" anti-pillar is confirmed to now hold (it is more true after RU-1…RU-6); <code>csharp-net48.md</code> gets a "nullable enabled project-wide" note; <code>lordkuper-common-1.6.md</code> appends <code>Helpers.SkillStatMap.Map</code> to its API-surface list. Verify: the named edits exist; no remaining doc claim contradicts the code.</td><td><span class="chip area">doc-drift</span></td><td><span class="chip prio-should">should</span></td></tr>
+      <tr id="AC-38"><td><a href="#AC-38">AC-38</a></td><td><b>DM-3:</b> <code>README.md</code> stub expansion (build/install/dependency info, version badge) is EITHER done OR explicitly deferred with rationale (low severity). Verify: README updated, or a deferral note in the plan/PR.</td><td><span class="chip area">doc-drift</span></td><td><span class="chip prio-may">may</span></td></tr>
+      <tr id="AC-39"><td><a href="#AC-39">AC-39</a></td><td><b>DM-4:</b> <code>About/About.xml</code> <code>&lt;description&gt;</code> polish (beyond the bare one-liner) is EITHER done OR explicitly deferred with rationale (low severity). Verify: description updated, or a deferral note.</td><td><span class="chip area">doc-drift</span></td><td><span class="chip prio-may">may</span></td></tr>
+      <tr id="AC-40"><td><a href="#AC-40">AC-40</a></td><td><b>DM-5 (Architect-owned):</b> the dependency-integration pattern ADR is authored in the design phase by the Architect (direct typed refs for hard deps vs reflective binding for optional CE). This AC tracks that the ADR exists; it is NOT authored by the BA. Verify: <code>design/architecture/adr/</code> contains the dependency-integration ADR after design-promote.</td><td><span class="chip area">doc-drift</span></td><td><span class="chip prio-should">should</span></td></tr>
+      <tr id="AC-41"><td><a href="#AC-41">AC-41</a></td><td><b>Build + suite gate:</b> the full solution builds green and the entire test suite passes after all remediation. Verify: <code>dotnet build Source/EquipmentManager.slnx -c Debug</code> and <code>dotnet test</code> both exit 0.</td><td><span class="chip area">standard · test</span></td><td><span class="chip prio-must">must</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="traceability">
+  <h2>Traceability (AC ↔ audit finding)</h2>
+  <table>
+    <thead><tr><th>AC</th><th>Audit finding(s)</th><th>Workstream</th></tr></thead>
+    <tbody>
+      <tr><td>AC-1</td><td>RU-1, RU-2, RU-3, RU-4, RU-6 (sequencing); migration-surface note; R-C9</td><td>1, 8</td></tr>
+      <tr><td>AC-2</td><td>RU-1 (auto-resolves C-9, RU-5)</td><td>8</td></tr>
+      <tr><td>AC-3</td><td>RU-2 (auto-resolves C-4 EM copy)</td><td>8, 2</td></tr>
+      <tr><td>AC-4</td><td>RU-3</td><td>8</td></tr>
+      <tr><td>AC-5</td><td>RU-4</td><td>8</td></tr>
+      <tr><td>AC-6</td><td>RU-6</td><td>8</td></tr>
+      <tr><td>AC-7</td><td>RU-7 (gated on RU-1)</td><td>8</td></tr>
+      <tr><td>AC-8</td><td>RU-5 (subsumed by RU-1)</td><td>8, 3</td></tr>
+      <tr><td>AC-9</td><td>C-1</td><td>1</td></tr>
+      <tr><td>AC-10</td><td>C-1</td><td>1</td></tr>
+      <tr><td>AC-11</td><td>C-1</td><td>1</td></tr>
+      <tr><td>AC-12</td><td>C-2</td><td>1, 6</td></tr>
+      <tr><td>AC-13</td><td>C-2</td><td>1, 6</td></tr>
+      <tr><td>AC-14</td><td>C-1, R-C3</td><td>1</td></tr>
+      <tr><td>AC-15</td><td>C-3</td><td>2</td></tr>
+      <tr><td>AC-16</td><td>C-4 (via RU-2)</td><td>2, 8</td></tr>
+      <tr><td>AC-17</td><td>C-9 (via RU-1)</td><td>3</td></tr>
+      <tr><td>AC-18</td><td>C-10 (gated, R-C5)</td><td>3</td></tr>
+      <tr><td>AC-19</td><td>C-12</td><td>4</td></tr>
+      <tr><td>AC-20</td><td>C-13</td><td>4</td></tr>
+      <tr><td>AC-21</td><td>C-16</td><td>6</td></tr>
+      <tr><td>AC-22</td><td>C-16 (Logger wrapper; kept-local Logger non-finding)</td><td>6, 8</td></tr>
+      <tr><td>AC-23</td><td>formatting (custom-coding-rules.md); R-C8</td><td>6</td></tr>
+      <tr><td>AC-24</td><td>C-17</td><td>6</td></tr>
+      <tr><td>AC-25</td><td>C-18 (covers C-4)</td><td>7, 2</td></tr>
+      <tr><td>AC-26</td><td>C-19</td><td>7</td></tr>
+      <tr><td>AC-27</td><td>C-20</td><td>7</td></tr>
+      <tr><td>AC-28</td><td>C-21</td><td>7</td></tr>
+      <tr><td>AC-29</td><td>C-22, C-3</td><td>7, 2</td></tr>
+      <tr><td>AC-30</td><td>C-23</td><td>8</td></tr>
+      <tr><td>AC-31</td><td>C-24</td><td>8</td></tr>
+      <tr><td>AC-32</td><td>C-25</td><td>8</td></tr>
+      <tr><td>AC-33</td><td>RU-8 / reuse non-findings (kept-local)</td><td>8</td></tr>
+      <tr><td>AC-34</td><td>DM-6 (localization finding)</td><td>9</td></tr>
+      <tr><td>AC-35</td><td>DM-6 (no-regression)</td><td>9</td></tr>
+      <tr><td>AC-36</td><td>DM-1, R-C7</td><td>5</td></tr>
+      <tr><td>AC-37</td><td>DM-2, tech-reference notes</td><td>5</td></tr>
+      <tr><td>AC-38</td><td>DM-3</td><td>5</td></tr>
+      <tr><td>AC-39</td><td>DM-4</td><td>5</td></tr>
+      <tr><td>AC-40</td><td>DM-5 (Architect ADR)</td><td>5</td></tr>
+      <tr><td>AC-41</td><td>sprint Acceptance (build + suite gate)</td><td>all</td></tr>
+    </tbody>
+  </table>
+  <p class="stats">Lower-severity defects/awareness items folded into other ACs or the plan phase (no standalone AC, per Simplicity Default): C-5, C-7 (resolved by the nullable pass, AC-9…AC-14); C-6, C-8 (awareness/deferral, plan-phase decision); C-11, C-14, C-15 (low-priority); R-C1, R-C2, R-C4, R-C6 (risks mitigated within the relevant ACs, not separate requirements).</p>
+</section>
+
+<section id="non-goals" class="callout warn">
+  <h2>Non-goals</h2>
+  <ul class="non-goals">
+    <li>No UX-spec, mockups, design-system, or UI design work — there are zero UI changes this sprint (RU-7's optional widget adoption, if taken, is a like-for-like swap, not new UX).</li>
+    <li>No new features, behavior, or scope beyond the audit findings — the Simplicity Default forbids inventing requirements; C-10 (new abstraction) is gated, not mandated.</li>
+    <li>No save-migration shim for RU-1 — <code>backward_compat=none</code>; old saves lose persisted WorkType rules by approved decision.</li>
+    <li>No "fix" of SimpleSidearms' upstream <code>WeaponAssingment</code> typo and no forking/reimplementation of <code>LordKuper.Common</code> or SimpleSidearms.</li>
+    <li>No persistent <code>design/product/requirements.html</code> reverse-engineering — this is an alignment sprint, not a feature sprint.</li>
+    <li>No edits to workflow infrastructure (<code>.asd/rules/</code>, <code>.asd/templates/</code>, <code>.claude/</code>) or to persistent <code>design/</code> docs from this PRD (reconciliation lands in design-promote per AC-36/AC-37).</li>
+  </ul>
+</section>
+
+      </main>
+      <footer>by asd-ba | 2026-06-07 | sprint 001-full-audit-alignment</footer>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const links = Array.from(document.querySelectorAll('nav.toc a[href^="#"]'));
+      if (!links.length) return;
+      const map = new Map();
+      links.forEach(a => { const el = document.getElementById(a.getAttribute('href').slice(1)); if (el) map.set(el, a); });
+      const io = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            links.forEach(a => a.classList.remove('active'));
+            const a = map.get(e.target);
+            if (a) a.classList.add('active');
+          }
+        });
+      }, { rootMargin: '-30% 0px -65% 0px', threshold: 0 });
+      map.forEach((_a, el) => io.observe(el));
+    })();
+  </script>
+</body>
+</html>

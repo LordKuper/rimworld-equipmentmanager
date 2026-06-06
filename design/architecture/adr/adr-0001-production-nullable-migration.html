@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<!--
+responsibility:
+  owns: single architecture decision (ADR-0001)
+  excludes: requirements, ux, code
+  delegates_to: prd.html (requirements), ux-spec.html (ux), code (implementation)
+provenance: original
+source: ""
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="ASD workflow">
+  <meta name="doc-type" content="ADR">
+  <meta name="subsystem" content="N/A">
+  <meta name="sprint-id" content="">
+  <meta name="status" content="accepted">
+  <meta name="updated" content="2026-06-07">
+  <meta name="responsibility" content="architecture decision ADR-0001 — production nullable migration">
+  <meta name="provenance" content="original">
+  <meta name="source" content="">
+  <title>ADR-0001 · Enable nullable reference types on the production project</title>
+  <style>
+    :root {
+      --fg: #1a1c1e; --bg: #fff; --muted: #5b6770; --accent: #0066cc;
+      --code-bg: #f4f6f8; --border: #d0d7de; --max: 1040px;
+      --card-bg: #fafbfc;
+      --ok: #1f883d; --warn: #b35900; --danger: #cf222e; --info: #0969da; --neutral: #5b6770;
+      --chip-must-bg: #ffebe9; --chip-must-fg: #cf222e;
+      --chip-should-bg: #fff5e1; --chip-should-fg: #9a6700;
+      --chip-may-bg: #ddf4ff; --chip-may-fg: #0969da;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --fg: #e6e6e6; --bg: #0e1116; --muted: #9aa4ad; --code-bg: #161b22; --border: #30363d;
+        --card-bg: #161b22;
+        --chip-must-bg: #3b1416; --chip-must-fg: #ff7b72;
+        --chip-should-bg: #2d2410; --chip-should-fg: #e3b341;
+        --chip-may-bg: #0d2538; --chip-may-fg: #58a6ff;
+      }
+    }
+    html, body { margin: 0; padding: 0; }
+    * { box-sizing: border-box; }
+    body { font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--fg); background: var(--bg); }
+    .layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: 100vh; }
+    .content { min-width: 0; }
+    header, main, footer { max-width: var(--max); margin: 0 auto; padding: 16px 24px; }
+    header { border-bottom: 1px solid var(--border); }
+    header h1 { margin: 4px 0 8px; font-size: 1.9rem; }
+    .badges span { display: inline-block; padding: 2px 8px; margin-right: 6px; font-size: 0.75rem; border: 1px solid var(--border); border-radius: 4px; color: var(--muted); background: var(--bg); }
+    .badges .provenance-reverse-engineered, .badges .provenance-migrated { color: var(--warn); border-color: var(--warn); }
+    .badges .status-draft       { color: var(--neutral); border-color: var(--neutral); }
+    .badges .status-in-review   { color: var(--warn);    border-color: var(--warn); }
+    .badges .status-approved    { color: var(--ok);      border-color: var(--ok); }
+    .badges .status-locked      { color: var(--info);    border-color: var(--info); }
+    .badges .status-proposed    { color: var(--warn);    border-color: var(--warn); }
+    .badges .status-accepted    { color: var(--ok);      border-color: var(--ok); }
+    .stats { margin-top: 6px; font-size: 0.85rem; color: var(--muted); }
+    .stats .chip { display: inline-block; padding: 1px 8px; margin-right: 6px; border-radius: 10px; background: var(--code-bg); border: 1px solid var(--border); }
+    nav.toc { position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto; padding: 18px 14px; border-right: 1px solid var(--border); background: var(--card-bg); font-size: 0.9rem; }
+    nav.toc .toc-title { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 8px; padding-left: 6px; }
+    nav.toc ol { list-style: none; margin: 0; padding: 0; counter-reset: tocn; }
+    nav.toc li { margin: 2px 0; counter-increment: tocn; }
+    nav.toc a { display: block; padding: 4px 8px; border-radius: 4px; color: var(--fg); text-decoration: none; border-left: 2px solid transparent; }
+    nav.toc a:hover { background: var(--code-bg); color: var(--accent); }
+    nav.toc a.active { background: var(--code-bg); color: var(--accent); border-left-color: var(--accent); font-weight: 600; }
+    nav.toc a::before { content: counter(tocn) ". "; color: var(--muted); font-variant-numeric: tabular-nums; }
+    @media (max-width: 880px) {
+      .layout { grid-template-columns: 1fr; }
+      nav.toc { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--border); }
+    }
+    h2, h3, h4 { line-height: 1.25; margin-top: 1.6em; }
+    h2 { border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+    a { color: var(--accent); }
+    code, pre { font-family: ui-monospace, "Cascadia Code", Menlo, monospace; }
+    code { background: var(--code-bg); padding: 1px 5px; border-radius: 3px; font-size: 0.9em; }
+    pre { background: var(--code-bg); padding: 12px; border-radius: 6px; overflow-x: auto; }
+    pre code { background: none; padding: 0; }
+    table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+    th, td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; vertical-align: top; }
+    th { background: var(--code-bg); }
+    tbody tr:nth-child(even) td { background: var(--card-bg); }
+    blockquote { border-left: 3px solid var(--accent); margin: 0; padding: 4px 14px; color: var(--muted); }
+    footer { color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--border); margin-top: 32px; }
+    .lede { font-size: 1.08rem; color: var(--fg); }
+    .chip { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 0.78rem; border: 1px solid var(--border); }
+    .chip.area { background: var(--code-bg); color: var(--muted); }
+    .adr { border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; margin: 18px 0; background: var(--card-bg); }
+    .adr > .meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 6px; }
+    .adr h2 { margin-top: 1.1em; border-bottom: none; font-size: 1.15rem; }
+    .adr h3 { margin-top: 1em; font-size: 1rem; color: var(--muted); }
+    .status-chip { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.78rem; border: 1px solid var(--border); }
+    .status-proposed   { color: var(--warn);    border-color: var(--warn);    background: var(--chip-should-bg); }
+    .status-accepted   { color: var(--ok);      border-color: var(--ok);      background: rgba(31,136,61,0.10); }
+    .status-superseded { color: var(--muted);   border-color: var(--muted);   background: var(--code-bg); text-decoration: line-through; }
+    .status-deprecated { color: var(--danger);  border-color: var(--danger);  background: var(--chip-must-bg); }
+    .consequences { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .consequences .pros, .consequences .cons { padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border); }
+    .consequences .pros { background: rgba(31,136,61,0.07); border-left: 3px solid var(--ok); }
+    .consequences .cons { background: rgba(207,34,46,0.06); border-left: 3px solid var(--danger); }
+    .consequences h3 { margin: 0 0 4px; }
+    .consequences ul { margin: 0; padding-left: 20px; }
+    @media (max-width: 720px) { .consequences { grid-template-columns: 1fr; } }
+    ul.alt-list li { margin: 4px 0; }
+    ul.alt-list li strong { color: var(--fg); }
+    @media print {
+      nav.toc { background: none; border: 1px solid var(--border); }
+      a { color: inherit; text-decoration: none; }
+      footer { page-break-before: always; }
+      tr, li { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav class="toc" aria-label="Table of contents">
+      <p class="toc-title">Contents</p>
+      <ol>
+        <li><a href="#context">Context</a></li>
+        <li><a href="#decision">Decision</a></li>
+        <li><a href="#consequences">Consequences</a></li>
+        <li><a href="#alternatives">Alternatives considered</a></li>
+        <li><a href="#related">Related</a></li>
+      </ol>
+    </nav>
+    <div class="content">
+      <header>
+        <div class="badges">
+          <span>ADR</span>
+          <span>N/A</span>
+          <span class="status-accepted">accepted</span>
+        </div>
+        <h1>ADR-0001 · Enable nullable reference types on the production project</h1>
+        <div class="stats">accepted · subsystem N/A · updated 2026-06-07</div>
+      </header>
+      <main>
+
+<article class="adr" id="adr-0001">
+  <div class="meta">
+    <span class="status-chip status-accepted">accepted</span>
+    <span class="chip area">subsystem: N/A</span>
+    <span class="chip">ADR-0001</span>
+  </div>
+
+  <h2 id="context">Context</h2>
+  <p>The production project <code>Source/EquipmentManager/EquipmentManager.csproj</code> targets <code>net48</code> with <code>LangVersion latest</code>, <code>WarningLevel 9999</code> and <code>TreatWarningsAsErrors</code>, but does <em>not</em> set a nullable context. Nullability intent is instead carried by <strong>224 JetBrains nullability attributes</strong> (205 <code>[NotNull]</code> + 19 <code>[CanBeNull]</code>) across 36 files, each file also carrying <code>using JetBrains.Annotations;</code>. The test project (<code>EquipmentManager.Tests.csproj</code>) already builds under <code>Nullable enable</code>, and the upstream <code>LordKuper.Common</code> library is already fully nullable. <code>Nullable enable</code> on the production project is the stated target standard (<code>custom-coding-rules.md</code>) and the headline deliverable of this sprint (AC-9&hellip;AC-14, finding C-1/C-2).</p>
+  <p>Flipping <code>-p:Nullable=enable</code> on a clean rebuild of the current code surfaces a <strong>measured</strong> 131 distinct sites / 300 occurrences across 32 files. The dominant code is <code>CS8618</code> (&times;132, uninitialized non-nullable field/property) &mdash; overwhelmingly <code>IExposable</code> save/load fields that <code>Scribe</code> populates by reflection during deserialization (no constructor runs), plus the static reflection-delegate fields in <code>CombatExtendedHelper.cs</code> and the weapon caches that are bound once via Harmony <code>AccessTools</code> and are legitimately null when Combat Extended is absent. Two nullability systems (JetBrains attributes + real NRT) must not coexist contradictorily.</p>
+  <p>Constraint: under <code>TreatWarningsAsErrors</code> the build must reach <strong>zero</strong> NRT diagnostics, so every site needs a real resolution rather than a tolerated warning. Forces in play: (a) mechanical breadth (32 files) versus the risk of masking genuine null-derefs with blanket <code>= null!</code>; (b) the RimWorld lifecycle reality that <code>Scribe</code>/reflection populate fields outside any constructor, which the compiler cannot see; (c) the soft-dependency reflection fields that are genuinely nullable.</p>
+
+  <h2 id="decision">Decision</h2>
+  <p class="lede">Set <code>&lt;Nullable&gt;enable&lt;/Nullable&gt;</code> on the production csproj and resolve every surfaced NRT site with a real annotation or guard. No blanket <code>#nullable disable</code>, no <code>#pragma warning disable</code> to mask CS86xx/CS9264, and no mass <code>!</code> suppression. Remove all 224 JetBrains nullability attributes (replacing each with the matching <code>T</code> vs <code>T?</code> in the same edit) and drop <code>using JetBrains.Annotations;</code> from every file that no longer references a JetBrains attribute &mdash; retaining the using only where <code>[UsedImplicitly]</code> (&times;13, not a nullability attribute) still appears.</p>
+  <p>Resolution patterns, in priority order:</p>
+  <ul>
+    <li><strong>Genuinely-nullable references</strong> (dereferenced on any path, especially the hot path) &rarr; declare <code>T?</code> with a real null-guard. This is the default; prefer it over suppression.</li>
+    <li><strong>CE reflection-delegate / soft-dependency fields</strong> (<code>CombatExtendedHelper.cs</code> and the two weapon caches) &rarr; declare <code>T?</code> and keep the existing CE-absent null-guards. These are <strong>never</strong> converted to non-null and never assigned <code>= null!</code> (R-C3, AC-14).</li>
+    <li><strong><code>IExposable</code> fields populated by <code>Scribe</code> / reflection</strong> (the CS8618 majority) &rarr; the established RimWorld-lifecycle pattern: a non-nullable field initialized <code>= null!</code> where the value is always present after <code>ExposeData</code>/<code>FinalizeInit</code> and the field is contractually non-null at every read. This mirrors how <code>LordKuper.Common</code> already annotates its own <code>IExposable</code> types (e.g. <code>WorkTypeThingRule._statWeights = new()</code> for collections; reference fields it cannot construct use the same lifecycle convention). Collection fields prefer real initializers (<code>= new()</code>) over <code>= null!</code>; <code>= null!</code> is reserved for reference fields that genuinely have no construction-time value and are guaranteed populated by the load/init lifecycle.</li>
+    <li><strong>Immutable fields set once at construction</strong> &rarr; real non-null types via constructor assignment or <code>required</code> where applicable (e.g. the <code>CS9264</code> auto-prop at <code>ManageWeaponRulesDialog.cs:30</code>).</li>
+    <li><strong>Variance mismatches</strong> (<code>CS8619</code> <code>IEnumerable&lt;StatDef?&gt;</code> vs <code>IEnumerable&lt;StatDef&gt;</code>) &rarr; fix at the source of the sequence (filter nulls or correct the element type) rather than casting.</li>
+  </ul>
+  <p>Migrate file-by-file using the audit hotspot ordering. Keep <code>TreatWarningsAsErrors</code> on throughout so no site is silently deferred. This decision is <strong>sequenced after</strong> ADR-0002's reuse deletes (AC-1): the largest hotspot, <code>WorkTypeRule.cs</code> (36 distinct sites), and the wrapper files are deleted by ADR-0002 before this flip, so they are never annotated.</p>
+
+  <h2 id="consequences">Consequences</h2>
+  <div class="consequences">
+    <div class="pros">
+      <h3>Positive</h3>
+      <ul>
+        <li>Nullability intent is enforced by the compiler, not by stale attributes that no tool checks at build time.</li>
+        <li>One nullability system across production, tests, and the upstream library &mdash; no contradictory dual annotations.</li>
+        <li>The flip surfaces real latent null-deref risks (C-5 <code>UpdateAmmo</code> map, C-7 <code>pawn.skills</code>/<code>pawn.health</code>) as CS8602/CS8604, which are then fixed as part of the same pass rather than lying dormant.</li>
+        <li>224 attributes + 36 redundant usings removed &rarr; less ceremony per file.</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h3>Negative</h3>
+      <ul>
+        <li>Broad, mechanical edit across 32 files; risk of masking a genuine null-deref by reaching for <code>= null!</code> where a guard was needed (mitigated by the priority order above + the new characterization tests, ADR-0004 / AC-25&hellip;AC-29).</li>
+        <li><code>= null!</code> on <code>IExposable</code> fields is a compiler-trust assertion the runtime does not verify; if the load lifecycle ever fails to populate one, the NRE moves from a clear annotation to a runtime surprise. Accepted because <code>Scribe</code> always populates these and the alternative (nullable + guard on every read) adds noise to dozens of hot-path reads.</li>
+        <li>The stack.html statement about production nullability must be reconciled when this lands (DM-1 / AC-36).</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2 id="alternatives">Alternatives considered</h2>
+  <ul class="alt-list">
+    <li><strong>Per-file <code>#nullable enable</code> opt-in (incremental)</strong> &mdash; rejected: leaves the project in a mixed state indefinitely, contradicts the single-target-standard goal, and the measured cost is bounded enough to do in one sprint.</li>
+    <li><strong>Keep JetBrains attributes alongside real NRT</strong> &mdash; rejected: two systems that can disagree; <code>custom-coding-rules.md</code> mandates real NRT and the attributes are unchecked at build time.</li>
+    <li><strong>Blanket <code>= null!</code> / <code>#pragma warning disable</code> to clear errors fast</strong> &mdash; rejected: defeats the purpose (the compiler stops catching real nulls); explicitly forbidden by AC-11.</li>
+    <li><strong>Annotate everything first, then delete reused files</strong> &mdash; rejected: wastes effort annotating <code>WorkTypeRule.cs</code> (36 sites) and the wrappers that ADR-0002 deletes; the sequencing in AC-1 forbids it.</li>
+  </ul>
+
+  <h2 id="related">Related</h2>
+  <ul>
+    <li><a href="adr-0002-consume-lordkuper-common.html">ADR-0002</a>: reuse deletes run first and shrink this migration's surface (AC-1).</li>
+    <li><a href="adr-0003-dependency-integration-pattern.html">ADR-0003</a>: defines the CE reflection fields that stay nullable (R-C3 / AC-14).</li>
+    <li>Driving AC: AC-9, AC-10, AC-11, AC-12, AC-13, AC-14. Audit: C-1, C-2 (and C-5, C-7 surfaced/resolved by the flip).</li>
+  </ul>
+</article>
+
+      </main>
+      <footer>by asd-architect | 2026-06-07 | sprint 001-full-audit-alignment</footer>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<!--
+responsibility:
+  owns: single architecture decision (ADR-0003)
+  excludes: requirements, ux, code
+  delegates_to: prd.html (requirements), ux-spec.html (ux), code (implementation)
+provenance: reverse-engineered
+source: Source/EquipmentManager/CombatExtendedHelper.cs, Source/EquipmentManager/EquipmentManager.csproj, About/About.xml, the weapon caches
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="ASD workflow">
+  <meta name="doc-type" content="ADR">
+  <meta name="subsystem" content="N/A">
+  <meta name="sprint-id" content="">
+  <meta name="status" content="accepted">
+  <meta name="updated" content="2026-06-07">
+  <meta name="responsibility" content="architecture decision ADR-0003 — dependency-integration pattern">
+  <meta name="provenance" content="reverse-engineered">
+  <meta name="source" content="Source/EquipmentManager/CombatExtendedHelper.cs, Source/EquipmentManager/EquipmentManager.csproj, About/About.xml, the weapon caches">
+  <title>ADR-0003 · Dependency-integration pattern</title>
+  <style>
+    :root {
+      --fg: #1a1c1e; --bg: #fff; --muted: #5b6770; --accent: #0066cc;
+      --code-bg: #f4f6f8; --border: #d0d7de; --max: 1040px;
+      --card-bg: #fafbfc;
+      --ok: #1f883d; --warn: #b35900; --danger: #cf222e; --info: #0969da; --neutral: #5b6770;
+      --chip-must-bg: #ffebe9; --chip-must-fg: #cf222e;
+      --chip-should-bg: #fff5e1; --chip-should-fg: #9a6700;
+      --chip-may-bg: #ddf4ff; --chip-may-fg: #0969da;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --fg: #e6e6e6; --bg: #0e1116; --muted: #9aa4ad; --code-bg: #161b22; --border: #30363d;
+        --card-bg: #161b22;
+        --chip-must-bg: #3b1416; --chip-must-fg: #ff7b72;
+        --chip-should-bg: #2d2410; --chip-should-fg: #e3b341;
+        --chip-may-bg: #0d2538; --chip-may-fg: #58a6ff;
+      }
+    }
+    html, body { margin: 0; padding: 0; }
+    * { box-sizing: border-box; }
+    body { font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--fg); background: var(--bg); }
+    .layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: 100vh; }
+    .content { min-width: 0; }
+    header, main, footer { max-width: var(--max); margin: 0 auto; padding: 16px 24px; }
+    header { border-bottom: 1px solid var(--border); }
+    header h1 { margin: 4px 0 8px; font-size: 1.9rem; }
+    .badges span { display: inline-block; padding: 2px 8px; margin-right: 6px; font-size: 0.75rem; border: 1px solid var(--border); border-radius: 4px; color: var(--muted); background: var(--bg); }
+    .badges .provenance-reverse-engineered, .badges .provenance-migrated { color: var(--warn); border-color: var(--warn); }
+    .badges .status-draft       { color: var(--neutral); border-color: var(--neutral); }
+    .badges .status-in-review   { color: var(--warn);    border-color: var(--warn); }
+    .badges .status-approved    { color: var(--ok);      border-color: var(--ok); }
+    .badges .status-locked      { color: var(--info);    border-color: var(--info); }
+    .badges .status-proposed    { color: var(--warn);    border-color: var(--warn); }
+    .badges .status-accepted    { color: var(--ok);      border-color: var(--ok); }
+    .stats { margin-top: 6px; font-size: 0.85rem; color: var(--muted); }
+    .stats .chip { display: inline-block; padding: 1px 8px; margin-right: 6px; border-radius: 10px; background: var(--code-bg); border: 1px solid var(--border); }
+    nav.toc { position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto; padding: 18px 14px; border-right: 1px solid var(--border); background: var(--card-bg); font-size: 0.9rem; }
+    nav.toc .toc-title { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 8px; padding-left: 6px; }
+    nav.toc ol { list-style: none; margin: 0; padding: 0; counter-reset: tocn; }
+    nav.toc li { margin: 2px 0; counter-increment: tocn; }
+    nav.toc a { display: block; padding: 4px 8px; border-radius: 4px; color: var(--fg); text-decoration: none; border-left: 2px solid transparent; }
+    nav.toc a:hover { background: var(--code-bg); color: var(--accent); }
+    nav.toc a.active { background: var(--code-bg); color: var(--accent); border-left-color: var(--accent); font-weight: 600; }
+    nav.toc a::before { content: counter(tocn) ". "; color: var(--muted); font-variant-numeric: tabular-nums; }
+    @media (max-width: 880px) {
+      .layout { grid-template-columns: 1fr; }
+      nav.toc { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--border); }
+    }
+    h2, h3, h4 { line-height: 1.25; margin-top: 1.6em; }
+    h2 { border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+    a { color: var(--accent); }
+    code, pre { font-family: ui-monospace, "Cascadia Code", Menlo, monospace; }
+    code { background: var(--code-bg); padding: 1px 5px; border-radius: 3px; font-size: 0.9em; }
+    pre { background: var(--code-bg); padding: 12px; border-radius: 6px; overflow-x: auto; }
+    pre code { background: none; padding: 0; }
+    table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+    th, td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; vertical-align: top; }
+    th { background: var(--code-bg); }
+    tbody tr:nth-child(even) td { background: var(--card-bg); }
+    blockquote { border-left: 3px solid var(--accent); margin: 0; padding: 4px 14px; color: var(--muted); }
+    footer { color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--border); margin-top: 32px; }
+    .lede { font-size: 1.08rem; color: var(--fg); }
+    .chip { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 0.78rem; border: 1px solid var(--border); }
+    .chip.area { background: var(--code-bg); color: var(--muted); }
+    .adr { border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; margin: 18px 0; background: var(--card-bg); }
+    .adr > .meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 6px; }
+    .adr h2 { margin-top: 1.1em; border-bottom: none; font-size: 1.15rem; }
+    .adr h3 { margin-top: 1em; font-size: 1rem; color: var(--muted); }
+    .status-chip { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.78rem; border: 1px solid var(--border); }
+    .status-proposed   { color: var(--warn);    border-color: var(--warn);    background: var(--chip-should-bg); }
+    .status-accepted   { color: var(--ok);      border-color: var(--ok);      background: rgba(31,136,61,0.10); }
+    .status-superseded { color: var(--muted);   border-color: var(--muted);   background: var(--code-bg); text-decoration: line-through; }
+    .status-deprecated { color: var(--danger);  border-color: var(--danger);  background: var(--chip-must-bg); }
+    .consequences { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .consequences .pros, .consequences .cons { padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border); }
+    .consequences .pros { background: rgba(31,136,61,0.07); border-left: 3px solid var(--ok); }
+    .consequences .cons { background: rgba(207,34,46,0.06); border-left: 3px solid var(--danger); }
+    .consequences h3 { margin: 0 0 4px; }
+    .consequences ul { margin: 0; padding-left: 20px; }
+    @media (max-width: 720px) { .consequences { grid-template-columns: 1fr; } }
+    ul.alt-list li { margin: 4px 0; }
+    ul.alt-list li strong { color: var(--fg); }
+    @media print {
+      nav.toc { background: none; border: 1px solid var(--border); }
+      a { color: inherit; text-decoration: none; }
+      footer { page-break-before: always; }
+      tr, li { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav class="toc" aria-label="Table of contents">
+      <p class="toc-title">Contents</p>
+      <ol>
+        <li><a href="#context">Context</a></li>
+        <li><a href="#decision">Decision</a></li>
+        <li><a href="#consequences">Consequences</a></li>
+        <li><a href="#alternatives">Alternatives considered</a></li>
+        <li><a href="#related">Related</a></li>
+      </ol>
+    </nav>
+    <div class="content">
+      <header>
+        <div class="badges">
+          <span>ADR</span>
+          <span>N/A</span>
+          <span class="status-accepted">accepted</span>
+          <span class="provenance-reverse-engineered">reverse-engineered — as-built EquipmentManager integration</span>
+        </div>
+        <h1>ADR-0003 · Dependency-integration pattern (hard typed refs vs reflective soft-dep binding)</h1>
+        <div class="stats">accepted · subsystem N/A · updated 2026-06-07</div>
+      </header>
+      <main>
+
+<article class="adr" id="adr-0003">
+  <div class="meta">
+    <span class="status-chip status-accepted">accepted</span>
+    <span class="chip area">subsystem: N/A</span>
+    <span class="chip">ADR-0003</span>
+    <span class="chip">provenance: reverse-engineered</span>
+  </div>
+  <p style="font-size:0.85rem;color:var(--muted);margin-top:-4px;">Provenance: reverse-engineered from existing code (<code>Source/EquipmentManager/CombatExtendedHelper.cs</code>, <code>EquipmentManager.csproj</code>, <code>About/About.xml</code>, the weapon caches). Source: the as-built integration in the EquipmentManager codebase.</p>
+
+  <h2 id="context">Context</h2>
+  <p>EquipmentManager integrates with four external pieces of code with different coupling needs, and the codebase already implements a consistent (but undocumented) pattern for each. The decisions-log flagged a candidate ADR for this; this ADR reverse-engineers the as-built contract so future contributors do not break it. The dependencies:</p>
+  <ul>
+    <li><strong>Lib.Harmony 2.4.2</strong> &mdash; patching framework. One patch (<code>DefGeneratorPatch</code> postfix inserting the <code>EM_Loadout</code> pawn column) plus <code>AccessTools</code> used as the reflection toolkit for the CE binding.</li>
+    <li><strong>LordKuper.Common 1.6</strong> &mdash; hard upstream library, but version-scoped: a runtime <code>modDependency</code> only on game v1.6 (<code>About.xml</code> <code>modDependenciesByVersion</code>); older game versions of the mod do not depend on it.</li>
+    <li><strong>SimpleSidearms 1.6</strong> &mdash; hard <code>modDependency</code> across versions; consumed via concrete types (<code>CompSidearmMemory</code>, <code>StatCalculator</code>, <code>WeaponAssingment</code>, <code>Enums</code>, <code>SidearmsDefOf</code>).</li>
+    <li><strong>Combat Extended</strong> &mdash; soft, optional integration: <code>loadAfter</code> only, no <code>modDependency</code>, and the mod must run correctly whether or not CE is present.</li>
+  </ul>
+  <p>The forces: hard deps want compile-time type safety and IDE support; the soft dep cannot have a compile reference (CE may be absent at runtime) yet must be used when present; and none of these may be forked or vendored (upstream-contract invariant, C-23&hellip;C-25 all PASS).</p>
+
+  <h2 id="decision">Decision</h2>
+  <p class="lede">Record the as-built pattern as the standing integration contract: <strong>hard dependencies are consumed through direct, compile-only typed references; the soft (optional) dependency is bound entirely by reflection with graceful degradation.</strong> No dependency is forked or vendored into the repo.</p>
+  <ul>
+    <li><strong>Hard deps (Common, SimpleSidearms, Harmony):</strong> referenced by <code>HintPath</code> with <code>&lt;Private&gt;False&lt;/Private&gt;</code> &mdash; compile against the assembly, but do not copy it to the build output (the host mod supplies it at runtime). Harmony additionally uses <code>ExcludeAssets=runtime</code> + <code>PrivateAssets=all</code> (compile-only NuGet). Common's hard-dependency status is version-scoped in <code>About.xml</code> (runtime <code>modDependency</code> for v1.6 only); SimpleSidearms is a hard <code>modDependency</code>. Reference resolution is path-overridable (<code>LORDKUPER_COMMON_DIR</code>, <code>RIMWORLD_DIR</code>, <code>SIMPLE_SIDEARMS_DIR</code>) with sensible defaults in <code>Directory.Build.props</code>.</li>
+    <li><strong>Soft dep (Combat Extended):</strong> <strong>no compile reference.</strong> Bound at runtime via Harmony <code>AccessTools.TypeByName</code> / <code>FieldRefAccess</code> / <code>MethodDelegate</code> in <code>CombatExtendedHelper</code> and the two weapon caches' <code>Initialize</code> methods. The reflective handles are resolved once; every lookup logs on failure and the caches degrade gracefully (all CE-derived values fall back to a no-CE path). <code>About.xml</code> declares CE in <code>loadAfter</code> only.</li>
+    <li><strong>Upstream names consumed verbatim:</strong> SimpleSidearms' own misspelled type <code>WeaponAssingment</code> is the real upstream type name and is consumed as-is &mdash; it must NOT be "corrected" (C-24, AC-31).</li>
+    <li><strong>Nullability coupling (links ADR-0001):</strong> the CE reflective handles are <em>legitimately null</em> when CE is absent, so under <code>Nullable enable</code> they stay <code>T?</code> with their existing guards and are never forced non-null (R-C3, AC-14).</li>
+  </ul>
+  <p>This ADR documents an existing pattern and prescribes no code change beyond keeping it intact; it is the architectural rationale future contributors must respect when adding or modifying an integration.</p>
+
+  <h2 id="consequences">Consequences</h2>
+  <div class="consequences">
+    <div class="pros">
+      <h3>Positive</h3>
+      <ul>
+        <li>Hard deps get full compile-time type safety and refactoring support; soft dep imposes zero hard runtime requirement, so the mod loads with or without CE.</li>
+        <li><code>Private=False</code> avoids shipping duplicate assemblies and the load conflicts that would cause.</li>
+        <li>Clear, repeatable rule for the next integration: hard &rarr; typed ref; optional &rarr; reflection + degrade.</li>
+        <li>No forking; upstream contracts stay intact and updatable.</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h3>Negative</h3>
+      <ul>
+        <li>The CE binding is string-based and fragile: a CE rename of a type/field/method breaks it silently at the lookup. Mitigated by per-lookup failure logging and graceful degradation, but not by the compiler (R-C3).</li>
+        <li>Build requires the sibling Common checkout / the resolved reference paths to be present; a missing path fails the build fast (acceptable, documented in the tech-reference).</li>
+        <li>Version-scoped Common dependency means the contract is a 1.6-only expectation; the integration shape differs across supported game versions.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2 id="alternatives">Alternatives considered</h2>
+  <ul class="alt-list">
+    <li><strong>Add a compile-time reference to Combat Extended</strong> &mdash; rejected: would make CE a hard requirement (the mod would fail to load without it) and there is no stable distributable CE reference assembly; reflection is the only way to keep CE optional.</li>
+    <li><strong>Vendor / fork Common or SimpleSidearms into the repo</strong> &mdash; rejected: violates the upstream-contract invariant and causes duplicate-assembly load conflicts; <code>Private=False</code> compile-only is the correct mechanism.</li>
+    <li><strong>"Fix" the <code>WeaponAssingment</code> spelling</strong> &mdash; rejected: it is SimpleSidearms' own public type name; renaming would not compile against the real assembly.</li>
+    <li><strong>Make Common a hard dependency on all game versions</strong> &mdash; rejected: contradicts the existing version-scoped <code>About.xml</code> contract; older versions never depended on Common.</li>
+  </ul>
+
+  <h2 id="related">Related</h2>
+  <ul>
+    <li><a href="adr-0001-production-nullable-migration.html">ADR-0001</a>: CE reflective fields stay nullable under the migration (AC-14).</li>
+    <li><a href="adr-0002-consume-lordkuper-common.html">ADR-0002</a>: consolidation keeps Common a compile-only, non-forked reference (AC-30).</li>
+    <li>Driving AC: AC-30, AC-31, AC-32, AC-33. Audit: DM-5, C-23, C-24, C-25.</li>
+  </ul>
+</article>
+
+      </main>
+      <footer>by asd-architect | 2026-06-07 | sprint 001-full-audit-alignment</footer>
+    </div>
+  </div>
+</body>
+</html>

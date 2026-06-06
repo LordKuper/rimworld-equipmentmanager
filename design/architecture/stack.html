@@ -16,7 +16,7 @@ source: Source/EquipmentManager/EquipmentManager.csproj
   <meta name="subsystem" content="—">
   <meta name="sprint-id" content="—">
   <meta name="status" content="approved">
-  <meta name="updated" content="2026-06-06">
+  <meta name="updated" content="2026-06-07">
   <meta name="responsibility" content="current tech stack reference (languages, frameworks, runtime, infra)">
   <meta name="provenance" content="reverse-engineered">
   <meta name="source" content="Source/EquipmentManager/EquipmentManager.csproj">
@@ -116,7 +116,7 @@ source: Source/EquipmentManager/EquipmentManager.csproj
       <tr><td><strong>C#</strong></td><td class="ver"><code>LangVersion latest</code>, compiled for <code>net48</code></td><td><span class="chip area">production + tests</span></td></tr>
     </tbody>
   </table>
-  <p><b>Nullability</b>: target standard is <code>&lt;Nullable&gt;enable&lt;/Nullable&gt;</code> for all projects. The test project already enables it; the production project does <b>not</b> yet — flipping it surfaces ~148 warnings that fail the build under <code>TreatWarningsAsErrors</code>, so the production nullable migration is scheduled as the first sprint, not done ad hoc.</p>
+  <p><b>Nullability</b>: target standard is <code>&lt;Nullable&gt;enable&lt;/Nullable&gt;</code> for all projects. The test project already enables it. The production nullable migration is a <b>decided</b> change (see <a href="adr/adr-0001-production-nullable-migration.html">ADR-0001</a>) and is <b>in progress</b> in sprint <code>001-full-audit-alignment</code>: flipping <code>&lt;Nullable&gt;enable&lt;/Nullable&gt;</code> on production surfaces 131 distinct sites / 300 occurrences across 32 files that must each be resolved to reach zero NRT diagnostics under <code>TreatWarningsAsErrors</code>. <em>As-built status not yet confirmed:</em> the production csproj flip lands during that sprint's implementation phase, after the <a href="adr/adr-0002-consume-lordkuper-common.html">ADR-0002</a> consolidation deletes (which shrink the migration surface). This paragraph must be finalized to the "enabled / as-built" wording at impl/pr time once the flip is merged and the build is green (DM-1 / AC-36; for the impl-review documentation reviewer to confirm).</p>
 </section>
 
 <section id="frameworks">
@@ -197,7 +197,7 @@ source: Source/EquipmentManager/EquipmentManager.csproj
 </section>
 
       </main>
-      <footer>by asd-architect | 2026-06-06 | sprint —</footer>
+      <footer>by asd-architect | 2026-06-07 | sprint 001-full-audit-alignment</footer>
     </div>
   </div>
 </body>
