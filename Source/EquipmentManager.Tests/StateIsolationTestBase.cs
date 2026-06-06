@@ -24,7 +24,6 @@ public abstract class StateIsolationTestBase
         typeof(PawnCache),
         typeof(ToolCache),
         typeof(ItemRule),
-        typeof(WorkTypeRule),
         typeof(EquipmentManagerMapComponent)
     ];
 

@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text;
 using EquipmentManager.CustomWidgets;
 using JetBrains.Annotations;
+using LordKuper.Common;
 using LordKuper.Common.Helpers;
 using LordKuper.Common.UI;
 using RimWorld;
@@ -16,7 +17,7 @@ internal partial class ManageWeaponRulesDialog
     private readonly List<Thing> _currentlyAvailableWorkTypes = new();
     private readonly List<ThingDef> _globallyAvailableWorkTypes = new();
 
-    private WorkTypeRule SelectedWorkTypeRule
+    private WorkTypeThingRule SelectedWorkTypeRule
     {
         get;
         set
@@ -65,8 +66,8 @@ internal partial class ManageWeaponRulesDialog
                 SelectedWorkTypeRule.Label);
             UiHelpers.DoGapLineHorizontal(new Rect(rect.x, labelRect.yMax, rect.width,
                 UiHelpers.ElementGap));
-            DoRuleStatWeights(statsRect, EquipmentManagerStatDefs.WorkTypeStatDefs,
-                SelectedWorkTypeRule.GetStatWeights(), def =>
+            DoRuleStatWeights(statsRect, StatHelper.GetStatsByCategory(StatCategory.Work),
+                SelectedWorkTypeRule.StatWeights.ToList(), def =>
                 {
                     SelectedWorkTypeRule.SetStatWeight(def, 0f);
                     UpdateAvailableItems_WorkTypes();
@@ -86,11 +87,12 @@ internal partial class ManageWeaponRulesDialog
     }
 
     [NotNull]
-    private string GetWorkTypeDefTooltip([NotNull] BuildableDef def, [NotNull] WorkTypeRule rule)
+    private string GetWorkTypeDefTooltip([NotNull] BuildableDef def,
+        [NotNull] WorkTypeThingRule rule)
     {
         var stringBuilder = new StringBuilder();
         _ = stringBuilder.AppendLine(def.LabelCap);
-        var stats = rule.GetStatWeights().Where(sw => sw.StatDef != null).Select(sw => sw.StatDef)
+        var stats = rule.StatWeights.Where(sw => sw.StatDef != null).Select(sw => sw.StatDef)
             .ToHashSet();
         if (!stats.Any()) { return stringBuilder.ToString(); }
         _ = stringBuilder.AppendLine();
@@ -104,11 +106,11 @@ internal partial class ManageWeaponRulesDialog
     }
 
     [NotNull]
-    private string GetWorkTypeTooltip([NotNull] Thing thing, [NotNull] WorkTypeRule rule)
+    private string GetWorkTypeTooltip([NotNull] Thing thing, [NotNull] WorkTypeThingRule rule)
     {
         var stringBuilder = new StringBuilder();
         _ = stringBuilder.AppendLine(thing.LabelCapNoCount);
-        var stats = rule.GetStatWeights().Where(sw => sw.StatDef != null).Select(sw => sw.StatDef)
+        var stats = rule.StatWeights.Where(sw => sw.StatDef != null).Select(sw => sw.StatDef)
             .ToHashSet();
         if (!stats.Any()) { return stringBuilder.ToString(); }
         _ = stringBuilder.AppendLine();
@@ -126,7 +128,18 @@ internal partial class ManageWeaponRulesDialog
         _currentlyAvailableWorkTypes.Clear();
         if (SelectedWorkTypeRule == null) { return; }
         _globallyAvailableWorkTypes.AddRange(SelectedWorkTypeRule.GetGloballyAvailableItems());
-        _currentlyAvailableWorkTypes.AddRange(
-            SelectedWorkTypeRule.GetCurrentlyAvailableItemsSorted(Find.CurrentMap));
+        // Build currently-available list from map weapons that match the globally available defs
+        var globalItemDefs = new HashSet<ThingDef>(_globallyAvailableWorkTypes);
+        var mapThings = new List<Thing>();
+        foreach (var thing in Find.CurrentMap?.listerThings
+                     ?.ThingsInGroup(ThingRequestGroup.Weapon)
+                     .Where(t => globalItemDefs.Contains(t.def)) ?? Enumerable.Empty<Thing>())
+        {
+            var comp = thing.TryGetComp<CompForbiddable>();
+            if (comp is { Forbidden: true }) { continue; }
+            mapThings.Add(thing);
+        }
+        mapThings.SortByDescending(t => SelectedWorkTypeRule.GetThingScore(t));
+        _currentlyAvailableWorkTypes.AddRange(mapThings);
     }
 }

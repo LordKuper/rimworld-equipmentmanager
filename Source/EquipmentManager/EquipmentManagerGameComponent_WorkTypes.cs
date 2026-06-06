@@ -1,16 +1,16 @@
 ﻿using System.Collections.Generic;
 using JetBrains.Annotations;
+using LordKuper.Common;
 using Verse;
 
 namespace EquipmentManager;
 
 internal partial class EquipmentManagerGameComponent
 {
-    private List<WorkTypeRule> _workTypeRules;
+    private List<WorkTypeThingRule> _workTypeRules;
 
-    public void AddWorkTypeRule([NotNull] WorkTypeRule workTypeRule)
+    public void AddWorkTypeRule([NotNull] WorkTypeThingRule workTypeRule)
     {
-        workTypeRule.NormalizeLegacyCustomStatDefNames();
         var existingRule =
             _workTypeRules.FirstOrDefault(rule =>
                 rule.WorkTypeDefName == workTypeRule.WorkTypeDefName);
@@ -18,7 +18,7 @@ internal partial class EquipmentManagerGameComponent
         _workTypeRules.Add(workTypeRule);
     }
 
-    public void DeleteWorkTypeRule(WorkTypeRule workTypeRule)
+    public void DeleteWorkTypeRule(WorkTypeThingRule workTypeRule)
     {
         _ = _workTypeRules.Remove(workTypeRule);
     }
@@ -29,11 +29,11 @@ internal partial class EquipmentManagerGameComponent
     }
 
     [NotNull]
-    public IEnumerable<WorkTypeRule> GetWorkTypeRules()
+    public IEnumerable<WorkTypeThingRule> GetWorkTypeRules()
     {
         if (_workTypeRules == null || _workTypeRules.Count == 0)
         {
-            _workTypeRules = new List<WorkTypeRule>(WorkTypeRule.DefaultRules);
+            _workTypeRules = new List<WorkTypeThingRule>(WorkTypeThingRule.DefaultRules);
         }
         return _workTypeRules;
     }

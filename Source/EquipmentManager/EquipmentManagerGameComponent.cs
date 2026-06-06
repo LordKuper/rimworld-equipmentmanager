@@ -27,12 +27,10 @@ internal partial class EquipmentManagerGameComponent : GameComponent
         MeleeWeaponRule.ResetCache();
         RangedWeaponRule.ResetCache();
         ToolRule.ResetCache();
-        WorkTypeRule.ResetCache();
         PawnCache.ResetCache();
         ToolCache.ResetCache();
         PawnColumnWorkers.Loadout.ResetEquipmentManagerCache();
         foreach (var loadout in GetLoadouts()) { loadout.NormalizeLegacyCustomStatDefNames(); }
-        foreach (var rule in GetWorkTypeRules()) { rule.NormalizeLegacyCustomStatDefNames(); }
         foreach (var rule in GetMeleeWeaponRules()) { rule.NormalizeLegacyCustomStatDefNames(); }
         foreach (var rule in GetRangedWeaponRules()) { rule.NormalizeLegacyCustomStatDefNames(); }
         foreach (var rule in GetToolRules()) { rule.NormalizeLegacyCustomStatDefNames(); }

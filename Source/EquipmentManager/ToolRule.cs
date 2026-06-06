@@ -38,8 +38,8 @@ internal class ToolRule : ItemRule
         {
             if (_allRelevantThings == null || _allRelevantThings.Count == 0)
             {
-                var relevantStats = EquipmentManager.GetWorkTypeRules()
-                    .SelectMany(rule => rule.RequiredStats).ToHashSet();
+                var relevantStats = (WorkTypeStatMap.AutoSwitchStatsMap?.Values
+                    .SelectMany(s => s) ?? Enumerable.Empty<StatDef>()).ToHashSet();
                 _allRelevantThings = new HashSet<ThingDef>(DefDatabase<ThingDef>.AllDefs.Where(
                     def => def.IsWeapon && !def.destroyOnDrop && (def.statBases ?? [])
                         .Union(def.equippedStatOffsets ?? [])
@@ -122,9 +122,13 @@ internal class ToolRule : ItemRule
         IReadOnlyCollection<WorkTypeDef> workTypeDefs)
     {
         Initialize();
-        var relevantStats = EquipmentManager.GetWorkTypeRules()
-            .Where(wtr => workTypeDefs.Any(wtd => wtd.defName == wtr.WorkTypeDefName))
-            .SelectMany(rule => rule.RequiredStats).ToHashSet();
+        var autoSwitchMap = WorkTypeStatMap.AutoSwitchStatsMap;
+        var relevantStats = workTypeDefs
+            .SelectMany(wtd =>
+                autoSwitchMap != null && autoSwitchMap.TryGetValue(wtd, out var stats)
+                    ? (IEnumerable<StatDef>)stats
+                    : Enumerable.Empty<StatDef>())
+            .ToHashSet();
         return GloballyAvailableItems.Where(def => (def.statBases ?? [])
             .Union(def.equippedStatOffsets ?? []).Any(sm => relevantStats.Contains(sm.stat)));
     }

@@ -20,7 +20,7 @@ internal class ImportLoadoutsDialog : Window
     private readonly List<RangedWeaponRule> _rangedWeaponRules = [];
     private readonly Dictionary<string, string> _savedGames = new();
     private readonly List<ToolRule> _toolRules = [];
-    private readonly List<WorkTypeRule> _workTypeRules = [];
+    private readonly List<WorkTypeThingRule> _workTypeRules = [];
     private Vector2 _loadoutsListScrollPosition;
     private Vector2 _savedGamesListScrollPosition;
     private string _selectedSaveGame;
@@ -1074,7 +1074,13 @@ internal class ImportLoadoutsDialog : Window
                     break;
             }
         }
-        _workTypeRules.Add(new WorkTypeRule(workTypeDefName, statWeights));
+        var rule = new WorkTypeThingRule(workTypeDefName);
+        foreach (var sw in statWeights)
+        {
+            var statDef = sw.StatDef;
+            if (statDef != null) { rule.SetStatWeight(statDef, sw.Weight, sw.Protected); }
+        }
+        _workTypeRules.Add(rule);
     }
 
     private void ReadWorkTypeRulesData(string savedGameFile, [NotNull] XmlReader xmlReader)
