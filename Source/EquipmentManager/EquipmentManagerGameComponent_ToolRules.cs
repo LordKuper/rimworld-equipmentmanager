@@ -18,7 +18,7 @@ internal partial class EquipmentManagerGameComponent
     {
         var id = _toolRules.Any() ? _toolRules.Max(l => l.Id) + 1 : 0;
         var toolRule = new ToolRule(id, false) { Label = $"{id}" };
-        foreach (var statWeight in ToolRule.DefaultStatWeights)
+        foreach (var statWeight in toolRule.GetDefaultStatWeights())
         {
             if (statWeight.StatDef == null) { continue; }
             toolRule.SetStatWeight(statWeight.StatDef, statWeight.Weight, statWeight.Protected);

@@ -61,34 +61,39 @@ internal class RangedWeaponRule : ItemRule
         "VWE_SmokeGrenade", "VWE_TearGasGrenade", "VWE_ToxicGrenade", "VWE_FlashGrenade"
     ];
 
-    public static IEnumerable<RangedWeaponRule> DefaultRules =>
-    [
-        new(0, true)
+    public static IEnumerable<RangedWeaponRule> DefaultRules
+    {
+        get
         {
-            Label = Resources.Strings.WeaponRules.RangedWeapons.Default.HighestDpsa,
-            EquipMode = WeaponEquipMode.BestOne,
-            ManualCast = false,
-            StatWeights =
+            var rule0 = new RangedWeaponRule(0, true)
+            {
+                Label = Resources.Strings.WeaponRules.RangedWeapons.Default.HighestDpsa,
+                EquipMode = WeaponEquipMode.BestOne,
+                ManualCast = false,
+                BlacklistedItemsDefNames = [.. DefaultBlacklist],
+                AmmoCount = 100
+            };
+            rule0.StatWeights =
             [
-                ..DefaultStatWeights.Union([
+                ..rule0.GetDefaultStatWeights().Union([
                     new StatWeight(RangedWeaponStats.GetStatDefName(RangedWeaponStat.Dpsa), 2.0f,
                         false),
                     new StatWeight(RangedWeaponStats.GetStatDefName(RangedWeaponStat.Range), 0.2f,
                         false)
                 ])
-            ],
-            BlacklistedItemsDefNames = [..DefaultBlacklist],
-            AmmoCount = 100
-        },
-        new(1, false)
-        {
-            Label = Resources.Strings.WeaponRules.RangedWeapons.Default.LowWarmupTime,
-            EquipMode = WeaponEquipMode.BestOne,
-            Explosive = false,
-            ManualCast = false,
-            StatWeights =
+            ];
+            var rule1 = new RangedWeaponRule(1, false)
+            {
+                Label = Resources.Strings.WeaponRules.RangedWeapons.Default.LowWarmupTime,
+                EquipMode = WeaponEquipMode.BestOne,
+                Explosive = false,
+                ManualCast = false,
+                BlacklistedItemsDefNames = [.. DefaultBlacklist],
+                AmmoCount = 50
+            };
+            rule1.StatWeights =
             [
-                ..DefaultStatWeights.Union([
+                ..rule1.GetDefaultStatWeights().Union([
                     new StatWeight(RangedWeaponStats.GetStatDefName(RangedWeaponStat.Warmup), -2.0f,
                         false),
                     new StatWeight(RangedWeaponStats.GetStatDefName(RangedWeaponStat.DpsaShort),
@@ -96,19 +101,19 @@ internal class RangedWeaponRule : ItemRule
                     new StatWeight(RangedWeaponStats.GetStatDefName(RangedWeaponStat.Dpsa), 0.5f,
                         false)
                 ])
-            ],
-            BlacklistedItemsDefNames = [..DefaultBlacklist],
-            AmmoCount = 50
-        },
-        new(2, false)
-        {
-            Label = Resources.Strings.WeaponRules.RangedWeapons.Default.HighRof,
-            EquipMode = WeaponEquipMode.BestOne,
-            Explosive = false,
-            ManualCast = false,
-            StatWeights =
+            ];
+            var rule2 = new RangedWeaponRule(2, false)
+            {
+                Label = Resources.Strings.WeaponRules.RangedWeapons.Default.HighRof,
+                EquipMode = WeaponEquipMode.BestOne,
+                Explosive = false,
+                ManualCast = false,
+                BlacklistedItemsDefNames = [.. DefaultBlacklist],
+                AmmoCount = 200
+            };
+            rule2.StatWeights =
             [
-                ..DefaultStatWeights.Union([
+                ..rule2.GetDefaultStatWeights().Union([
                     new StatWeight(
                         RangedWeaponStats.GetStatDefName(RangedWeaponStat.BurstShotCount), 2.0f,
                         false),
@@ -123,19 +128,19 @@ internal class RangedWeaponRule : ItemRule
                         false),
                     new StatWeight("RangedWeapon_Cooldown", -1.5f, false)
                 ])
-            ],
-            BlacklistedItemsDefNames = [..DefaultBlacklist],
-            AmmoCount = 200
-        },
-        new(3, false)
-        {
-            Label = Resources.Strings.WeaponRules.RangedWeapons.Default.LongRangeHeavyHitter,
-            EquipMode = WeaponEquipMode.BestOne,
-            Explosive = false,
-            ManualCast = false,
-            StatWeights =
+            ];
+            var rule3 = new RangedWeaponRule(3, false)
+            {
+                Label = Resources.Strings.WeaponRules.RangedWeapons.Default.LongRangeHeavyHitter,
+                EquipMode = WeaponEquipMode.BestOne,
+                Explosive = false,
+                ManualCast = false,
+                BlacklistedItemsDefNames = [.. DefaultBlacklist],
+                AmmoCount = 30
+            };
+            rule3.StatWeights =
             [
-                ..DefaultStatWeights.Union([
+                ..rule3.GetDefaultStatWeights().Union([
                     new StatWeight(RangedWeaponStats.GetStatDefName(RangedWeaponStat.Range), 2.0f,
                         false),
                     new StatWeight(RangedWeaponStats.GetStatDefName(RangedWeaponStat.Damage), 1.5f,
@@ -147,18 +152,17 @@ internal class RangedWeaponRule : ItemRule
                     new StatWeight(RangedWeaponStats.GetStatDefName(RangedWeaponStat.StoppingPower),
                         0.5f, false)
                 ])
-            ],
-            BlacklistedItemsDefNames = [..DefaultBlacklist],
-            AmmoCount = 30
+            ];
+            return [rule0, rule1, rule2, rule3];
         }
-    ];
+    }
 
-    public new static IEnumerable<StatWeight> DefaultStatWeights =>
+    protected internal override IEnumerable<StatWeight> GetDefaultStatWeights() =>
         new[]
         {
             new StatWeight(RangedWeaponStats.GetStatDefName(RangedWeaponStat.ArmorPenetration),
                 0.2f, false)
-        }.Union(ItemRule.DefaultStatWeights);
+        }.Union(base.GetDefaultStatWeights());
 
     public bool? Explosive
     {

@@ -18,7 +18,7 @@ internal partial class EquipmentManagerGameComponent
     {
         var id = _meleeWeaponRules.Any() ? _meleeWeaponRules.Max(l => l.Id) + 1 : 0;
         var meleeWeaponRule = new MeleeWeaponRule(id, false) { Label = $"{id}" };
-        foreach (var statWeight in MeleeWeaponRule.DefaultStatWeights)
+        foreach (var statWeight in meleeWeaponRule.GetDefaultStatWeights())
         {
             if (statWeight.StatDef == null) { continue; }
             meleeWeaponRule.SetStatWeight(statWeight.StatDef, statWeight.Weight,

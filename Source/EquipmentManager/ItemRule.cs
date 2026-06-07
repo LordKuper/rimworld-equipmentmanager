@@ -55,7 +55,13 @@ internal class ItemRule : IExposable
         _protected = isProtected;
     }
 
-    protected static IEnumerable<StatWeight> DefaultStatWeights =>
+    /// <summary>
+    ///     Returns the base set of default stat weights applied to all item rules.
+    ///     When Combat Extended is active the Bulk stat is included; otherwise it is omitted.
+    ///     Subclasses override this method to prepend their own stat weights and call
+    ///     <c>base.GetDefaultStatWeights()</c> to include the base set.
+    /// </summary>
+    protected internal virtual IEnumerable<StatWeight> GetDefaultStatWeights() =>
         CombatExtendedHelper.CombatExtended
             ? new[]
             {

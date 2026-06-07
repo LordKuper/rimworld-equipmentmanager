@@ -60,63 +60,68 @@ internal class MeleeWeaponRule : ItemRule
 
     public static IEnumerable<string> DefaultBlacklist => ["WoodLog", "Beer"];
 
-    public static IEnumerable<MeleeWeaponRule> DefaultRules =>
-    [
-        new(0, true)
+    public static IEnumerable<MeleeWeaponRule> DefaultRules
+    {
+        get
         {
-            Label = Resources.Strings.WeaponRules.MeleeWeapons.Default.HighestDps,
-            EquipMode = WeaponEquipMode.BestOne,
-            Rottable = false,
-            StatWeights =
+            var rule0 = new MeleeWeaponRule(0, true)
+            {
+                Label = Resources.Strings.WeaponRules.MeleeWeapons.Default.HighestDps,
+                EquipMode = WeaponEquipMode.BestOne,
+                Rottable = false,
+                BlacklistedItemsDefNames = [.. DefaultBlacklist]
+            };
+            rule0.StatWeights =
             [
-                ..DefaultStatWeights.Where(sw => !new[] { "Mass" }.Contains(sw.StatDefName))
+                ..rule0.GetDefaultStatWeights()
+                    .Where(sw => !new[] { "Mass" }.Contains(sw.StatDefName))
                     .Union([new StatWeight("Mass", -1.0f, false)])
-            ],
-            BlacklistedItemsDefNames = [..DefaultBlacklist]
-        },
-        new(1, false)
-        {
-            Label = Resources.Strings.WeaponRules.MeleeWeapons.Default.Sharpest,
-            EquipMode = WeaponEquipMode.BestOne,
-            Rottable = false,
-            StatWeights =
+            ];
+            var rule1 = new MeleeWeaponRule(1, false)
+            {
+                Label = Resources.Strings.WeaponRules.MeleeWeapons.Default.Sharpest,
+                EquipMode = WeaponEquipMode.BestOne,
+                Rottable = false,
+                BlacklistedItemsDefNames = [.. DefaultBlacklist]
+            };
+            rule1.StatWeights =
             [
-                ..DefaultStatWeights
+                ..rule1.GetDefaultStatWeights()
                     .Where(sw => !new[] { "MeleeWeapon_AverageDPS" }.Contains(sw.StatDefName))
                     .Union([
                         new StatWeight(MeleeWeaponStats.GetStatDefName(MeleeWeaponStat.DpsSharp),
                             2.0f, false),
                         new StatWeight("MeleeWeapon_AverageDPS", 0.5f, false)
                     ])
-            ],
-            BlacklistedItemsDefNames = [..DefaultBlacklist]
-        },
-        new(2, false)
-        {
-            Label = Resources.Strings.WeaponRules.MeleeWeapons.Default.Bluntest,
-            EquipMode = WeaponEquipMode.BestOne,
-            Rottable = false,
-            StatWeights =
+            ];
+            var rule2 = new MeleeWeaponRule(2, false)
+            {
+                Label = Resources.Strings.WeaponRules.MeleeWeapons.Default.Bluntest,
+                EquipMode = WeaponEquipMode.BestOne,
+                Rottable = false,
+                BlacklistedItemsDefNames = [.. DefaultBlacklist]
+            };
+            rule2.StatWeights =
             [
-                ..DefaultStatWeights
+                ..rule2.GetDefaultStatWeights()
                     .Where(sw => !new[] { "MeleeWeapon_AverageDPS" }.Contains(sw.StatDefName))
                     .Union([
                         new StatWeight(MeleeWeaponStats.GetStatDefName(MeleeWeaponStat.DpsBlunt),
                             2.0f, false),
                         new StatWeight("MeleeWeapon_AverageDPS", 0.5f, false)
                     ])
-            ],
-            BlacklistedItemsDefNames = [..DefaultBlacklist]
+            ];
+            return [rule0, rule1, rule2];
         }
-    ];
+    }
 
-    public new static IEnumerable<StatWeight> DefaultStatWeights =>
+    protected internal override IEnumerable<StatWeight> GetDefaultStatWeights() =>
         new[]
         {
             new StatWeight("MeleeWeapon_AverageDPS", 2.0f, false),
             new StatWeight(MeleeWeaponStats.GetStatDefName(MeleeWeaponStat.ArmorPenetration),
                 0.5f, false)
-        }.Union(ItemRule.DefaultStatWeights);
+        }.Union(base.GetDefaultStatWeights());
 
     public bool? Rottable
     {

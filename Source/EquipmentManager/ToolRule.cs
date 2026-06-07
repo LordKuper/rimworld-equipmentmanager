@@ -57,30 +57,34 @@ internal class ToolRule : ItemRule
 
     public static IEnumerable<string> DefaultBlacklist => [];
 
-    public static IEnumerable<ToolRule> DefaultRules =>
-    [
-        new(0, true)
+    public static IEnumerable<ToolRule> DefaultRules
+    {
+        get
         {
-            Label = Resources.Strings.WeaponRules.Tools.Default.AssignedWorkTypes,
-            EquipMode = ToolEquipMode.OneForEveryAssignedWorkType,
-            StatWeights = [..DefaultStatWeights],
-            BlacklistedItemsDefNames = [..DefaultBlacklist]
-        },
-        new(1, true)
-        {
-            Label = Resources.Strings.WeaponRules.Tools.Default.AllWorkTypes,
-            EquipMode = ToolEquipMode.OneForEveryWorkType,
-            StatWeights = [..DefaultStatWeights],
-            BlacklistedItemsDefNames = [..DefaultBlacklist]
+            var rule0 = new ToolRule(0, true)
+            {
+                Label = Resources.Strings.WeaponRules.Tools.Default.AssignedWorkTypes,
+                EquipMode = ToolEquipMode.OneForEveryAssignedWorkType,
+                BlacklistedItemsDefNames = [.. DefaultBlacklist]
+            };
+            rule0.StatWeights = [.. rule0.GetDefaultStatWeights()];
+            var rule1 = new ToolRule(1, true)
+            {
+                Label = Resources.Strings.WeaponRules.Tools.Default.AllWorkTypes,
+                EquipMode = ToolEquipMode.OneForEveryWorkType,
+                BlacklistedItemsDefNames = [.. DefaultBlacklist]
+            };
+            rule1.StatWeights = [.. rule1.GetDefaultStatWeights()];
+            return [rule0, rule1];
         }
-    ];
+    }
 
-    public new static IEnumerable<StatWeight> DefaultStatWeights =>
+    protected internal override IEnumerable<StatWeight> GetDefaultStatWeights() =>
         new[]
         {
             new StatWeight(ToolStats.GetStatDefName(ToolStat.WorkType), 2.0f, true),
             new StatWeight("MoveSpeed", 1.0f, false)
-        }.Union(ItemRule.DefaultStatWeights);
+        }.Union(base.GetDefaultStatWeights());
 
     public bool? Ranged
     {

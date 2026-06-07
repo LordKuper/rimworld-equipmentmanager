@@ -18,7 +18,7 @@ internal partial class EquipmentManagerGameComponent
     {
         var id = _rangedWeaponRules.Any() ? _rangedWeaponRules.Max(l => l.Id) + 1 : 0;
         var rangedWeaponRule = new RangedWeaponRule(id, false) { Label = $"{id}" };
-        foreach (var statWeight in RangedWeaponRule.DefaultStatWeights)
+        foreach (var statWeight in rangedWeaponRule.GetDefaultStatWeights())
         {
             if (statWeight.StatDef == null) { continue; }
             rangedWeaponRule.SetStatWeight(statWeight.StatDef, statWeight.Weight,
