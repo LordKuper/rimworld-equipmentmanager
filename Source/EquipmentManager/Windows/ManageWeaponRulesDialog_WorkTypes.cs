@@ -1,11 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using EquipmentManager.CustomWidgets;
 using LordKuper.Common;
-using LordKuper.Common.Helpers;
-using LordKuper.Common.UI;
-using RimWorld;
+using LordKuper.Common.UI.Widgets;
 using UnityEngine;
 using Verse;
 
@@ -13,8 +9,10 @@ namespace EquipmentManager.Windows;
 
 internal partial class ManageWeaponRulesDialog
 {
-    private readonly List<Thing> _currentlyAvailableWorkTypes = new();
     private readonly List<ThingDef> _globallyAvailableWorkTypes = new();
+    private float _workTypesScrollableContentHeight;
+    private Vector2 _workTypesScrollPosition;
+    private Vector2 _workTypesThingIconBoxScrollPosition;
 
     private WorkTypeThingRule? SelectedWorkTypeRule
     {
@@ -26,117 +24,20 @@ internal partial class ManageWeaponRulesDialog
         }
     }
 
-    private void DoButtonRow_WorkTypes(Rect rect)
-    {
-        const int buttonCount = 1;
-        var buttonWidth = (rect.width - UiHelpers.ButtonGap * (buttonCount - 1)) / buttonCount;
-        if (Widgets.ButtonText(new Rect(rect.x, rect.y, buttonWidth, UiHelpers.ButtonHeight),
-                Resources.Strings.WeaponRules.SelectRule))
-        {
-            Find.WindowStack.Add(new FloatMenu(EquipmentManager.GetWorkTypeRules().Select(rule =>
-                new FloatMenuOption(rule.Label, () => SelectedWorkTypeRule = rule)).ToList()));
-        }
-    }
-
     private void DoTab_WorkTypes(Rect rect)
     {
-        var sectionHeaderHeight = Text.LineHeightOf(GameFont.Medium) + UiHelpers.ElementGap;
-        var buttonRowRect = new Rect(rect.x, rect.y, rect.width, UiHelpers.ButtonHeight);
-        var labelRect = new Rect(rect.x, buttonRowRect.yMax + UiHelpers.ElementGap, rect.width,
-            UiHelpers.LabelHeight);
-        var availableItemsBoxHeight = ItemIconSize * AvailableItemIconsRowCount +
-            ItemIconGap * (AvailableItemIconsRowCount + 1);
-        var availableItemsRect = new Rect(rect.x,
-            rect.yMax - availableItemsBoxHeight - sectionHeaderHeight, rect.width,
-            availableItemsBoxHeight + sectionHeaderHeight);
-        var statsRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
-            availableItemsRect.y - UiHelpers.ElementGap - labelRect.yMax - UiHelpers.ElementGap);
-        DoButtonRow_WorkTypes(buttonRowRect);
-        UiHelpers.DoGapLineHorizontal(new Rect(rect.x, buttonRowRect.yMax, rect.width,
-            UiHelpers.ElementGap));
-        if (SelectedWorkTypeRule == null)
-        {
-            Labels.DoLabel(labelRect, Resources.Strings.WeaponRules.NoRuleSelected,
-                TextAnchor.MiddleLeft);
-        }
-        else
-        {
-            UiHelpers.DoLabeledText(labelRect, Resources.Strings.WeaponRules.RuleLabel,
-                SelectedWorkTypeRule!.Label);
-            UiHelpers.DoGapLineHorizontal(new Rect(rect.x, labelRect.yMax, rect.width,
-                UiHelpers.ElementGap));
-            DoRuleStatWeights(statsRect, StatHelper.GetStatsByCategory(StatCategory.Work),
-                SelectedWorkTypeRule!.StatWeights.ToList(), def =>
-                {
-                    SelectedWorkTypeRule!.SetStatWeight(def, 0f);
-                    UpdateAvailableItems_WorkTypes();
-                }, statDefName =>
-                {
-                    SelectedWorkTypeRule!.DeleteStatWeight(statDefName);
-                    UpdateAvailableItems_WorkTypes();
-                });
-            UiHelpers.DoGapLineHorizontal(new Rect(rect.x, statsRect.yMax, rect.width,
-                UiHelpers.ElementGap));
-            DoAvailableItems(availableItemsRect, _globallyAvailableWorkTypes, _ => { },
-                def => GetWorkTypeDefTooltip(def, SelectedWorkTypeRule),
-                _currentlyAvailableWorkTypes, _ => { },
-                thing => GetWorkTypeTooltip(thing, SelectedWorkTypeRule),
-                UpdateAvailableItems_WorkTypes);
-        }
-    }
-
-    private string GetWorkTypeDefTooltip(BuildableDef def,
-        WorkTypeThingRule rule)
-    {
-        var stringBuilder = new StringBuilder();
-        _ = stringBuilder.AppendLine(def.LabelCap);
-        var stats = rule.StatWeights.Where(sw => sw.StatDef != null).Select(sw => sw.StatDef!)
-            .ToHashSet();
-        if (!stats.Any()) { return stringBuilder.ToString(); }
-        _ = stringBuilder.AppendLine();
-        var stuffDef = def.MadeFromStuff ? GenStuff.DefaultStuffFor(def) : null;
-        var request = StatRequest.For(def, stuffDef);
-        foreach (var stat in stats)
-        {
-            _ = stringBuilder.AppendLine($"- {stat.LabelCap} = {stat.Worker.GetValue(request):N2}");
-        }
-        return stringBuilder.ToString();
-    }
-
-    private string GetWorkTypeTooltip(Thing thing, WorkTypeThingRule rule)
-    {
-        var stringBuilder = new StringBuilder();
-        _ = stringBuilder.AppendLine(thing.LabelCapNoCount);
-        var stats = rule.StatWeights.Where(sw => sw.StatDef != null).Select(sw => sw.StatDef!)
-            .ToHashSet();
-        if (!stats.Any()) { return stringBuilder.ToString(); }
-        _ = stringBuilder.AppendLine();
-        foreach (var stat in stats)
-        {
-            _ = stringBuilder.AppendLine(
-                $"- {stat.LabelCap} = {StatHelper.GetStatValue(thing, stat):N2}");
-        }
-        return stringBuilder.ToString();
+        WorkTypeThingRuleWidget.DoWidgetTab(rect, ref _workTypesScrollableContentHeight,
+            ref _workTypesScrollPosition, AvailableItemIconsRowCount,
+            EquipmentManager.GetWorkTypeRules().ToList(),
+            SelectedWorkTypeRule, rule => SelectedWorkTypeRule = rule,
+            UpdateAvailableItems_WorkTypes, ref _workTypesThingIconBoxScrollPosition,
+            _globallyAvailableWorkTypes);
     }
 
     private void UpdateAvailableItems_WorkTypes()
     {
         _globallyAvailableWorkTypes.Clear();
-        _currentlyAvailableWorkTypes.Clear();
         if (SelectedWorkTypeRule == null) { return; }
-        _globallyAvailableWorkTypes.AddRange(SelectedWorkTypeRule!.GetGloballyAvailableItems());
-        // Build currently-available list from map weapons that match the globally available defs
-        var globalItemDefs = new HashSet<ThingDef>(_globallyAvailableWorkTypes);
-        var mapThings = new List<Thing>();
-        foreach (var thing in Find.CurrentMap?.listerThings
-                     ?.ThingsInGroup(ThingRequestGroup.Weapon)
-                     .Where(t => globalItemDefs.Contains(t.def)) ?? Enumerable.Empty<Thing>())
-        {
-            var comp = thing.TryGetComp<CompForbiddable>();
-            if (comp is { Forbidden: true }) { continue; }
-            mapThings.Add(thing);
-        }
-        mapThings.SortByDescending(t => SelectedWorkTypeRule!.GetThingScore(t));
-        _currentlyAvailableWorkTypes.AddRange(mapThings);
+        _globallyAvailableWorkTypes.AddRange(SelectedWorkTypeRule.GetGloballyAvailableItems());
     }
 }

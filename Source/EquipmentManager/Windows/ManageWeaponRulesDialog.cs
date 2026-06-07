@@ -500,6 +500,9 @@ internal partial class ManageWeaponRulesDialog : Window
         _currentItemsScrollPosition.Set(0, 0);
         _blacklistScrollPosition.Set(0, 0);
         _whitelistScrollPosition.Set(0, 0);
+        _workTypesScrollPosition.Set(0, 0);
+        _workTypesThingIconBoxScrollPosition.Set(0, 0);
+        _workTypesScrollableContentHeight = 0f;
     }
 
     private enum DialogTab

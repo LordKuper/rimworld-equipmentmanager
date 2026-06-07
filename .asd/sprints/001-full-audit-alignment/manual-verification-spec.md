@@ -107,6 +107,24 @@ This document specifies manual verification steps for test coverage that cannot 
 
 ---
 
+## AC-7 (RU-7): WorkType tab UI pixel-parity after Common widget migration
+
+**Migration outcome:** Full migration. `ManageWeaponRulesDialog_WorkTypes.cs` now delegates entirely to `LordKuper.Common.UI.Widgets.WorkTypeThingRuleWidget.DoWidgetTab`. No EM-local reimplementation remains.
+
+**Intentional cosmetic delta:** The previous EM widget showed two side-by-side panes in the bottom section — "Globally available items" (ThingDef icons) and "Currently available items" (Thing icons from the current map, sorted by score). Common's widget shows only the "Globally available items" pane. The currently-available-on-map pane is removed. This is accepted: WorkType rules are global scoring rules (not per-map equipment selection), so the globally available ThingDef view is sufficient. The stat weights section and rule selection are fully migrated.
+
+**Manual in-game verification needed:**
+
+| Step | Expected observation | AC |
+|------|----------------------|-----|
+| 1. Open Manage Rules → Work types tab. | Tab renders without error; rule selector button appears at top. | AC-7 |
+| 2. Select a work type rule. | Stat weights section appears; sliders for each weight are shown; Add/Delete stat weight works. | AC-7 |
+| 3. Verify bottom section. | "Available items" section shows globally available ThingDef icons (not a split currently-available pane). This is the intentional cosmetic delta. | AC-7 |
+| 4. Verify Refresh button in bottom section. | Clicking Refresh updates the globally available ThingDef list. | AC-7 |
+| 5. Verify No Rule Selected state. | When no rule is selected, a "No rule selected" label appears in the scrollable area. | AC-7 |
+
+---
+
 ## Summary
 
 - **All AC-25 (C-4): LOCKED BY UNIT TESTS** — no manual verification needed.
