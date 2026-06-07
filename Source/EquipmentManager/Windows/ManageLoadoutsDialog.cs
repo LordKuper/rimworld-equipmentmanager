@@ -1,17 +1,17 @@
 using System;
 using System.Linq;
-using EquipmentManager.CustomWidgets;
 using LordKuper.Common;
 using LordKuper.Common.Filters.Limits;
 using LordKuper.Common.Helpers;
 using LordKuper.Common.UI;
 using LordKuper.Common.UI.Widgets;
+using LordKuper.EquipmentManager.CustomWidgets;
 using RimWorld;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
 
-namespace EquipmentManager.Windows;
+namespace LordKuper.EquipmentManager.Windows;
 
 internal class ManageLoadoutsDialog : Window
 {
@@ -35,7 +35,7 @@ internal class ManageLoadoutsDialog : Window
     private EquipmentManagerGameComponent EquipmentManager =>
         _equipmentManager ??= Current.Game.GetComponent<EquipmentManagerGameComponent>();
 
-    public override Vector2 InitialSize => LordKuper.Common.UI.Windows.GetWindowSize(new Vector2(850f, 650f), MaxSize);
+    public override Vector2 InitialSize => Common.UI.Windows.GetWindowSize(new Vector2(850f, 650f), MaxSize);
     private int LabeledButtonListColumnCount => InitialSize.x < MaxSize.x ? 2 : 3;
     private static Vector2 MaxSize => new(1200f, 1000f);
     private int PawnSettingsColumnCount => InitialSize.x < MaxSize.x ? 3 : 4;
@@ -480,6 +480,17 @@ internal class ManageLoadoutsDialog : Window
         return rowRect.yMax - rect.yMin;
     }
 
+    private float DoPawnSkills(Rect rect)
+    {
+        var columnWidth = (rect.width - UiHelpers.ElementGap) / 2f;
+        var weightsRect = new Rect(rect.x, rect.y, columnWidth, 1f);
+        var gapRect = new Rect(weightsRect.xMax, rect.y, UiHelpers.ElementGap, 1f);
+        var limitsRect = new Rect(gapRect.xMax, rect.y, columnWidth, 1f);
+        gapRect.height = Math.Max(DoPawnSkillWeights(weightsRect), DoPawnSkillLimits(limitsRect));
+        UiHelpers.DoGapLineVertical(gapRect);
+        return gapRect.height;
+    }
+
     private float DoPawnSkillWeights(Rect rect)
     {
         var font = Text.Font;
@@ -525,17 +536,6 @@ internal class ManageLoadoutsDialog : Window
         Text.Font = font;
         Text.Anchor = anchor;
         return rowRect.yMax - rect.yMin;
-    }
-
-    private float DoPawnSkills(Rect rect)
-    {
-        var columnWidth = (rect.width - UiHelpers.ElementGap) / 2f;
-        var weightsRect = new Rect(rect.x, rect.y, columnWidth, 1f);
-        var gapRect = new Rect(weightsRect.xMax, rect.y, UiHelpers.ElementGap, 1f);
-        var limitsRect = new Rect(gapRect.xMax, rect.y, columnWidth, 1f);
-        gapRect.height = Math.Max(DoPawnSkillWeights(weightsRect), DoPawnSkillLimits(limitsRect));
-        UiHelpers.DoGapLineVertical(gapRect);
-        return gapRect.height;
     }
 
     private float DoPawnStatLimits(Rect rect)
@@ -592,6 +592,17 @@ internal class ManageLoadoutsDialog : Window
         return rowRect.yMax - rect.yMin;
     }
 
+    private float DoPawnStats(Rect rect)
+    {
+        var columnWidth = (rect.width - UiHelpers.ElementGap) / 2f;
+        var weightsRect = new Rect(rect.x, rect.y, columnWidth, 1f);
+        var gapRect = new Rect(weightsRect.xMax, rect.y, UiHelpers.ElementGap, 1f);
+        var limitsRect = new Rect(gapRect.xMax, rect.y, columnWidth, 1f);
+        gapRect.height = Math.Max(DoPawnStatWeights(weightsRect), DoPawnStatLimits(limitsRect));
+        UiHelpers.DoGapLineVertical(gapRect);
+        return gapRect.height;
+    }
+
     private float DoPawnStatWeights(Rect rect)
     {
         var font = Text.Font;
@@ -640,17 +651,6 @@ internal class ManageLoadoutsDialog : Window
         Text.Font = font;
         Text.Anchor = anchor;
         return rowRect.yMax - rect.yMin;
-    }
-
-    private float DoPawnStats(Rect rect)
-    {
-        var columnWidth = (rect.width - UiHelpers.ElementGap) / 2f;
-        var weightsRect = new Rect(rect.x, rect.y, columnWidth, 1f);
-        var gapRect = new Rect(weightsRect.xMax, rect.y, UiHelpers.ElementGap, 1f);
-        var limitsRect = new Rect(gapRect.xMax, rect.y, columnWidth, 1f);
-        gapRect.height = Math.Max(DoPawnStatWeights(weightsRect), DoPawnStatLimits(limitsRect));
-        UiHelpers.DoGapLineVertical(gapRect);
-        return gapRect.height;
     }
 
     private float DoPawnTraits(Rect rect)

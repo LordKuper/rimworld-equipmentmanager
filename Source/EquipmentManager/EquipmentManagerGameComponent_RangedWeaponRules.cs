@@ -4,7 +4,7 @@ using LordKuper.Common;
 using RimWorld;
 using Verse;
 
-namespace EquipmentManager;
+namespace LordKuper.EquipmentManager;
 
 internal partial class EquipmentManagerGameComponent
 {

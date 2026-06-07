@@ -1,12 +1,11 @@
 ﻿using JetBrains.Annotations;
 using Verse;
 
-namespace EquipmentManager;
+namespace LordKuper.EquipmentManager;
 
 internal class PawnCapacityWeight : IExposable
 {
     public const float WeightCap = 2f;
-    public float Weight;
     private bool _isInitialized;
 
     // _pawnCapacityDef is resolved lazily from _pawnCapacityDefName; may be null if def is missing.
@@ -15,6 +14,7 @@ internal class PawnCapacityWeight : IExposable
     // _pawnCapacityDefName is populated by Scribe on load (IExposable lifecycle); null until
     // Scribe populates it or the parametrised constructor sets it.
     private string? _pawnCapacityDefName;
+    public float Weight;
 
     [UsedImplicitly]
     public PawnCapacityWeight() { }

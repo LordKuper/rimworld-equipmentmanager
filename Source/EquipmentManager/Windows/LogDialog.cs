@@ -1,9 +1,9 @@
 ﻿using System.Text;
-using EquipmentManager.CustomWidgets;
+using LordKuper.EquipmentManager.CustomWidgets;
 using UnityEngine;
 using Verse;
 
-namespace EquipmentManager.Windows;
+namespace LordKuper.EquipmentManager.Windows;
 
 internal class LogDialog : Window
 {
@@ -27,7 +27,7 @@ internal class LogDialog : Window
         _equipmentManager ??= Current.Game.GetComponent<EquipmentManagerGameComponent>();
 
     public override Vector2 InitialSize =>
-        LordKuper.Common.UI.Windows.GetWindowSize(new Vector2(500f, 500f), new Vector2(1000f, 1000f));
+        Common.UI.Windows.GetWindowSize(new Vector2(500f, 500f), new Vector2(1000f, 1000f));
 
     private void CopyAllMessagesToClipboard()
     {

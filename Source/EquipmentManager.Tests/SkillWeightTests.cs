@@ -1,3 +1,5 @@
+using LordKuper.EquipmentManager;
+
 namespace EquipmentManager.Tests;
 
 /// <summary>

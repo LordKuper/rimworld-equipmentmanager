@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using LordKuper.EquipmentManager;
 
 namespace EquipmentManager.Tests;
 
@@ -23,7 +24,7 @@ public abstract class StateIsolationTestBase
     [
         typeof(PawnCache),
         typeof(ToolCache),
-        typeof(ItemRule),
+        typeof(ItemRule)
         // Note: Include only types with static _equipmentManager fields. EquipmentManagerMapComponent
         // has an instance field, not static, so it's not included here.
     ];
@@ -48,7 +49,6 @@ public abstract class StateIsolationTestBase
                     $"but it was not found. This indicates a refactoring mismatch; check that the field name " +
                     $"has not been renamed or removed from {type.FullName}.");
             }
-
             field.SetValue(null, _snapshot.TryGetValue(type, out var value) ? value : null);
         }
     }
@@ -72,7 +72,6 @@ public abstract class StateIsolationTestBase
                     $"but it was not found. This indicates a refactoring mismatch; check that the field name " +
                     $"has not been renamed or removed from {type.FullName}.");
             }
-
             _snapshot[type] = field.GetValue(null);
         }
     }

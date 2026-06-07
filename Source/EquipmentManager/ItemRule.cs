@@ -6,10 +6,12 @@ using LordKuper.Common.Filters.Limits;
 using RimWorld;
 using Verse;
 
-namespace EquipmentManager;
+namespace LordKuper.EquipmentManager;
 
 internal class ItemRule : IExposable
 {
+    private static EquipmentManagerGameComponent? _equipmentManager;
+
     protected static readonly SimpleCurve HitPointsCurve =
     [
         new CurvePoint(0f, 0f),
@@ -18,7 +20,14 @@ internal class ItemRule : IExposable
         new CurvePoint(0.75f, 1f)
     ];
 
-    private static EquipmentManagerGameComponent? _equipmentManager;
+    // Scribe does not serialize _blacklistedItems/_whitelistedItems directly; they are rebuilt
+    // from the DefName sets in UpdateExclusiveItems(). Still need nullable guards post-Scribe.
+    private HashSet<ThingDef>? _blacklistedItems = [];
+    private int _id;
+    private bool _initialized;
+    private bool _protected;
+    private HashSet<ThingDef>? _whitelistedItems = [];
+
     // Scribe_Collections.Look sets these to null when no saved data exists; ??= in Initialize()
     // restores them to empty before any first access.
     protected HashSet<string>? BlacklistedItemsDefNames = [];
@@ -30,13 +39,6 @@ internal class ItemRule : IExposable
     protected List<StatLimit>? StatLimits = [];
     protected List<StatWeight>? StatWeights = [];
     protected HashSet<string>? WhitelistedItemsDefNames = [];
-    // Scribe does not serialize _blacklistedItems/_whitelistedItems directly; they are rebuilt
-    // from the DefName sets in UpdateExclusiveItems(). Still need nullable guards post-Scribe.
-    private HashSet<ThingDef>? _blacklistedItems = [];
-    private int _id;
-    private bool _initialized;
-    private bool _protected;
-    private HashSet<ThingDef>? _whitelistedItems = [];
 
     protected ItemRule(int id, string label, bool isProtected, List<StatWeight> statWeights, List<StatLimit> statLimits,
         HashSet<string> whitelistedItemsDefNames, HashSet<string> blacklistedItemsDefNames)

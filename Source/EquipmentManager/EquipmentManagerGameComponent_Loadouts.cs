@@ -5,7 +5,7 @@ using LordKuper.Common;
 using LordKuper.Common.Filters.Limits;
 using Verse;
 
-namespace EquipmentManager;
+namespace LordKuper.EquipmentManager;
 
 internal partial class EquipmentManagerGameComponent
 {
@@ -122,12 +122,6 @@ internal partial class EquipmentManagerGameComponent
         return _loadouts;
     }
 
-    private List<PawnLoadout> GetPawnLoadouts()
-    {
-        _pawnLoadouts ??= [];
-        return _pawnLoadouts;
-    }
-
     public PawnLoadout GetPawnLoadout(Pawn pawn)
     {
         if (pawn == null) { throw new ArgumentNullException(nameof(pawn)); }
@@ -138,6 +132,12 @@ internal partial class EquipmentManagerGameComponent
         pawnLoadout = new PawnLoadout { Pawn = pawn, LoadoutId = null, Automatic = true };
         _pawnLoadouts!.Add(pawnLoadout);
         return pawnLoadout;
+    }
+
+    private List<PawnLoadout> GetPawnLoadouts()
+    {
+        _pawnLoadouts ??= [];
+        return _pawnLoadouts;
     }
 
     public void SetPawnLoadout(Pawn pawn, Loadout? loadout, bool automatic)

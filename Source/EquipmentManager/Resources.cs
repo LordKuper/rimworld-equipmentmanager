@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using Verse;
 
-namespace EquipmentManager;
+namespace LordKuper.EquipmentManager;
 
 internal static class Resources
 {
@@ -267,11 +267,11 @@ internal static class Resources
 
                 internal static class Default
                 {
-                    internal static readonly string HighRof =
-                        $"EquipmentManager.WeaponRules.RangedWeapons.Default.{nameof(HighRof)}".Translate();
-
                     internal static readonly string HighestDpsa =
                         $"EquipmentManager.WeaponRules.RangedWeapons.Default.{nameof(HighestDpsa)}".Translate();
+
+                    internal static readonly string HighRof =
+                        $"EquipmentManager.WeaponRules.RangedWeapons.Default.{nameof(HighRof)}".Translate();
 
                     internal static readonly string LongRangeHeavyHitter =
                         $"EquipmentManager.WeaponRules.RangedWeapons.Default.{nameof(LongRangeHeavyHitter)}"

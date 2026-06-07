@@ -8,14 +8,14 @@ using LordKuper.Common.Filters.Limits;
 using RimWorld;
 using Verse;
 
-namespace EquipmentManager;
+namespace LordKuper.EquipmentManager;
 
 internal class ToolRule : ItemRule
 {
     // Reset to null by ResetCache(); lazily rebuilt on first access.
     private static HashSet<ThingDef>? _allRelevantThings;
-    public ToolEquipMode EquipMode = ToolEquipMode.OneForEveryAssignedWorkType;
     private bool? _ranged;
+    public ToolEquipMode EquipMode = ToolEquipMode.OneForEveryAssignedWorkType;
     public ToolRule(int id, bool isProtected) : base(id, isProtected) { }
 
     [UsedImplicitly]
@@ -200,5 +200,4 @@ internal class ToolRule : ItemRule
         _ = GloballyAvailableItems!.RemoveWhere(def => GetBlacklistedItems().Contains(def));
         foreach (var def in GetWhitelistedItems()) { _ = GloballyAvailableItems!.Add(def); }
     }
-
 }

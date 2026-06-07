@@ -4,7 +4,7 @@ using LordKuper.Common.Cache;
 using RimWorld;
 using Verse;
 
-namespace EquipmentManager;
+namespace LordKuper.EquipmentManager;
 
 internal class PawnCache(Pawn pawn) : TimedCache(6f, true)
 {
@@ -35,7 +35,8 @@ internal class PawnCache(Pawn pawn) : TimedCache(6f, true)
 
     public override bool Update(RimWorldTime time)
     {
-        var capable = Pawn is { Dead: false, Downed: false, InMentalState: false, InContainerEnclosed: false, Drafted: false } &&
+        var capable =
+            Pawn is { Dead: false, Downed: false, InMentalState: false, InContainerEnclosed: false, Drafted: false } &&
             !HealthAIUtility.ShouldSeekMedicalRest(Pawn);
         var pawnLoadout = EquipmentManager.GetPawnLoadout(Pawn);
         AutoLoadout = pawnLoadout.Automatic;

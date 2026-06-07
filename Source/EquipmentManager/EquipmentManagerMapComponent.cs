@@ -10,15 +10,15 @@ using SimpleSidearms.rimworld;
 using Verse;
 using Verse.AI;
 
-namespace EquipmentManager;
+namespace LordKuper.EquipmentManager;
 
 [UsedImplicitly]
 internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
 {
     private readonly HashSet<Pawn> _allPawns = [];
+    private readonly Dictionary<Pawn, PawnCache> _pawnCache = [];
     private EquipmentManagerGameComponent? _equipmentManager;
     private bool _hasUpdateTime;
-    private readonly Dictionary<Pawn, PawnCache> _pawnCache = [];
     private RimWorldTime _updateTime;
 
     private EquipmentManagerGameComponent EquipmentManager =>
@@ -61,9 +61,8 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
                 var inferiorCarried = carriedWeapons.Where(w => w.toThingDefStuffDefPair() == defPair).ToList();
                 foreach (var inferior in inferiorCarried)
                 {
-                    WeaponAssingment.DropSidearm(pawn.Pawn, (ThingWithComps)inferior, intentionalDrop: true,
-                        unmemorise: true);
-                    if (inferior.Spawned) { inferior.SetForbidden(false, warnOnFail: false); }
+                    WeaponAssingment.DropSidearm(pawn.Pawn, (ThingWithComps)inferior, true, true);
+                    if (inferior.Spawned) { inferior.SetForbidden(false, false); }
                     _ = assignedByOthers.Add(inferior);
                 }
                 _ = pawn.Pawn.jobs.TryTakeOrderedJob(
@@ -113,9 +112,8 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
             var inferiorCarried = carriedWeapons.Where(w => w.toThingDefStuffDefPair() == defPair).ToList();
             foreach (var inferior in inferiorCarried)
             {
-                WeaponAssingment.DropSidearm(pawn.Pawn, (ThingWithComps)inferior, intentionalDrop: true,
-                    unmemorise: true);
-                if (inferior.Spawned) { inferior.SetForbidden(false, warnOnFail: false); }
+                WeaponAssingment.DropSidearm(pawn.Pawn, (ThingWithComps)inferior, true, true);
+                if (inferior.Spawned) { inferior.SetForbidden(false, false); }
                 _ = assignedByOthers.Add(inferior);
             }
             _ = pawn.Pawn.jobs.TryTakeOrderedJob(
@@ -141,8 +139,7 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
             !pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap[thing.Position]));
         var bestWeapon = availableWeapons.OrderByDescending(thing => rule.GetThingScore(thing, _updateTime))
             .ThenByDescending(thing => sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
-            .ThenByDescending(carriedWeapons.Contains).ThenBy(thing => thing.GetHashCode())
-            .FirstOrDefault();
+            .ThenByDescending(carriedWeapons.Contains).ThenBy(thing => thing.GetHashCode()).FirstOrDefault();
         if (bestWeapon == null) { return; }
         pawn.AssignedWeapons.Add(bestWeapon, "primary");
         _ = assignedByOthers.Add(bestWeapon);
@@ -181,8 +178,7 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
             thing => rule.GetThingScore(thing, _updateTime));
         var bestWeapon = availableWeapons.OrderByDescending(thing => weaponScores[thing])
             .ThenByDescending(thing => sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
-            .ThenByDescending(carriedWeapons.Contains).ThenBy(thing => thing.GetHashCode())
-            .FirstOrDefault();
+            .ThenByDescending(carriedWeapons.Contains).ThenBy(thing => thing.GetHashCode()).FirstOrDefault();
         if (bestWeapon == null) { return; }
         pawn.AssignedWeapons.Add(bestWeapon, "primary");
         _ = assignedByOthers.Add(bestWeapon);
@@ -245,9 +241,8 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
                 var inferiorCarried = carriedWeapons.Where(w => w.toThingDefStuffDefPair() == defPair).ToList();
                 foreach (var inferior in inferiorCarried)
                 {
-                    WeaponAssingment.DropSidearm(pawn.Pawn, (ThingWithComps)inferior, intentionalDrop: true,
-                        unmemorise: true);
-                    if (inferior.Spawned) { inferior.SetForbidden(false, warnOnFail: false); }
+                    WeaponAssingment.DropSidearm(pawn.Pawn, (ThingWithComps)inferior, true, true);
+                    if (inferior.Spawned) { inferior.SetForbidden(false, false); }
                     _ = assignedByOthers.Add(inferior);
                 }
                 _ = pawn.Pawn.jobs.TryTakeOrderedJob(
@@ -438,8 +433,8 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
                             .OrderByDescending(thing => rule.GetThingScore(thing, _updateTime))
                             .ThenByDescending(thing =>
                                 sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
-                            .ThenByDescending(carriedWeapons.Contains)
-                            .ThenBy(thing => thing.GetHashCode()).FirstOrDefault();
+                            .ThenByDescending(carriedWeapons.Contains).ThenBy(thing => thing.GetHashCode())
+                            .FirstOrDefault();
                         if (bestWeapon == null) { continue; }
                         if (pawn.AssignedWeapons.Keys.Any(thing => thing.def == bestWeapon.def)) { continue; }
                         pawn.AssignedWeapons.Add(bestWeapon, "melee sidearm");
@@ -454,13 +449,12 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
                         else
                         {
                             var meleeBestDefPair = bestWeapon.toThingDefStuffDefPair();
-                            var meleeInferiorCarried =
-                                carriedWeapons.Where(w => w.toThingDefStuffDefPair() == meleeBestDefPair).ToList();
+                            var meleeInferiorCarried = carriedWeapons
+                                .Where(w => w.toThingDefStuffDefPair() == meleeBestDefPair).ToList();
                             foreach (var inferior in meleeInferiorCarried)
                             {
-                                WeaponAssingment.DropSidearm(pawn.Pawn, (ThingWithComps)inferior,
-                                    intentionalDrop: true, unmemorise: true);
-                                if (inferior.Spawned) { inferior.SetForbidden(false, warnOnFail: false); }
+                                WeaponAssingment.DropSidearm(pawn.Pawn, (ThingWithComps)inferior, true, true);
+                                if (inferior.Spawned) { inferior.SetForbidden(false, false); }
                                 _ = assignedByOthers.Add(inferior);
                             }
                             _ = pawn.Pawn.jobs.TryTakeOrderedJob(
@@ -487,13 +481,12 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
                             else
                             {
                                 var meleeAllDefPair = weapon.toThingDefStuffDefPair();
-                                var meleeAllInferiorCarried =
-                                    carriedWeapons.Where(w => w.toThingDefStuffDefPair() == meleeAllDefPair).ToList();
+                                var meleeAllInferiorCarried = carriedWeapons
+                                    .Where(w => w.toThingDefStuffDefPair() == meleeAllDefPair).ToList();
                                 foreach (var inferior in meleeAllInferiorCarried)
                                 {
-                                    WeaponAssingment.DropSidearm(pawn.Pawn, (ThingWithComps)inferior,
-                                        intentionalDrop: true, unmemorise: true);
-                                    if (inferior.Spawned) { inferior.SetForbidden(false, warnOnFail: false); }
+                                    WeaponAssingment.DropSidearm(pawn.Pawn, (ThingWithComps)inferior, true, true);
+                                    if (inferior.Spawned) { inferior.SetForbidden(false, false); }
                                     _ = assignedByOthers.Add(inferior);
                                 }
                                 _ = pawn.Pawn.jobs.TryTakeOrderedJob(
@@ -580,8 +573,8 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
                             .OrderByDescending(thing => rule.GetThingScore(thing, _updateTime))
                             .ThenByDescending(thing =>
                                 sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
-                            .ThenByDescending(carriedWeapons.Contains)
-                            .ThenBy(thing => thing.GetHashCode()).FirstOrDefault();
+                            .ThenByDescending(carriedWeapons.Contains).ThenBy(thing => thing.GetHashCode())
+                            .FirstOrDefault();
                         if (bestWeapon == null || pawn.AssignedWeapons.Keys.Any(thing => thing.def == bestWeapon.def))
                         {
                             continue;
@@ -598,13 +591,12 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
                         else
                         {
                             var rangedBestDefPair = bestWeapon.toThingDefStuffDefPair();
-                            var rangedInferiorCarried =
-                                carriedWeapons.Where(w => w.toThingDefStuffDefPair() == rangedBestDefPair).ToList();
+                            var rangedInferiorCarried = carriedWeapons
+                                .Where(w => w.toThingDefStuffDefPair() == rangedBestDefPair).ToList();
                             foreach (var inferior in rangedInferiorCarried)
                             {
-                                WeaponAssingment.DropSidearm(pawn.Pawn, (ThingWithComps)inferior,
-                                    intentionalDrop: true, unmemorise: true);
-                                if (inferior.Spawned) { inferior.SetForbidden(false, warnOnFail: false); }
+                                WeaponAssingment.DropSidearm(pawn.Pawn, (ThingWithComps)inferior, true, true);
+                                if (inferior.Spawned) { inferior.SetForbidden(false, false); }
                                 _ = assignedByOthers.Add(inferior);
                             }
                             _ = pawn.Pawn.jobs.TryTakeOrderedJob(
@@ -633,13 +625,12 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
                             else
                             {
                                 var rangedAllDefPair = weapon.toThingDefStuffDefPair();
-                                var rangedAllInferiorCarried =
-                                    carriedWeapons.Where(w => w.toThingDefStuffDefPair() == rangedAllDefPair).ToList();
+                                var rangedAllInferiorCarried = carriedWeapons
+                                    .Where(w => w.toThingDefStuffDefPair() == rangedAllDefPair).ToList();
                                 foreach (var inferior in rangedAllInferiorCarried)
                                 {
-                                    WeaponAssingment.DropSidearm(pawn.Pawn, (ThingWithComps)inferior,
-                                        intentionalDrop: true, unmemorise: true);
-                                    if (inferior.Spawned) { inferior.SetForbidden(false, warnOnFail: false); }
+                                    WeaponAssingment.DropSidearm(pawn.Pawn, (ThingWithComps)inferior, true, true);
+                                    if (inferior.Spawned) { inferior.SetForbidden(false, false); }
                                     _ = assignedByOthers.Add(inferior);
                                 }
                                 _ = pawn.Pawn.jobs.TryTakeOrderedJob(

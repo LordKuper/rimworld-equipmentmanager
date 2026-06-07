@@ -8,16 +8,16 @@ using LordKuper.Common.Filters.Limits;
 using RimWorld;
 using Verse;
 
-namespace EquipmentManager;
+namespace LordKuper.EquipmentManager;
 
 internal class RangedWeaponRule : ItemRule
 {
     // Reset to null by ResetCache(); lazily rebuilt on first access.
     private static HashSet<ThingDef>? _allRelevantThings;
-    public WeaponEquipMode EquipMode = WeaponEquipMode.BestOne;
     private int _ammoCount;
     private bool? _explosive;
     private bool? _manualCast;
+    public WeaponEquipMode EquipMode = WeaponEquipMode.BestOne;
     public RangedWeaponRule(int id, bool isProtected) : base(id, isProtected) { }
 
     [UsedImplicitly]
@@ -268,5 +268,4 @@ internal class RangedWeaponRule : ItemRule
         _ = GloballyAvailableItems!.RemoveWhere(def => GetBlacklistedItems().Contains(def));
         foreach (var def in GetWhitelistedItems()) { _ = GloballyAvailableItems!.Add(def); }
     }
-
 }

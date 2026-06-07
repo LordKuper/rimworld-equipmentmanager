@@ -2,14 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
-    <RootNamespace>EquipmentManager</RootNamespace>
-    <AssemblyName>EquipmentManager</AssemblyName>
+    <RootNamespace>LordKuper.EquipmentManager</RootNamespace>
+    <AssemblyName>LordKuper.EquipmentManager</AssemblyName>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <OutputPath>..\..\1.6\Assemblies\</OutputPath>
-    <Version>1.6.0.2</Version>
+    <Version>1.6.0.3</Version>
     <Company>LordKuper</Company>
     <Product>EquipmentManager</Product>
     <Copyright>Copyright ©LordKuper</Copyright>

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using LordKuper.Common;
 using Verse;
 
-namespace EquipmentManager;
+namespace LordKuper.EquipmentManager;
 
 internal partial class EquipmentManagerGameComponent
 {

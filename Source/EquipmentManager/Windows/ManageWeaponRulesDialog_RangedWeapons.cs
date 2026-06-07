@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using EquipmentManager.CustomWidgets;
 using LordKuper.Common;
 using LordKuper.Common.Helpers;
 using LordKuper.Common.UI;
+using LordKuper.EquipmentManager.CustomWidgets;
 using UnityEngine;
 using Verse;
 
-namespace EquipmentManager.Windows;
+namespace LordKuper.EquipmentManager.Windows;
 
 internal partial class ManageWeaponRulesDialog
 {

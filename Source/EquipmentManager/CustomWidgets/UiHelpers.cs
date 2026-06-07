@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using Verse;
 
-namespace EquipmentManager.CustomWidgets;
+namespace LordKuper.EquipmentManager.CustomWidgets;
 
 internal static class UiHelpers
 {

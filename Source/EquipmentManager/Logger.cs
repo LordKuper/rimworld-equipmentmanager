@@ -1,6 +1,6 @@
 using System;
 
-namespace EquipmentManager;
+namespace LordKuper.EquipmentManager;
 
 internal static class Logger
 {
@@ -11,7 +11,7 @@ internal static class Logger
     /// <param name="exception">The exception associated with the error, or <c>null</c> if none.</param>
     internal static void LogError(string message, Exception? exception = null)
     {
-        LordKuper.Common.Logger.LogError(EquipmentManagerMod.ModId, message, exception);
+        Common.Logger.LogError(EquipmentManagerMod.ModId, message, exception);
     }
 
     /// <summary>
@@ -20,7 +20,7 @@ internal static class Logger
     /// <param name="message">The message to log.</param>
     internal static void LogMessage(string message)
     {
-        LordKuper.Common.Logger.LogMessage(EquipmentManagerMod.ModId, message);
+        Common.Logger.LogMessage(EquipmentManagerMod.ModId, message);
     }
 
     /// <summary>
@@ -30,6 +30,6 @@ internal static class Logger
     /// <param name="exception">The exception associated with the warning, or <c>null</c> if none.</param>
     internal static void LogWarning(string message, Exception? exception = null)
     {
-        LordKuper.Common.Logger.LogWarning(EquipmentManagerMod.ModId, message, exception);
+        Common.Logger.LogWarning(EquipmentManagerMod.ModId, message, exception);
     }
 }

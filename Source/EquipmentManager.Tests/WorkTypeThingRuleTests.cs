@@ -1,4 +1,5 @@
 using LordKuper.Common;
+using LordKuper.EquipmentManager;
 
 namespace EquipmentManager.Tests;
 

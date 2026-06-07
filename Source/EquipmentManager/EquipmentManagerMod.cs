@@ -4,7 +4,7 @@ using HarmonyLib;
 using JetBrains.Annotations;
 using Verse;
 
-namespace EquipmentManager;
+namespace LordKuper.EquipmentManager;
 
 [UsedImplicitly]
 public class EquipmentManagerMod : Mod

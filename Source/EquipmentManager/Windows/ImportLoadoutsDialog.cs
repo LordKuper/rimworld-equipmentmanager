@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
-using EquipmentManager.CustomWidgets;
 using LordKuper.Common;
 using LordKuper.Common.Filters.Limits;
 using LordKuper.Common.UI;
+using LordKuper.EquipmentManager.CustomWidgets;
 using UnityEngine;
 using Verse;
 
-namespace EquipmentManager.Windows;
+namespace LordKuper.EquipmentManager.Windows;
 
 internal class ImportLoadoutsDialog : Window
 {
@@ -37,7 +37,7 @@ internal class ImportLoadoutsDialog : Window
         _equipmentManager ??= Current.Game.GetComponent<EquipmentManagerGameComponent>();
 
     public override Vector2 InitialSize =>
-        LordKuper.Common.UI.Windows.GetWindowSize(new Vector2(850f, 500f), new Vector2(1000f, 500f));
+        Common.UI.Windows.GetWindowSize(new Vector2(850f, 500f), new Vector2(1000f, 500f));
 
     private void DoButtonRow(Rect rect)
     {
@@ -168,9 +168,7 @@ internal class ImportLoadoutsDialog : Window
                 using var xmlReader = XmlReader.Create(file.FullName,
                     new XmlReaderSettings
                     {
-                        IgnoreWhitespace = true,
-                        IgnoreComments = true,
-                        IgnoreProcessingInstructions = true
+                        IgnoreWhitespace = true, IgnoreComments = true, IgnoreProcessingInstructions = true
                     });
                 if (xmlReader.ReadToFollowing("gameVersion"))
                 {
@@ -710,9 +708,7 @@ internal class ImportLoadoutsDialog : Window
             var xmlReader = XmlReader.Create(savedGameFile,
                 new XmlReaderSettings
                 {
-                    IgnoreWhitespace = true,
-                    IgnoreComments = true,
-                    IgnoreProcessingInstructions = true
+                    IgnoreWhitespace = true, IgnoreComments = true, IgnoreProcessingInstructions = true
                 });
             if (xmlReader.ReadToFollowing("savegame"))
             {

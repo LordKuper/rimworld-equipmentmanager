@@ -1,6 +1,6 @@
 ﻿using Verse;
 
-namespace EquipmentManager;
+namespace LordKuper.EquipmentManager;
 
 internal class PawnLoadout : IExposable
 {

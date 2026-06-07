@@ -4,7 +4,7 @@ using LordKuper.Common;
 using RimWorld;
 using Verse;
 
-namespace EquipmentManager;
+namespace LordKuper.EquipmentManager;
 
 internal partial class EquipmentManagerGameComponent
 {
@@ -113,10 +113,7 @@ internal partial class EquipmentManagerGameComponent
 
     public IEnumerable<ToolRule> GetToolRules()
     {
-        if (_toolRules == null || _toolRules.Count == 0)
-        {
-            _toolRules = [.. ToolRule.DefaultRules];
-        }
+        if (_toolRules == null || _toolRules.Count == 0) { _toolRules = [.. ToolRule.DefaultRules]; }
         return _toolRules;
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace EquipmentManager;
+namespace LordKuper.EquipmentManager;
 
 internal partial class EquipmentManagerGameComponent
 {

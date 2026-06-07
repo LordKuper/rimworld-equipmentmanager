@@ -7,7 +7,7 @@ using LordKuper.Common.Helpers;
 using RimWorld;
 using Verse;
 
-namespace EquipmentManager;
+namespace LordKuper.EquipmentManager;
 
 internal class ToolCache(Thing thing) : ThingCache(thing, 24f)
 {

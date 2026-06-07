@@ -2,7 +2,7 @@
 using JetBrains.Annotations;
 using RimWorld;
 
-namespace EquipmentManager.DefOfs;
+namespace LordKuper.EquipmentManager.DefOfs;
 
 [DefOf, UsedImplicitly, SuppressMessage("ReSharper", "UnassignedField.Global"),
  SuppressMessage("ReSharper", "InconsistentNaming")]

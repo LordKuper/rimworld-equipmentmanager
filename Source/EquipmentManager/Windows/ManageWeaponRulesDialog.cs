@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using EquipmentManager.CustomWidgets;
 using LordKuper.Common;
 using LordKuper.Common.Filters.Limits;
 using LordKuper.Common.UI.Widgets;
+using LordKuper.EquipmentManager.CustomWidgets;
 using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace EquipmentManager.Windows;
+namespace LordKuper.EquipmentManager.Windows;
 
 internal partial class ManageWeaponRulesDialog : Window
 {
@@ -41,7 +41,7 @@ internal partial class ManageWeaponRulesDialog : Window
         _equipmentManager ??= Current.Game.GetComponent<EquipmentManagerGameComponent>();
 
     private int ExclusiveItemIconsRowCount => InitialSize.y < MaxSize.y ? 2 : 3;
-    public override Vector2 InitialSize => LordKuper.Common.UI.Windows.GetWindowSize(new Vector2(850f, 650f), MaxSize);
+    public override Vector2 InitialSize => Common.UI.Windows.GetWindowSize(new Vector2(850f, 650f), MaxSize);
     private static Vector2 MaxSize => new(1000f, 1000f);
 
     private static void CheckSelectedItemRuleHasName(ItemRule? rule)
@@ -227,6 +227,19 @@ internal partial class ManageWeaponRulesDialog : Window
         Text.Anchor = anchor;
     }
 
+    private void DoRuleStats(Rect rect, IReadOnlyList<StatDef> statDefs, IReadOnlyList<StatWeight> statWeights,
+        Action<StatDef> addWeightAction, Action<string> deleteWeightAction, IReadOnlyList<StatLimit> statLimits,
+        Action<StatDef> addLimitAction, Action<string> deleteLimitAction)
+    {
+        var columnWidth = (rect.width - UiHelpers.ElementGap) / 2f;
+        var weightsRect = new Rect(rect.x, rect.y, columnWidth, rect.height);
+        var gapRect = new Rect(weightsRect.xMax, rect.y, UiHelpers.ElementGap, rect.height);
+        var limitsRect = new Rect(gapRect.xMax, rect.y, columnWidth, rect.height);
+        DoRuleStatWeights(weightsRect, statDefs, statWeights, addWeightAction, deleteWeightAction);
+        UiHelpers.DoGapLineVertical(gapRect);
+        DoRuleStatLimits(limitsRect, statDefs, statLimits, addLimitAction, deleteLimitAction);
+    }
+
     private void DoRuleStatWeights(Rect rect, IEnumerable<StatDef> statDefs, IReadOnlyList<StatWeight> statWeights,
         Action<StatDef> addAction, Action<string> deleteAction)
     {
@@ -280,19 +293,6 @@ internal partial class ManageWeaponRulesDialog : Window
         Widgets.EndScrollView();
         Text.Font = font;
         Text.Anchor = anchor;
-    }
-
-    private void DoRuleStats(Rect rect, IReadOnlyList<StatDef> statDefs, IReadOnlyList<StatWeight> statWeights,
-        Action<StatDef> addWeightAction, Action<string> deleteWeightAction, IReadOnlyList<StatLimit> statLimits,
-        Action<StatDef> addLimitAction, Action<string> deleteLimitAction)
-    {
-        var columnWidth = (rect.width - UiHelpers.ElementGap) / 2f;
-        var weightsRect = new Rect(rect.x, rect.y, columnWidth, rect.height);
-        var gapRect = new Rect(weightsRect.xMax, rect.y, UiHelpers.ElementGap, rect.height);
-        var limitsRect = new Rect(gapRect.xMax, rect.y, columnWidth, rect.height);
-        DoRuleStatWeights(weightsRect, statDefs, statWeights, addWeightAction, deleteWeightAction);
-        UiHelpers.DoGapLineVertical(gapRect);
-        DoRuleStatLimits(limitsRect, statDefs, statLimits, addLimitAction, deleteLimitAction);
     }
 
     private static void DoWeaponRuleEquipMode(Rect rect, Func<ItemRule.WeaponEquipMode> getter,

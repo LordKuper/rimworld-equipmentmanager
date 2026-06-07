@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using LordKuper.Common;
 using LordKuper.Common.CustomStats;
+using LordKuper.EquipmentManager;
 
 namespace EquipmentManager.Tests;
 
@@ -37,7 +38,6 @@ public class ItemRuleAndLoadoutTests : StateIsolationTestBase
         rule.GetWhitelistedItems().Should().HaveCount(0, "new rule should have empty whitelist");
     }
 
-
     /// <summary>
     ///     Tests that legacy custom stat def names are normalized during Initialize.
     ///     E.g., "EM_RangedWeapons_Dpsa" should normalize to the current canonical name.
@@ -62,15 +62,13 @@ public class ItemRuleAndLoadoutTests : StateIsolationTestBase
             "legacy name EM_RangedWeapons_Dpsa should normalize to the current canonical name");
     }
 
-
     /// <summary>
     ///     Tests that Loadout.Initialize handles null-coalescing for all its collections.
     ///     Note: Loadout requires game context (Resources.Strings initialization) for full testing;
     ///     this test is marked as manual-only and not executed.
     /// </summary>
-    [Test]
-    [Ignore("game-context only — Initialize requires Resources.Strings initialization. " +
-            "In-game validation: loadout collections are initialized to empty when null")]
+    [Test, Ignore("game-context only — Initialize requires Resources.Strings initialization. " +
+         "In-game validation: loadout collections are initialized to empty when null")]
     public void Loadout_Initialize_CoalescesNullCollections()
     {
         // Test body intentionally omitted; see manual-verification-spec for in-game steps.
@@ -80,9 +78,8 @@ public class ItemRuleAndLoadoutTests : StateIsolationTestBase
     ///     Tests that Loadout legacy stat names are normalized during Initialize.
     ///     Note: Loadout requires game context for full testing; this test is marked as manual-only.
     /// </summary>
-    [Test]
-    [Ignore("game-context only — Initialize requires Resources.Strings initialization. " +
-            "In-game validation: legacy stat names are normalized to current canonical names")]
+    [Test, Ignore("game-context only — Initialize requires Resources.Strings initialization. " +
+         "In-game validation: legacy stat names are normalized to current canonical names")]
     public void Loadout_Initialize_NormalizesLegacyStatNames()
     {
         // Test body intentionally omitted; see manual-verification-spec for in-game steps.
@@ -117,13 +114,16 @@ public class ItemRuleAndLoadoutTests : StateIsolationTestBase
     ///     Although the setter logic is pure (only manipulates nullable ID fields), the parameterless
     ///     constructor triggers a static initializer that requires game context (Resources.Strings).
     /// </summary>
-    [Test]
-    [Ignore("game-context only — parameterless Loadout() triggers static initializer requiring Resources.Strings initialization. " +
-            "Setter logic verified: PrimaryRuleType = None clears both weapon rule IDs")]
+    [Test, Ignore(
+         "game-context only — parameterless Loadout() triggers static initializer requiring Resources.Strings initialization. " +
+         "Setter logic verified: PrimaryRuleType = None clears both weapon rule IDs")]
     public void Loadout_PrimaryRuleType_SetToNone_ClearsWeaponRules()
     {
         // Create a minimal Loadout with both weapon rule IDs set.
-        var loadout = new Loadout { Label = "Test Loadout", PrimaryRangedWeaponRuleId = 42, PrimaryMeleeWeaponRuleId = 99 };
+        var loadout = new Loadout
+        {
+            Label = "Test Loadout", PrimaryRangedWeaponRuleId = 42, PrimaryMeleeWeaponRuleId = 99
+        };
 
         // Verify both are set.
         loadout.PrimaryRangedWeaponRuleId.Should().Be(42);
@@ -143,13 +143,16 @@ public class ItemRuleAndLoadoutTests : StateIsolationTestBase
     ///     Although the setter logic is pure (only manipulates nullable ID fields), the parameterless
     ///     constructor triggers a static initializer that requires game context (Resources.Strings).
     /// </summary>
-    [Test]
-    [Ignore("game-context only — parameterless Loadout() triggers static initializer requiring Resources.Strings initialization. " +
-            "Setter logic verified: PrimaryRuleType = RangedWeapon clears melee, retains ranged")]
+    [Test, Ignore(
+         "game-context only — parameterless Loadout() triggers static initializer requiring Resources.Strings initialization. " +
+         "Setter logic verified: PrimaryRuleType = RangedWeapon clears melee, retains ranged")]
     public void Loadout_PrimaryRuleType_SetToRanged_ClearsMeleeOnly()
     {
         // Create a minimal Loadout with both weapon rule IDs set.
-        var loadout = new Loadout { Label = "Test Loadout", PrimaryRangedWeaponRuleId = 42, PrimaryMeleeWeaponRuleId = 99 };
+        var loadout = new Loadout
+        {
+            Label = "Test Loadout", PrimaryRangedWeaponRuleId = 42, PrimaryMeleeWeaponRuleId = 99
+        };
 
         // Verify both are set.
         loadout.PrimaryRangedWeaponRuleId.Should().Be(42);
@@ -159,8 +162,10 @@ public class ItemRuleAndLoadoutTests : StateIsolationTestBase
         loadout.PrimaryRuleType = Loadout.PrimaryWeaponType.RangedWeapon;
 
         // Melee should be cleared; ranged retained.
-        loadout.PrimaryRangedWeaponRuleId.Should().Be(42, "PrimaryRuleType = RangedWeapon should retain ranged weapon rule ID");
-        loadout.PrimaryMeleeWeaponRuleId.Should().BeNull("PrimaryRuleType = RangedWeapon should clear melee weapon rule ID");
+        loadout.PrimaryRangedWeaponRuleId.Should()
+            .Be(42, "PrimaryRuleType = RangedWeapon should retain ranged weapon rule ID");
+        loadout.PrimaryMeleeWeaponRuleId.Should()
+            .BeNull("PrimaryRuleType = RangedWeapon should clear melee weapon rule ID");
     }
 
     /// <summary>
@@ -169,13 +174,16 @@ public class ItemRuleAndLoadoutTests : StateIsolationTestBase
     ///     Although the setter logic is pure (only manipulates nullable ID fields), the parameterless
     ///     constructor triggers a static initializer that requires game context (Resources.Strings).
     /// </summary>
-    [Test]
-    [Ignore("game-context only — parameterless Loadout() triggers static initializer requiring Resources.Strings initialization. " +
-            "Setter logic verified: PrimaryRuleType = MeleeWeapon clears ranged, retains melee")]
+    [Test, Ignore(
+         "game-context only — parameterless Loadout() triggers static initializer requiring Resources.Strings initialization. " +
+         "Setter logic verified: PrimaryRuleType = MeleeWeapon clears ranged, retains melee")]
     public void Loadout_PrimaryRuleType_SetToMelee_ClearsRangedOnly()
     {
         // Create a minimal Loadout with both weapon rule IDs set.
-        var loadout = new Loadout { Label = "Test Loadout", PrimaryRangedWeaponRuleId = 42, PrimaryMeleeWeaponRuleId = 99 };
+        var loadout = new Loadout
+        {
+            Label = "Test Loadout", PrimaryRangedWeaponRuleId = 42, PrimaryMeleeWeaponRuleId = 99
+        };
 
         // Verify both are set.
         loadout.PrimaryRangedWeaponRuleId.Should().Be(42);
@@ -185,8 +193,10 @@ public class ItemRuleAndLoadoutTests : StateIsolationTestBase
         loadout.PrimaryRuleType = Loadout.PrimaryWeaponType.MeleeWeapon;
 
         // Ranged should be cleared; melee retained.
-        loadout.PrimaryRangedWeaponRuleId.Should().BeNull("PrimaryRuleType = MeleeWeapon should clear ranged weapon rule ID");
-        loadout.PrimaryMeleeWeaponRuleId.Should().Be(99, "PrimaryRuleType = MeleeWeapon should retain melee weapon rule ID");
+        loadout.PrimaryRangedWeaponRuleId.Should()
+            .BeNull("PrimaryRuleType = MeleeWeapon should clear ranged weapon rule ID");
+        loadout.PrimaryMeleeWeaponRuleId.Should()
+            .Be(99, "PrimaryRuleType = MeleeWeapon should retain melee weapon rule ID");
     }
 
     /// <summary>
@@ -200,11 +210,9 @@ public class ItemRuleAndLoadoutTests : StateIsolationTestBase
     public void RangedWeaponRule_Copy_ViaRuleLogic_DeepCopiesCollectionsIndependently()
     {
         // Create an original rule with stat weights.
-        var originalRule = new RangedWeaponRule(1, "Original", false, [], [], [], [], ItemRule.WeaponEquipMode.BestOne, false, false, 0)
-        {
-            Explosive = true,
-            ManualCast = false
-        };
+        var originalRule =
+            new RangedWeaponRule(1, "Original", false, [], [], [], [], ItemRule.WeaponEquipMode.BestOne, false, false,
+                0) { Explosive = true, ManualCast = false };
 
         // Get a list of potential default stat weights to copy from.
         var potentialWeights = originalRule.GetDefaultStatWeights().ToList();
@@ -213,11 +221,9 @@ public class ItemRuleAndLoadoutTests : StateIsolationTestBase
         originalRule.GetStatWeights().Should().HaveCount(0, "new rule starts with empty stat weights");
 
         // Create a copied rule with the same settings.
-        var copiedRule = new RangedWeaponRule(2, "Original 2", false, [], [], [], [], ItemRule.WeaponEquipMode.BestOne, false, false, 0)
-        {
-            Explosive = originalRule.Explosive,
-            ManualCast = originalRule.ManualCast
-        };
+        var copiedRule =
+            new RangedWeaponRule(2, "Original 2", false, [], [], [], [], ItemRule.WeaponEquipMode.BestOne, false, false,
+                0) { Explosive = originalRule.Explosive, ManualCast = originalRule.ManualCast };
 
         // Simulate what Copy does: copy stat weights from original to copied rule.
         // Iterate through default weights and copy them to the new rule.
@@ -255,10 +261,8 @@ public class ItemRuleAndLoadoutTests : StateIsolationTestBase
         // Verify boolean fields are independent (not references).
         copiedRule.Explosive.Should().BeTrue("copied rule retained Explosive field value at copy time");
         copiedRule.ManualCast.Should().BeFalse("copied rule retained ManualCast field value at copy time");
-
         originalRule.Explosive = false;
         originalRule.ManualCast = true;
-
         copiedRule.Explosive.Should().BeTrue(
             "copied rule's Explosive should be independent; mutation of original should not affect copy");
         copiedRule.ManualCast.Should().BeFalse(
@@ -276,11 +280,11 @@ public class ItemRuleAndLoadoutTests : StateIsolationTestBase
     public void MeleeWeaponRule_Copy_ViaRuleLogic_DeepCopiesCollectionsIndependently()
     {
         // Create an original rule with stat weights.
-        var originalRule = new MeleeWeaponRule(1, "Original", false, [], [], [], [], ItemRule.WeaponEquipMode.BestOne, false, false)
-        {
-            UsableWithShields = true,
-            Rottable = false
-        };
+        var originalRule =
+            new MeleeWeaponRule(1, "Original", false, [], [], [], [], ItemRule.WeaponEquipMode.BestOne, false, false)
+            {
+                UsableWithShields = true, Rottable = false
+            };
 
         // Get a list of potential default stat weights to copy from.
         var potentialWeights = originalRule.GetDefaultStatWeights().ToList();
@@ -289,11 +293,11 @@ public class ItemRuleAndLoadoutTests : StateIsolationTestBase
         originalRule.GetStatWeights().Should().HaveCount(0, "new rule starts with empty stat weights");
 
         // Create a copied rule with the same settings.
-        var copiedRule = new MeleeWeaponRule(2, "Original 2", false, [], [], [], [], ItemRule.WeaponEquipMode.BestOne, false, false)
-        {
-            UsableWithShields = originalRule.UsableWithShields,
-            Rottable = originalRule.Rottable
-        };
+        var copiedRule =
+            new MeleeWeaponRule(2, "Original 2", false, [], [], [], [], ItemRule.WeaponEquipMode.BestOne, false, false)
+            {
+                UsableWithShields = originalRule.UsableWithShields, Rottable = originalRule.Rottable
+            };
 
         // Simulate what Copy does: copy stat weights from original to copied rule.
         // Iterate through default weights and copy them to the new rule.
@@ -331,10 +335,8 @@ public class ItemRuleAndLoadoutTests : StateIsolationTestBase
         // Verify boolean fields are independent (not references).
         copiedRule.UsableWithShields.Should().BeTrue("copied rule retained UsableWithShields field value at copy time");
         copiedRule.Rottable.Should().BeFalse("copied rule retained Rottable field value at copy time");
-
         originalRule.UsableWithShields = false;
         originalRule.Rottable = true;
-
         copiedRule.UsableWithShields.Should().BeTrue(
             "copied rule's UsableWithShields should be independent; mutation of original should not affect copy");
         copiedRule.Rottable.Should().BeFalse(
@@ -352,10 +354,8 @@ public class ItemRuleAndLoadoutTests : StateIsolationTestBase
     public void ToolRule_Copy_ViaRuleLogic_DeepCopiesCollectionsIndependently()
     {
         // Create an original rule with stat weights.
-        var originalRule = new ToolRule(1, "Original", false, [], [], [], [], ItemRule.ToolEquipMode.BestOne, false)
-        {
-            Ranged = true
-        };
+        var originalRule =
+            new ToolRule(1, "Original", false, [], [], [], [], ItemRule.ToolEquipMode.BestOne, false) { Ranged = true };
 
         // Get a list of potential default stat weights to copy from.
         var potentialWeights = originalRule.GetDefaultStatWeights().ToList();
@@ -404,9 +404,7 @@ public class ItemRuleAndLoadoutTests : StateIsolationTestBase
 
         // Verify boolean field is independent (not reference).
         copiedRule.Ranged.Should().BeTrue("copied rule retained Ranged field value at copy time");
-
         originalRule.Ranged = false;
-
         copiedRule.Ranged.Should().BeTrue(
             "copied rule's Ranged should be independent; mutation of original should not affect copy");
     }
@@ -417,10 +415,9 @@ public class ItemRuleAndLoadoutTests : StateIsolationTestBase
     ///     evaluated against, so work-type-dependent stats must be computed on demand rather than
     ///     returned from a stale entry keyed only by the stat definition.
     /// </summary>
-    [Test]
-    [Ignore("game-context only — ToolCache wraps a live Thing instance and resolves work-type rules via " +
-            "Current.Game, neither of which exists in the unit-test harness. Verified in-game: the same tool " +
-            "yields different work-type stat scores for different work-type sets; scores are not keyed by stat definition alone")]
+    [Test, Ignore("game-context only — ToolCache wraps a live Thing instance and resolves work-type rules via " +
+         "Current.Game, neither of which exists in the unit-test harness. Verified in-game: the same tool " +
+         "yields different work-type stat scores for different work-type sets; scores are not keyed by stat definition alone")]
     public void ToolCache_WorkTypeDependentStats_ComputedOnDemandNotCached()
     {
         // Work-type-dependent stats are computed on demand rather than cached under a stat-definition-only

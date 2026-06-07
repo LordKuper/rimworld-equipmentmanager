@@ -8,7 +8,7 @@ using LordKuper.Common.Helpers;
 using RimWorld;
 using Verse;
 
-namespace EquipmentManager;
+namespace LordKuper.EquipmentManager;
 
 internal class RangedWeaponCache(Thing thing) : ThingCache(thing, 24f)
 {

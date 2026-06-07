@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using EquipmentManager.Windows;
 using JetBrains.Annotations;
+using LordKuper.EquipmentManager.Windows;
 using RimWorld;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
 
-namespace EquipmentManager.PawnColumnWorkers;
+namespace LordKuper.EquipmentManager.PawnColumnWorkers;
 
 [UsedImplicitly]
 internal class Loadout : PawnColumnWorker

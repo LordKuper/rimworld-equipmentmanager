@@ -8,20 +8,20 @@ using LordKuper.Common.Filters.Limits;
 using RimWorld;
 using Verse;
 
-namespace EquipmentManager;
+namespace LordKuper.EquipmentManager;
 
 internal class MeleeWeaponRule : ItemRule
 {
     public delegate bool UsableWithShieldsDelegate(ThingDef thing);
 
-    // CE reflection-delegate: legitimately null when CE is absent. Kept nullable with null-guard.
-    public static UsableWithShieldsDelegate? UsableWithShieldsMethod;
-
     // Reset to null by ResetCache(); lazily rebuilt on first access.
     private static HashSet<ThingDef>? _allRelevantThings;
-    public WeaponEquipMode EquipMode = WeaponEquipMode.BestOne;
+
+    // CE reflection-delegate: legitimately null when CE is absent. Kept nullable with null-guard.
+    public static UsableWithShieldsDelegate? UsableWithShieldsMethod;
     private bool? _rottable;
     private bool? _usableWithShields;
+    public WeaponEquipMode EquipMode = WeaponEquipMode.BestOne;
     public MeleeWeaponRule(int id, bool isProtected) : base(id, isProtected) { }
 
     [UsedImplicitly]
@@ -231,5 +231,4 @@ internal class MeleeWeaponRule : ItemRule
         _ = GloballyAvailableItems!.RemoveWhere(def => GetBlacklistedItems().Contains(def));
         foreach (var def in GetWhitelistedItems()) { _ = GloballyAvailableItems!.Add(def); }
     }
-
 }

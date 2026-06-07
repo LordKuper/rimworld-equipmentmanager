@@ -8,7 +8,7 @@ using LordKuper.Common.Helpers;
 using RimWorld;
 using Verse;
 
-namespace EquipmentManager;
+namespace LordKuper.EquipmentManager;
 
 internal class Loadout : IExposable
 {
@@ -100,17 +100,9 @@ internal class Loadout : IExposable
     private readonly Dictionary<PawnCapacityDef, FloatRange> _scoreCapacityRanges = new();
     private readonly Dictionary<SkillDef, FloatRange> _scoreSkillRanges = new();
     private readonly Dictionary<StatDef, FloatRange> _scoreStatRanges = new();
-    public bool DropUnassignedWeapons = true;
-
-    // Populated by Scribe on load (IExposable lifecycle); = null! asserts the field is always
-    // set before any read, consistent with the RimWorld load contract.
-    public string Label = null!;
-    public int? PrimaryMeleeWeaponRuleId;
-    public int? PrimaryRangedWeaponRuleId;
-    public int Priority;
-    public int? ToolRuleId;
     private int _id;
     private bool _initialized;
+
     // Scribe_Collections.Look sets these to null when no saved data exists; ??= in Initialize()
     // restores them to empty before any first access.
     private List<int>? _meleeSidearmRules = [];
@@ -127,6 +119,15 @@ internal class Loadout : IExposable
     private List<SkillWeight>? _skillWeights = [];
     private List<StatLimit>? _statLimits = [];
     private List<StatWeight>? _statWeights = [];
+    public bool DropUnassignedWeapons = true;
+
+    // Populated by Scribe on load (IExposable lifecycle); = null! asserts the field is always
+    // set before any read, consistent with the RimWorld load contract.
+    public string Label = null!;
+    public int? PrimaryMeleeWeaponRuleId;
+    public int? PrimaryRangedWeaponRuleId;
+    public int Priority;
+    public int? ToolRuleId;
 
     [UsedImplicitly]
     public Loadout() { }

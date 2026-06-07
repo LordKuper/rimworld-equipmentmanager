@@ -3,7 +3,7 @@ using LordKuper.Common;
 using LordKuper.Common.CustomStats;
 using LordKuper.Common.Filters.Limits;
 
-namespace EquipmentManager;
+namespace LordKuper.EquipmentManager;
 
 internal static class LegacyCustomStatDefs
 {

@@ -6,15 +6,15 @@ using RimWorld;
 using UnityEngine;
 using Verse;
 
-namespace EquipmentManager.Windows;
+namespace LordKuper.EquipmentManager.Windows;
 
 internal partial class ManageWeaponRulesDialog
 {
     private readonly List<Thing> _currentlyAvailableMapThings = new();
     private readonly List<ThingDef> _globallyAvailableWorkTypes = new();
     private Vector2 _workTypesMapThingIconBoxScrollPosition;
-    private Vector2 _workTypesScrollPosition;
     private float _workTypesScrollableContentHeight;
+    private Vector2 _workTypesScrollPosition;
     private Vector2 _workTypesThingIconBoxScrollPosition;
 
     private WorkTypeThingRule? SelectedWorkTypeRule

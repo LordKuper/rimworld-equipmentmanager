@@ -2,7 +2,7 @@
 using RimWorld;
 using Verse;
 
-namespace EquipmentManager;
+namespace LordKuper.EquipmentManager;
 
 public enum PassionValue
 {
@@ -14,7 +14,6 @@ public enum PassionValue
 
 internal class PassionLimit : IExposable
 {
-    public PassionValue Value = PassionValue.None;
     private bool _isInitialized;
 
     // _skillDef is resolved lazily from _skillDefName; may be null if the def is missing.
@@ -23,6 +22,7 @@ internal class PassionLimit : IExposable
     // _skillDefName is populated by Scribe on load (IExposable lifecycle); null until Scribe
     // populates it or the parametrised constructor sets it.
     private string? _skillDefName;
+    public PassionValue Value = PassionValue.None;
 
     [UsedImplicitly]
     public PassionLimit() { }

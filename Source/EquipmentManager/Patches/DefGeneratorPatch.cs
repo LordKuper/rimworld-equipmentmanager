@@ -1,10 +1,10 @@
 ﻿using System;
-using EquipmentManager.DefOfs;
 using HarmonyLib;
 using JetBrains.Annotations;
+using LordKuper.EquipmentManager.DefOfs;
 using RimWorld;
 
-namespace EquipmentManager.Patches;
+namespace LordKuper.EquipmentManager.Patches;
 
 [HarmonyPatch(typeof(DefGenerator), nameof(DefGenerator.GenerateImpliedDefs_PreResolve)), UsedImplicitly]
 internal static class DefGeneratorPatch
