@@ -9,13 +9,13 @@ responsibility:
 
 ## Canonical source
 - Official docs: https://learn.microsoft.com/dotnet/csharp/
-- Last verified: 2026-06-06
+- Last verified: 2026-06-07
 
 ## API surface used in project
 - `<LangVersion>latest</LangVersion>`: every project compiles with the newest C# language version the installed Roslyn/SDK supports, decoupled from the runtime target. Set in both `Source/EquipmentManager/EquipmentManager.csproj` and `Source/EquipmentManager.Tests/EquipmentManager.Tests.csproj`.
 - `<TargetFramework>net48</TargetFramework>`: .NET Framework 4.8 — RimWorld's Mono runtime target. Identical in production and test projects.
-- JetBrains nullability annotations (`[CanBeNull]`, `[NotNull]`, `[UsedImplicitly]`, `[Pure]`): production code carries nullability intent via attributes (the production project has not yet enabled the C# nullable context).
-- C# nullable reference types (`<Nullable>enable</Nullable>`): enabled in the test project only; `?` reference-type syntax and flow analysis are available there.
+- C# nullable reference types (`<Nullable>enable</Nullable>`): enabled project-wide (production and test); `?` reference-type syntax and compiler flow analysis carry all nullability intent. See ADR-0001 for the migration rationale and resolution patterns.
+- JetBrains annotations: the nullability attributes (`[NotNull]`, `[CanBeNull]`) have been removed — superseded by real NRT. Only non-nullability JetBrains attributes (`[UsedImplicitly]`, `[Pure]`) may still appear; `using JetBrains.Annotations;` is retained only in files that still reference one.
 - `InternalsVisibleTo`: production exposes internals to `EquipmentManager.Tests` (declared in the csproj `ItemGroup`).
 
 ## Version-specific notes

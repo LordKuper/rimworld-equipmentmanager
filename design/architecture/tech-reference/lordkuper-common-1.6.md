@@ -37,7 +37,7 @@ responsibility:
 - `LordKuper.Common.Filters.Limits` — limit/range model reused across rules and loadouts: `StatLimit` (with `StatDef`, `StatDefName`, `MinValue`, `MaxValue`), and the pawn-side limits `PawnCapacityLimit`, `PawnSkillLimit`, used by `ItemRule`, `Loadout`, weapon/tool rules.
 - `LordKuper.Common.UI.Windows.GetWindowSize(preferred, max)` — window-size helper; replaced EM's local `UiHelpers.GetWindowSize` (RU-6 / sprint 001).
 - `LordKuper.Common.UI.Widgets.ThingIconBox` — scrollable thing/ThingDef icon grid used by weapon-rule dialogs.
-- `LordKuper.Common.UI.Widgets.WorkTypeThingRuleWidget` — WorkType tab UI widget; `DoWidgetTab(rect, ...)` drives the complete WorkType rule editor tab. Consumed since RU-7 / sprint 001 (replaced EM's inline tab rendering).
+- `LordKuper.Common.UI.Widgets.WorkTypeThingRuleWidget` — WorkType tab UI widget; `DoWidgetTab(rect, ...)` drives the complete WorkType rule editor tab. As-built it renders the **extended dual-pane** form: a globally-available `ThingDef` pane (`IReadOnlyList<ThingDef> things` + its own `thingIconBoxScrollPosition`) and a second on-map `Thing` pane (`IReadOnlyList<Thing>? mapThings` + its own `mapThingIconBoxScrollPosition`); the on-map pane was added upstream this sprint and is the optional (`= null`-defaulted) trailing argument. EM passes both panes — see `Windows/ManageWeaponRulesDialog_WorkTypes.cs:32-36`. Consumed since RU-7 / sprint 001 (replaced EM's inline tab rendering).
 - `LordKuper.Common.UI` / other widget types — `Labels`, `Fields`, `Buttons`, `Sections`, `Tabs`, `Layout`, `ScrollView` used by `ManageLoadoutsDialog` and `ManageWeaponRulesDialog`.
 
 ## Version-specific notes
