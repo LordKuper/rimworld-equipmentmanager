@@ -57,6 +57,15 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
             }
             else
             {
+                var defPair = weapon.toThingDefStuffDefPair();
+                var inferiorCarried = carriedWeapons.Where(w => w.toThingDefStuffDefPair() == defPair).ToList();
+                foreach (var inferior in inferiorCarried)
+                {
+                    WeaponAssingment.DropSidearm(pawn.Pawn, (ThingWithComps)inferior, intentionalDrop: true,
+                        unmemorise: true);
+                    if (inferior.Spawned) { inferior.SetForbidden(false, warnOnFail: false); }
+                    _ = assignedByOthers.Add(inferior);
+                }
                 _ = pawn.Pawn.jobs.TryTakeOrderedJob(
                     JobMaker.MakeJob(SidearmsDefOf.EquipSecondary, (LocalTargetInfo)weapon),
                     requestQueueing: ShouldRequestQueueing(pawn));
@@ -86,7 +95,7 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
                 StatCalculator.CanPickupSidearmInstance((ThingWithComps)thing, pawn.Pawn, out _))
             .OrderByDescending(thing => rule.GetThingScore(thing, workTypes, _updateTime))
             .ThenByDescending(thing => sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
-            .ThenBy(thing => thing.GetHashCode()).FirstOrDefault();
+            .ThenByDescending(carriedWeapons.Contains).ThenBy(thing => thing.GetHashCode()).FirstOrDefault();
         if (bestWeapon == null) { return; }
         if (pawn.AssignedWeapons.Keys.Any(thing => thing.def == bestWeapon.def)) { return; }
         pawn.AssignedWeapons.Add(bestWeapon, "tool");
@@ -100,6 +109,15 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
         }
         else
         {
+            var defPair = bestWeapon.toThingDefStuffDefPair();
+            var inferiorCarried = carriedWeapons.Where(w => w.toThingDefStuffDefPair() == defPair).ToList();
+            foreach (var inferior in inferiorCarried)
+            {
+                WeaponAssingment.DropSidearm(pawn.Pawn, (ThingWithComps)inferior, intentionalDrop: true,
+                    unmemorise: true);
+                if (inferior.Spawned) { inferior.SetForbidden(false, warnOnFail: false); }
+                _ = assignedByOthers.Add(inferior);
+            }
             _ = pawn.Pawn.jobs.TryTakeOrderedJob(
                 JobMaker.MakeJob(SidearmsDefOf.EquipSecondary, (LocalTargetInfo)bestWeapon),
                 requestQueueing: ShouldRequestQueueing(pawn));
@@ -209,18 +227,29 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
                 StatCalculator.CanPickupSidearmInstance((ThingWithComps)thing, pawn.Pawn, out _)).ToList();
             var bestWeapon = things.OrderByDescending(thing => rule.GetThingScore(thing, [workType], _updateTime))
                 .ThenByDescending(thing => sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
-                .ThenBy(thing => thing.GetHashCode()).FirstOrDefault();
+                .ThenByDescending(carriedWeapons.Contains).ThenBy(thing => thing.GetHashCode()).FirstOrDefault();
             if (bestWeapon == null) { continue; }
             if (pawn.AssignedWeapons.Keys.Any(thing => thing.def == bestWeapon.def)) { continue; }
             pawn.AssignedWeapons.Add(bestWeapon, $"tool_{workType.labelShort}");
             _ = assignedByOthers.Add(bestWeapon);
-            if (carriedWeapons.Contains(bestWeapon) &&
-                !sidearmMemory.RememberedWeapons.Contains(bestWeapon.toThingDefStuffDefPair()))
+            if (carriedWeapons.Contains(bestWeapon))
             {
-                sidearmMemory.InformOfAddedSidearm(bestWeapon);
+                if (!sidearmMemory.RememberedWeapons.Contains(bestWeapon.toThingDefStuffDefPair()))
+                {
+                    sidearmMemory.InformOfAddedSidearm(bestWeapon);
+                }
             }
             else
             {
+                var defPair = bestWeapon.toThingDefStuffDefPair();
+                var inferiorCarried = carriedWeapons.Where(w => w.toThingDefStuffDefPair() == defPair).ToList();
+                foreach (var inferior in inferiorCarried)
+                {
+                    WeaponAssingment.DropSidearm(pawn.Pawn, (ThingWithComps)inferior, intentionalDrop: true,
+                        unmemorise: true);
+                    if (inferior.Spawned) { inferior.SetForbidden(false, warnOnFail: false); }
+                    _ = assignedByOthers.Add(inferior);
+                }
                 _ = pawn.Pawn.jobs.TryTakeOrderedJob(
                     JobMaker.MakeJob(SidearmsDefOf.EquipSecondary, (LocalTargetInfo)bestWeapon),
                     requestQueueing: ShouldRequestQueueing(pawn));
@@ -424,6 +453,16 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
                         }
                         else
                         {
+                            var meleeBestDefPair = bestWeapon.toThingDefStuffDefPair();
+                            var meleeInferiorCarried =
+                                carriedWeapons.Where(w => w.toThingDefStuffDefPair() == meleeBestDefPair).ToList();
+                            foreach (var inferior in meleeInferiorCarried)
+                            {
+                                WeaponAssingment.DropSidearm(pawn.Pawn, (ThingWithComps)inferior,
+                                    intentionalDrop: true, unmemorise: true);
+                                if (inferior.Spawned) { inferior.SetForbidden(false, warnOnFail: false); }
+                                _ = assignedByOthers.Add(inferior);
+                            }
                             _ = pawn.Pawn.jobs.TryTakeOrderedJob(
                                 JobMaker.MakeJob(SidearmsDefOf.EquipSecondary, (LocalTargetInfo)bestWeapon),
                                 requestQueueing: ShouldRequestQueueing(pawn));
@@ -447,6 +486,16 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
                             }
                             else
                             {
+                                var meleeAllDefPair = weapon.toThingDefStuffDefPair();
+                                var meleeAllInferiorCarried =
+                                    carriedWeapons.Where(w => w.toThingDefStuffDefPair() == meleeAllDefPair).ToList();
+                                foreach (var inferior in meleeAllInferiorCarried)
+                                {
+                                    WeaponAssingment.DropSidearm(pawn.Pawn, (ThingWithComps)inferior,
+                                        intentionalDrop: true, unmemorise: true);
+                                    if (inferior.Spawned) { inferior.SetForbidden(false, warnOnFail: false); }
+                                    _ = assignedByOthers.Add(inferior);
+                                }
                                 _ = pawn.Pawn.jobs.TryTakeOrderedJob(
                                     JobMaker.MakeJob(SidearmsDefOf.EquipSecondary, (LocalTargetInfo)weapon),
                                     requestQueueing: new[] { JobDefOf.Equip, SidearmsDefOf.EquipSecondary }.Contains(
@@ -548,6 +597,16 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
                         }
                         else
                         {
+                            var rangedBestDefPair = bestWeapon.toThingDefStuffDefPair();
+                            var rangedInferiorCarried =
+                                carriedWeapons.Where(w => w.toThingDefStuffDefPair() == rangedBestDefPair).ToList();
+                            foreach (var inferior in rangedInferiorCarried)
+                            {
+                                WeaponAssingment.DropSidearm(pawn.Pawn, (ThingWithComps)inferior,
+                                    intentionalDrop: true, unmemorise: true);
+                                if (inferior.Spawned) { inferior.SetForbidden(false, warnOnFail: false); }
+                                _ = assignedByOthers.Add(inferior);
+                            }
                             _ = pawn.Pawn.jobs.TryTakeOrderedJob(
                                 JobMaker.MakeJob(SidearmsDefOf.EquipSecondary, (LocalTargetInfo)bestWeapon),
                                 requestQueueing: ShouldRequestQueueing(pawn));
@@ -573,6 +632,16 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
                             }
                             else
                             {
+                                var rangedAllDefPair = weapon.toThingDefStuffDefPair();
+                                var rangedAllInferiorCarried =
+                                    carriedWeapons.Where(w => w.toThingDefStuffDefPair() == rangedAllDefPair).ToList();
+                                foreach (var inferior in rangedAllInferiorCarried)
+                                {
+                                    WeaponAssingment.DropSidearm(pawn.Pawn, (ThingWithComps)inferior,
+                                        intentionalDrop: true, unmemorise: true);
+                                    if (inferior.Spawned) { inferior.SetForbidden(false, warnOnFail: false); }
+                                    _ = assignedByOthers.Add(inferior);
+                                }
                                 _ = pawn.Pawn.jobs.TryTakeOrderedJob(
                                     JobMaker.MakeJob(SidearmsDefOf.EquipSecondary, (LocalTargetInfo)weapon),
                                     requestQueueing: ShouldRequestQueueing(pawn));

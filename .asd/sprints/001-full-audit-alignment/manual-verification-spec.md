@@ -134,6 +134,40 @@ This document specifies manual verification steps for test coverage that cannot 
 
 ---
 
+---
+
+## Sidearm/tool upgrade dup-assign fix (free-expansion remediation)
+
+**Context:** SimpleSidearms `EquipSecondary` always appends (no dedup). Before this fix, EquipmentManager would issue `EquipSecondary` for a better map-instance of a def+stuff the pawn already carries (inferior HP/quality), leaving both instances in inventory and adding a duplicate `RememberedWeapons` entry on each pass.
+
+**Repro scenario:**
+
+| Step | Setup |
+|------|-------|
+| 1. | Create a colonist with a low-HP or poor-quality instance of a weapon (e.g. "pistol / steel" at 20% HP) already in their sidearm inventory and remembered by SimpleSidearms. |
+| 2. | Place a better instance of the same def+stuff (e.g. "pistol / steel" at 80% HP or better quality) on the map floor within the pawn's allowed area. |
+| 3. | Create a sidearm rule (BestOne or AllAvailable for melee/ranged sidearms, or BestOne/AllAvailable/OnePerWorkType for tools) that scores this weapon type and would prefer the better instance. |
+| 4. | Wait for EquipmentManager assignment pass (up to 6 in-game hours, or force via dev tools). |
+
+**Expected outcome (post-fix):**
+
+| Observable | Expected | What to check |
+|------------|----------|---------------|
+| Pawn inventory count for this def+stuff | Exactly **1** instance — the better one. | Open colonist inventory tab; count weapons of that def. |
+| Dropped inferior | **Visible on the map floor**, NOT forbidden (no red "X" overlay). | Look at the map tile where the pawn stood; the inferior instance should be unforbidden and haul-eligible. |
+| `RememberedWeapons` for this defPair | Exactly **1** entry. | SimpleSidearms memory gizmo or `CompSidearmMemory.RememberedWeapons` (dev inspect). |
+| Subsequent passes | No repeated `EquipSecondary` job for this sidearm. | Observe pawn job queue over 2+ assignment cycles; the sidearm should already be carried, so no re-equip job is issued. |
+| Other sidearms / tools | Unaffected — no unexpected drops of weapons for OTHER def+stuff pairs. | Confirm pawn still carries all other assigned sidearms/tools. |
+
+**Sites covered by this fix:**
+- `UpdateMeleeSidearms` BestOne and AllAvailable
+- `UpdateRangedSidearms` BestOne and AllAvailable
+- `AssignAllTools`, `AssignBestTool`, `AssignToolsForWorkTypes`
+
+**Tool tiebreaker hardening:** `AssignBestTool` and `AssignToolsForWorkTypes` orderings now include `.ThenByDescending(carriedWeapons.Contains)` (matching the sidearm sites) so a carried instance of identical score wins ties and is not needlessly re-fetched.
+
+---
+
 ## Summary
 
 - **All AC-25 (C-4): LOCKED BY UNIT TESTS** — no manual verification needed.
