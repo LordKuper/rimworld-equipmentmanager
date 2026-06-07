@@ -3,11 +3,10 @@ using LordKuper.Common;
 namespace EquipmentManager.Tests;
 
 /// <summary>
-///     Characterization tests for the consumed <see cref="Common.WorkTypeThingRule" />
-///     and <see cref="Common.WorkTypeStatMap" /> path, asserting the dedup invariant
+///     Characterization tests for the consumed <see cref="WorkTypeThingRule" />
+///     and <see cref="WorkTypeStatMap" /> path, asserting the dedup invariant
 ///     and WorkType default-weight values. This test formally decides OQ-1:
 ///     EM uses Common's per-stat DefaultWorkTypeStats (not EM's old flat 2f).
-///
 ///     Note: WorkTypeStatMap requires full game context (DefDatabase, recipes, etc.)
 ///     to initialize. These tests verify consumption and document the OQ-1 decision
 ///     rather than directly testing the map contents.
@@ -28,7 +27,6 @@ public class WorkTypeThingRuleTests
         // In a game context, this would be populated with per-stat weight mappings
         // from Common's DefaultWorkTypeStats (Cooking: FoodPoisonChance 2f, DrugCookingSpeed 1f, etc.).
         // In unit test context without full game initialization, the map may be empty or partially populated.
-
         var autoSwitchMap = WorkTypeStatMap.AutoSwitchStatsMap;
         autoSwitchMap.Should().NotBeNull("WorkTypeStatMap.AutoSwitchStatsMap should be available as public API");
 

@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
 using LordKuper.Common;
 using LordKuper.Common.CustomStats;
 using LordKuper.Common.Filters.Limits;
-using Verse;
 
 namespace EquipmentManager;
 
@@ -13,10 +11,7 @@ internal static class LegacyCustomStatDefs
 
     public static string NormalizeStatDefName(string? statDefName)
     {
-        if (string.IsNullOrEmpty(statDefName))
-        {
-            throw new ArgumentNullException(nameof(statDefName));
-        }
+        if (string.IsNullOrEmpty(statDefName)) { throw new ArgumentNullException(nameof(statDefName)); }
         if (!statDefName!.StartsWith(LegacyPrefix, StringComparison.Ordinal)) { return statDefName; }
         if (TryNormalizeStatName(statDefName, "EM_MeleeWeapons_", out var meleeWeaponStatName) &&
             Enum.TryParse(meleeWeaponStatName, out MeleeWeaponStat meleeWeaponStat))
@@ -29,10 +24,7 @@ internal static class LegacyCustomStatDefs
             return RangedWeaponStats.GetStatDefName(rangedWeaponStat);
         }
         if (TryNormalizeStatName(statDefName, "EM_Tools_", out var toolStatName) &&
-            Enum.TryParse(toolStatName, out ToolStat toolStat))
-        {
-            return ToolStats.GetStatDefName(toolStat);
-        }
+            Enum.TryParse(toolStatName, out ToolStat toolStat)) { return ToolStats.GetStatDefName(toolStat); }
         return statDefName;
     }
 
@@ -52,8 +44,7 @@ internal static class LegacyCustomStatDefs
             : new StatWeight(normalizedName, statWeight.Weight, statWeight.Protected);
     }
 
-    private static bool TryNormalizeStatName(string statDefName, string prefix,
-        out string? statName)
+    private static bool TryNormalizeStatName(string statDefName, string prefix, out string? statName)
     {
         if (!statDefName.StartsWith(prefix, StringComparison.Ordinal))
         {

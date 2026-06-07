@@ -10,16 +10,13 @@ using Verse;
 
 namespace EquipmentManager;
 
-internal class RangedWeaponCache : ThingCache
+internal class RangedWeaponCache(Thing thing) : ThingCache(thing, 24f)
 {
     // CE reflection-delegate field: legitimately null when Combat Extended is absent.
     // Kept nullable with existing null-guards per ADR-0003.
     private AmmoUserPropsDelegate? _ammoUserPropsMethod;
     private bool _initialized;
     private bool _isAmmo;
-
-    public RangedWeaponCache(Thing thing) : base(thing, 24f) { }
-
     private float AccuracyClose { get; set; }
     private float AccuracyLong { get; set; }
     private float AccuracyMedium { get; set; }
@@ -40,8 +37,7 @@ internal class RangedWeaponCache : ThingCache
             var ammoUserProps = _ammoUserPropsMethod();
             if (ammoUserProps == null)
             {
-                Logger.LogError(
-                    $"CompProperties_AmmoUser was not found for {Thing.LabelCapNoCount}");
+                Logger.LogError($"CompProperties_AmmoUser was not found for {Thing.LabelCapNoCount}");
                 return ammoTypes;
             }
             if (CombatExtendedHelper.AmmoSetDelegate == null) { return ammoTypes; }
@@ -58,8 +54,7 @@ internal class RangedWeaponCache : ThingCache
                 return ammoTypes;
             }
             if (CombatExtendedHelper.AmmoDelegate == null) { return ammoTypes; }
-            ammoTypes.AddRange(ammoLinks
-                .Select(ammoLink => CombatExtendedHelper.AmmoDelegate(ammoLink))
+            ammoTypes.AddRange(ammoLinks.Select(ammoLink => CombatExtendedHelper.AmmoDelegate(ammoLink))
                 .Where(ammoType => ammoType != null));
             return ammoTypes;
         }
@@ -68,8 +63,7 @@ internal class RangedWeaponCache : ThingCache
     private ThingComp? AmmoUserComp =>
         !(Thing is ThingWithComps thingWithComps)
             ? null
-            : thingWithComps.AllComps.FirstOrDefault(comp =>
-                comp.GetType() == CombatExtendedHelper.CompAmmoUserType);
+            : thingWithComps.AllComps.FirstOrDefault(comp => comp.GetType() == CombatExtendedHelper.CompAmmoUserType);
 
     private float ArmorPenetration { get; set; }
     private int BurstShotCount { get; set; }
@@ -100,8 +94,7 @@ internal class RangedWeaponCache : ThingCache
 
     private float GetCustomStatValue(StatDef statDef)
     {
-        if (Enum.TryParse(RangedWeaponStats.GetStatName(statDef.defName),
-                out RangedWeaponStat rangedWeaponStat))
+        if (Enum.TryParse(RangedWeaponStats.GetStatName(statDef.defName), out RangedWeaponStat rangedWeaponStat))
         {
             switch (rangedWeaponStat)
             {
@@ -168,15 +161,11 @@ internal class RangedWeaponCache : ThingCache
             if (AmmoUserComp == null)
             {
                 if (Thing.def.Verbs.Any(properties => string.Equals(properties.verbClass.FullName,
-                        "CombatExtended.Verb_ShootCEOneUse", StringComparison.OrdinalIgnoreCase)))
-                {
-                    _isAmmo = true;
-                }
+                        "CombatExtended.Verb_ShootCEOneUse", StringComparison.OrdinalIgnoreCase))) { _isAmmo = true; }
             }
             else
             {
-                var ammoUserPropsMethod =
-                    AccessTools.PropertyGetter(CombatExtendedHelper.CompAmmoUserType, "Props");
+                var ammoUserPropsMethod = AccessTools.PropertyGetter(CombatExtendedHelper.CompAmmoUserType, "Props");
                 if (ammoUserPropsMethod == null)
                 {
                     Logger.LogError("Could not find 'CombatExtended.CompAmmoUser.Props'");
@@ -184,8 +173,7 @@ internal class RangedWeaponCache : ThingCache
                 else
                 {
                     _ammoUserPropsMethod =
-                        AccessTools.MethodDelegate<AmmoUserPropsDelegate>(ammoUserPropsMethod,
-                            AmmoUserComp);
+                        AccessTools.MethodDelegate<AmmoUserPropsDelegate>(ammoUserPropsMethod, AmmoUserComp);
                 }
             }
         }
@@ -200,14 +188,10 @@ internal class RangedWeaponCache : ThingCache
 
     private void ReadProjectileProperties(ProjectileProperties projectileProperties)
     {
-        if (projectileProperties == null)
-        {
-            throw new ArgumentNullException(nameof(projectileProperties));
-        }
+        if (projectileProperties == null) { throw new ArgumentNullException(nameof(projectileProperties)); }
         if (projectileProperties.damageDef == null)
         {
-            Logger.LogWarning(
-                $"Projectile for {Thing.LabelCapNoCount} has no damageDef, damage set to 0");
+            Logger.LogWarning($"Projectile for {Thing.LabelCapNoCount} has no damageDef, damage set to 0");
             Damage = 0;
         }
         else
@@ -215,8 +199,7 @@ internal class RangedWeaponCache : ThingCache
             try { Damage = projectileProperties.GetDamageAmount(Thing); }
             catch (Exception e)
             {
-                Logger.LogWarning(
-                    $"Could not get projectile damage for {Thing.LabelCapNoCount}: {e.Message}", e);
+                Logger.LogWarning($"Could not get projectile damage for {Thing.LabelCapNoCount}: {e.Message}", e);
                 Damage = 0;
             }
         }
@@ -224,28 +207,24 @@ internal class RangedWeaponCache : ThingCache
         try { ArmorPenetration = projectileProperties.GetArmorPenetration(Thing); }
         catch (Exception e)
         {
-            Logger.LogWarning(
-                $"Could not get projectile armor penetration for {Thing.LabelCapNoCount}: {e.Message}",
+            Logger.LogWarning($"Could not get projectile armor penetration for {Thing.LabelCapNoCount}: {e.Message}",
                 e);
             ArmorPenetration = 0;
         }
     }
 
-    private void ReadProjectilePropertiesCombatExtended(
-        ProjectileProperties projectileProperties)
+    private void ReadProjectilePropertiesCombatExtended(ProjectileProperties projectileProperties)
     {
         if (projectileProperties.damageDef == null)
         {
-            Logger.LogWarning(
-                $"Projectile for {Thing.LabelCapNoCount} has no damageDef, damage set to 0");
+            Logger.LogWarning($"Projectile for {Thing.LabelCapNoCount} has no damageDef, damage set to 0");
             Damage = 0;
         }
         else { Damage = projectileProperties.GetDamageAmount(Thing); }
         StoppingPower = projectileProperties.stoppingPower;
         if (projectileProperties.GetType() != CombatExtendedHelper.ProjectilePropertiesType)
         {
-            Logger.LogWarning(
-                $"{Thing.LabelCapNoCount}'s projectile type is not CombatExtended-compatible");
+            Logger.LogWarning($"{Thing.LabelCapNoCount}'s projectile type is not CombatExtended-compatible");
             ReadProjectileProperties(projectileProperties);
         }
         else
@@ -253,8 +232,7 @@ internal class RangedWeaponCache : ThingCache
             if (CombatExtendedHelper.ArmorPenetrationSharpDelegate != null &&
                 CombatExtendedHelper.ArmorPenetrationBluntDelegate != null)
             {
-                ArmorPenetration =
-                    CombatExtendedHelper.ArmorPenetrationSharpDelegate(projectileProperties) +
+                ArmorPenetration = CombatExtendedHelper.ArmorPenetrationSharpDelegate(projectileProperties) +
                     CombatExtendedHelper.ArmorPenetrationBluntDelegate(projectileProperties);
             }
         }
@@ -297,8 +275,7 @@ internal class RangedWeaponCache : ThingCache
                     ? Thing.GetStatValue(StatDef.Named("SightsEfficiency"))
                     : 1f;
                 BurstShotCount = verb.burstShotCount <= 0 ? 1 : verb.burstShotCount;
-                TicksBetweenBurstShots =
-                    verb.ticksBetweenBurstShots <= 0 ? 10 : verb.ticksBetweenBurstShots;
+                TicksBetweenBurstShots = verb.ticksBetweenBurstShots <= 0 ? 10 : verb.ticksBetweenBurstShots;
                 Warmup = verb.warmupTime;
                 MinRange = verb.minRange;
                 MaxRange = verb.range;
@@ -309,23 +286,19 @@ internal class RangedWeaponCache : ThingCache
             }
             if (MinRange <= 3f && MaxRange >= 3f)
             {
-                AccuracyClose =
-                    (float)Math.Round(Thing.GetStatValue(StatDefOf.AccuracyTouch) * 100f, 2);
+                AccuracyClose = (float)Math.Round(Thing.GetStatValue(StatDefOf.AccuracyTouch) * 100f, 2);
             }
             if (MinRange <= 12f && MaxRange >= 12f)
             {
-                AccuracyShort =
-                    (float)Math.Round(Thing.GetStatValue(StatDefOf.AccuracyShort) * 100f, 2);
+                AccuracyShort = (float)Math.Round(Thing.GetStatValue(StatDefOf.AccuracyShort) * 100f, 2);
             }
             if (MinRange <= 25f && MaxRange >= 25f)
             {
-                AccuracyMedium =
-                    (float)Math.Round(Thing.GetStatValue(StatDefOf.AccuracyMedium) * 100f, 2);
+                AccuracyMedium = (float)Math.Round(Thing.GetStatValue(StatDefOf.AccuracyMedium) * 100f, 2);
             }
             if (MinRange <= 40f && MaxRange >= 40f)
             {
-                AccuracyLong =
-                    (float)Math.Round(Thing.GetStatValue(StatDefOf.AccuracyLong) * 100f, 2);
+                AccuracyLong = (float)Math.Round(Thing.GetStatValue(StatDefOf.AccuracyLong) * 100f, 2);
             }
             var totalAccuracy = 0f;
             var rangeCount = 0;
@@ -353,9 +326,7 @@ internal class RangedWeaponCache : ThingCache
                 totalAccuracy += AccuracyLong;
                 rangeCount++;
             }
-            Dpsa = rangeCount == 0
-                ? 0f
-                : Dps * (totalAccuracy * SightsEfficiency / rangeCount) / 100f;
+            Dpsa = rangeCount == 0 ? 0f : Dps * (totalAccuracy * SightsEfficiency / rangeCount) / 100f;
         }
         catch (Exception exception)
         {
@@ -366,5 +337,6 @@ internal class RangedWeaponCache : ThingCache
         return true;
     }
 
-    private delegate CompProperties AmmoUserPropsDelegate();
+    // Delegate may return null at runtime when CE's reflection doesn't find the props.
+    private delegate CompProperties? AmmoUserPropsDelegate();
 }

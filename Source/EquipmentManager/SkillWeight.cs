@@ -7,13 +7,15 @@ namespace EquipmentManager;
 internal class SkillWeight : IExposable
 {
     public const float WeightCap = 2f;
+    public float Weight;
     private bool _isInitialized;
+
     // _skillDef is resolved lazily from _skillDefName; may be null if the def is missing.
     private SkillDef? _skillDef;
+
     // _skillDefName is populated by Scribe on load (IExposable lifecycle); null until Scribe
     // populates it or the parametrised constructor sets it.
     private string? _skillDefName;
-    public float Weight;
 
     [UsedImplicitly]
     public SkillWeight() { }

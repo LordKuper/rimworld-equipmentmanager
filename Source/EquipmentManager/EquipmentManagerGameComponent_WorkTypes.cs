@@ -6,26 +6,26 @@ namespace EquipmentManager;
 
 internal partial class EquipmentManagerGameComponent
 {
-    // Populated by Scribe on load (IExposable lifecycle); = null! asserts the field is always
-    // set before any read, consistent with the RimWorld load contract.
-    private List<WorkTypeThingRule> _workTypeRules = null!;
+    // Populated by Scribe on load (IExposable lifecycle); null when no saved data exists.
+    // GetWorkTypeRules() guards with ??= to restore default rules.
+    private List<WorkTypeThingRule>? _workTypeRules;
 
     // Keyed lookup built on first access after any rule edit; null signals a stale cache.
     private Dictionary<string, WorkTypeThingRule>? _workTypeRulesByDefName;
 
     public void AddWorkTypeRule(WorkTypeThingRule workTypeRule)
     {
-        var existingRule =
-            _workTypeRules.FirstOrDefault(rule =>
-                rule.WorkTypeDefName == workTypeRule.WorkTypeDefName);
-        if (existingRule != null) { _ = _workTypeRules.Remove(existingRule); }
-        _workTypeRules.Add(workTypeRule);
+        _ = GetWorkTypeRules(); // ensure list is initialized
+        var existingRule = _workTypeRules!.FirstOrDefault(rule => rule.WorkTypeDefName == workTypeRule.WorkTypeDefName);
+        if (existingRule != null) { _ = _workTypeRules!.Remove(existingRule); }
+        _workTypeRules!.Add(workTypeRule);
         _workTypeRulesByDefName = null;
     }
 
     public void DeleteWorkTypeRule(WorkTypeThingRule workTypeRule)
     {
-        _ = _workTypeRules.Remove(workTypeRule);
+        _ = GetWorkTypeRules(); // ensure list is initialized
+        _ = _workTypeRules!.Remove(workTypeRule);
         _workTypeRulesByDefName = null;
     }
 
@@ -33,16 +33,6 @@ internal partial class EquipmentManagerGameComponent
     {
         Scribe_Collections.Look(ref _workTypeRules, "WorkTypeRules", LookMode.Deep);
         _workTypeRulesByDefName = null;
-    }
-
-    public IEnumerable<WorkTypeThingRule> GetWorkTypeRules()
-    {
-        if (_workTypeRules == null || _workTypeRules.Count == 0)
-        {
-            _workTypeRules = new List<WorkTypeThingRule>(WorkTypeThingRule.DefaultRules);
-            _workTypeRulesByDefName = null;
-        }
-        return _workTypeRules;
     }
 
     /// <summary>
@@ -55,16 +45,23 @@ internal partial class EquipmentManagerGameComponent
         if (_workTypeRulesByDefName == null)
         {
             _ = GetWorkTypeRules(); // ensure list is initialized
-            _workTypeRulesByDefName = new Dictionary<string, WorkTypeThingRule>(_workTypeRules.Count);
-            foreach (var rule in _workTypeRules)
+            _workTypeRulesByDefName = new Dictionary<string, WorkTypeThingRule>(_workTypeRules!.Count);
+            foreach (var rule in _workTypeRules!)
             {
-                if (rule.WorkTypeDefName != null)
-                {
-                    _workTypeRulesByDefName[rule.WorkTypeDefName] = rule;
-                }
+                if (rule.WorkTypeDefName != null) { _workTypeRulesByDefName[rule.WorkTypeDefName] = rule; }
             }
         }
         _ = _workTypeRulesByDefName.TryGetValue(workTypeDefName, out var result);
         return result;
+    }
+
+    public IEnumerable<WorkTypeThingRule> GetWorkTypeRules()
+    {
+        if (_workTypeRules == null || _workTypeRules.Count == 0)
+        {
+            _workTypeRules = [.. WorkTypeThingRule.DefaultRules];
+            _workTypeRulesByDefName = null;
+        }
+        return _workTypeRules;
     }
 }

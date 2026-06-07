@@ -10,19 +10,20 @@ internal partial class EquipmentManagerGameComponent
 {
     private readonly Dictionary<ThingDef, MeleeWeaponCache> _meleeWeaponDefsCache = new();
     private readonly Dictionary<Thing, MeleeWeaponCache> _meleeWeaponsCache = new();
-    // Populated by Scribe on load (IExposable lifecycle); = null! asserts the field is always
-    // set before any read, consistent with the RimWorld load contract.
-    private List<MeleeWeaponRule> _meleeWeaponRules = null!;
+
+    // Populated by Scribe on load (IExposable lifecycle); null when no saved data exists.
+    // GetMeleeWeaponRules() guards with ??= to restore default rules.
+    private List<MeleeWeaponRule>? _meleeWeaponRules;
 
     public MeleeWeaponRule AddMeleeWeaponRule()
     {
-        var id = _meleeWeaponRules.Any() ? _meleeWeaponRules.Max(l => l.Id) + 1 : 0;
+        _ = GetMeleeWeaponRules(); // ensure list is initialized
+        var id = _meleeWeaponRules!.Any() ? _meleeWeaponRules!.Max(l => l.Id) + 1 : 0;
         var meleeWeaponRule = new MeleeWeaponRule(id, false) { Label = $"{id}" };
         foreach (var statWeight in meleeWeaponRule.GetDefaultStatWeights())
         {
             if (statWeight.StatDef == null) { continue; }
-            meleeWeaponRule.SetStatWeight(statWeight.StatDef, statWeight.Weight,
-                statWeight.Protected);
+            meleeWeaponRule.SetStatWeight(statWeight.StatDef, statWeight.Weight, statWeight.Protected);
         }
         foreach (var defName in MeleeWeaponRule.DefaultBlacklist)
         {
@@ -30,16 +31,17 @@ internal partial class EquipmentManagerGameComponent
             if (def != null) { meleeWeaponRule.AddBlacklistedItem(def); }
         }
         meleeWeaponRule.UpdateGloballyAvailableItems();
-        _meleeWeaponRules.Add(meleeWeaponRule);
+        _meleeWeaponRules!.Add(meleeWeaponRule);
         return meleeWeaponRule;
     }
 
     public void AddMeleeWeaponRule(MeleeWeaponRule meleeWeaponRule)
     {
         meleeWeaponRule.NormalizeLegacyCustomStatDefNames();
-        var existingRule = _meleeWeaponRules.FirstOrDefault(rule => rule.Id == meleeWeaponRule.Id);
-        if (existingRule != null) { _ = _meleeWeaponRules.Remove(existingRule); }
-        _meleeWeaponRules.Add(meleeWeaponRule);
+        _ = GetMeleeWeaponRules(); // ensure list is initialized
+        var existingRule = _meleeWeaponRules!.FirstOrDefault(rule => rule.Id == meleeWeaponRule.Id);
+        if (existingRule != null) { _ = _meleeWeaponRules!.Remove(existingRule); }
+        _meleeWeaponRules!.Add(meleeWeaponRule);
     }
 
     public MeleeWeaponRule CopyMeleeWeaponRule(MeleeWeaponRule meleeWeaponRule)
@@ -52,23 +54,15 @@ internal partial class EquipmentManagerGameComponent
         {
             // StatDef may be null on loaded items from older saves; guard before calling.
             if (statWeight.StatDef == null) { continue; }
-            newMeleeWeaponRule.SetStatWeight(statWeight.StatDef, statWeight.Weight,
-                statWeight.Protected);
+            newMeleeWeaponRule.SetStatWeight(statWeight.StatDef, statWeight.Weight, statWeight.Protected);
         }
         foreach (var statLimit in meleeWeaponRule.GetStatLimits())
         {
             if (statLimit.StatDef == null) { continue; }
-            newMeleeWeaponRule.SetStatLimit(statLimit.StatDef, statLimit.MinValue,
-                statLimit.MaxValue);
+            newMeleeWeaponRule.SetStatLimit(statLimit.StatDef, statLimit.MinValue, statLimit.MaxValue);
         }
-        foreach (var def in meleeWeaponRule.GetWhitelistedItems())
-        {
-            newMeleeWeaponRule.AddWhitelistedItem(def);
-        }
-        foreach (var def in meleeWeaponRule.GetBlacklistedItems())
-        {
-            newMeleeWeaponRule.AddBlacklistedItem(def);
-        }
+        foreach (var def in meleeWeaponRule.GetWhitelistedItems()) { newMeleeWeaponRule.AddWhitelistedItem(def); }
+        foreach (var def in meleeWeaponRule.GetBlacklistedItems()) { newMeleeWeaponRule.AddBlacklistedItem(def); }
         newMeleeWeaponRule.UpdateGloballyAvailableItems();
         return newMeleeWeaponRule;
     }
@@ -77,16 +71,14 @@ internal partial class EquipmentManagerGameComponent
     {
         foreach (var loadout in GetLoadouts())
         {
-            if (loadout.PrimaryMeleeWeaponRuleId == meleeWeaponRule.Id)
-            {
-                loadout.PrimaryMeleeWeaponRuleId = null;
-            }
+            if (loadout.PrimaryMeleeWeaponRuleId == meleeWeaponRule.Id) { loadout.PrimaryMeleeWeaponRuleId = null; }
             if (loadout.MeleeSidearmRules.Contains(meleeWeaponRule.Id))
             {
                 _ = loadout.MeleeSidearmRules.Remove(meleeWeaponRule.Id);
             }
         }
-        _ = _meleeWeaponRules.Remove(meleeWeaponRule);
+        _ = GetMeleeWeaponRules(); // ensure list is initialized
+        _ = _meleeWeaponRules!.Remove(meleeWeaponRule);
     }
 
     private void ExposeData_MeleeWeaponRules()
@@ -128,7 +120,7 @@ internal partial class EquipmentManagerGameComponent
     {
         if (_meleeWeaponRules == null || _meleeWeaponRules.Count == 0)
         {
-            _meleeWeaponRules = new List<MeleeWeaponRule>(MeleeWeaponRule.DefaultRules);
+            _meleeWeaponRules = [.. MeleeWeaponRule.DefaultRules];
         }
         return _meleeWeaponRules;
     }

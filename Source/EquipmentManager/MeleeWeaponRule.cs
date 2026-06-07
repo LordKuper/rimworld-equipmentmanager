@@ -16,27 +16,26 @@ internal class MeleeWeaponRule : ItemRule
 
     // CE reflection-delegate: legitimately null when CE is absent. Kept nullable with null-guard.
     public static UsableWithShieldsDelegate? UsableWithShieldsMethod;
+
+    // Reset to null by ResetCache(); lazily rebuilt on first access.
+    private static HashSet<ThingDef>? _allRelevantThings;
+    public WeaponEquipMode EquipMode = WeaponEquipMode.BestOne;
     private bool? _rottable;
     private bool? _usableWithShields;
-    public WeaponEquipMode EquipMode = WeaponEquipMode.BestOne;
     public MeleeWeaponRule(int id, bool isProtected) : base(id, isProtected) { }
 
     [UsedImplicitly]
     public MeleeWeaponRule() { }
 
     public MeleeWeaponRule(int id, string label, bool isProtected, List<StatWeight> statWeights,
-        List<StatLimit> statLimits, HashSet<string> whitelistedItemsDefNames,
-        HashSet<string> blacklistedItemsDefNames, WeaponEquipMode equipMode,
-        bool? usableWithShields, bool? rottable) : base(id, label, isProtected, statWeights,
+        List<StatLimit> statLimits, HashSet<string> whitelistedItemsDefNames, HashSet<string> blacklistedItemsDefNames,
+        WeaponEquipMode equipMode, bool? usableWithShields, bool? rottable) : base(id, label, isProtected, statWeights,
         statLimits, whitelistedItemsDefNames, blacklistedItemsDefNames)
     {
         EquipMode = equipMode;
         _usableWithShields = usableWithShields;
         _rottable = rottable;
     }
-
-    // Reset to null by ResetCache(); lazily rebuilt on first access.
-    private static HashSet<ThingDef>? _allRelevantThings;
 
     public static HashSet<ThingDef> AllRelevantThings
     {
@@ -45,17 +44,10 @@ internal class MeleeWeaponRule : ItemRule
             if (_allRelevantThings == null || _allRelevantThings.Count == 0)
             {
                 _allRelevantThings = new HashSet<ThingDef>(
-                    DefDatabase<ThingDef>.AllDefs.Where(def =>
-                        def.IsMeleeWeapon && !def.destroyOnDrop));
+                    DefDatabase<ThingDef>.AllDefs.Where(def => def.IsMeleeWeapon && !def.destroyOnDrop));
             }
             return _allRelevantThings;
         }
-    }
-
-    public static void ResetCache()
-    {
-        _allRelevantThings = null;
-        ResetEquipmentManagerCache();
     }
 
     public static IEnumerable<string> DefaultBlacklist => ["WoodLog", "Beer"];
@@ -73,8 +65,7 @@ internal class MeleeWeaponRule : ItemRule
             };
             rule0.StatWeights =
             [
-                ..rule0.GetDefaultStatWeights()
-                    .Where(sw => !new[] { "Mass" }.Contains(sw.StatDefName))
+                ..rule0.GetDefaultStatWeights().Where(sw => !new[] { "Mass" }.Contains(sw.StatDefName))
                     .Union([new StatWeight("Mass", -1.0f, false)])
             ];
             var rule1 = new MeleeWeaponRule(1, false)
@@ -87,10 +78,8 @@ internal class MeleeWeaponRule : ItemRule
             rule1.StatWeights =
             [
                 ..rule1.GetDefaultStatWeights()
-                    .Where(sw => !new[] { "MeleeWeapon_AverageDPS" }.Contains(sw.StatDefName))
-                    .Union([
-                        new StatWeight(MeleeWeaponStats.GetStatDefName(MeleeWeaponStat.DpsSharp),
-                            2.0f, false),
+                    .Where(sw => !new[] { "MeleeWeapon_AverageDPS" }.Contains(sw.StatDefName)).Union([
+                        new StatWeight(MeleeWeaponStats.GetStatDefName(MeleeWeaponStat.DpsSharp), 2.0f, false),
                         new StatWeight("MeleeWeapon_AverageDPS", 0.5f, false)
                     ])
             ];
@@ -104,24 +93,14 @@ internal class MeleeWeaponRule : ItemRule
             rule2.StatWeights =
             [
                 ..rule2.GetDefaultStatWeights()
-                    .Where(sw => !new[] { "MeleeWeapon_AverageDPS" }.Contains(sw.StatDefName))
-                    .Union([
-                        new StatWeight(MeleeWeaponStats.GetStatDefName(MeleeWeaponStat.DpsBlunt),
-                            2.0f, false),
+                    .Where(sw => !new[] { "MeleeWeapon_AverageDPS" }.Contains(sw.StatDefName)).Union([
+                        new StatWeight(MeleeWeaponStats.GetStatDefName(MeleeWeaponStat.DpsBlunt), 2.0f, false),
                         new StatWeight("MeleeWeapon_AverageDPS", 0.5f, false)
                     ])
             ];
             return [rule0, rule1, rule2];
         }
     }
-
-    protected internal override IEnumerable<StatWeight> GetDefaultStatWeights() =>
-        new[]
-        {
-            new StatWeight("MeleeWeapon_AverageDPS", 2.0f, false),
-            new StatWeight(MeleeWeaponStats.GetStatDefName(MeleeWeaponStat.ArmorPenetration),
-                0.5f, false)
-        }.Union(base.GetDefaultStatWeights());
 
     public bool? Rottable
     {
@@ -152,14 +131,22 @@ internal class MeleeWeaponRule : ItemRule
 
     public IEnumerable<Thing> GetCurrentlyAvailableItemsSorted(Map map, RimWorldTime time)
     {
-        return GetCurrentlyAvailableItems(map, time)
-            .OrderByDescending(thing => GetThingScore(thing, time));
+        return GetCurrentlyAvailableItems(map, time).OrderByDescending(thing => GetThingScore(thing, time));
+    }
+
+    protected internal override IEnumerable<StatWeight> GetDefaultStatWeights()
+    {
+        return new[]
+        {
+            new StatWeight("MeleeWeapon_AverageDPS", 2.0f, false),
+            new StatWeight(MeleeWeaponStats.GetStatDefName(MeleeWeaponStat.ArmorPenetration), 0.5f, false)
+        }.Union(base.GetDefaultStatWeights());
     }
 
     private HashSet<ThingDef> GetGloballyAvailableItems()
     {
         Initialize();
-        return GloballyAvailableItems;
+        return GloballyAvailableItems!;
     }
 
     public IEnumerable<ThingDef> GetGloballyAvailableItemsSorted(RimWorldTime time)
@@ -177,25 +164,24 @@ internal class MeleeWeaponRule : ItemRule
     private float GetThingDefScore(ThingDef def, RimWorldTime time)
     {
         if (def == null) { throw new ArgumentNullException(nameof(def)); }
+        Initialize();
         var cache = EquipmentManager.GetMeleeWeaponDefCache(def, time);
         // StatDef is non-null here: filtered by Where(statWeight => statWeight.StatDef != null).
-        return StatWeights.Where(statWeight => statWeight.StatDef != null).Sum(statWeight =>
-            StatRanges.NormalizeStatValue(statWeight.StatDef!,
-                cache.GetStatValueDeviation(statWeight.StatDef!)) * statWeight.Weight);
+        return StatWeights!.Where(statWeight => statWeight.StatDef != null).Sum(statWeight =>
+            StatRanges.NormalizeStatValue(statWeight.StatDef!, cache.GetStatValueDeviation(statWeight.StatDef!)) *
+            statWeight.Weight);
     }
 
     public float GetThingScore(Thing thing, RimWorldTime time)
     {
         if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
+        Initialize();
         var cache = EquipmentManager.GetMeleeWeaponCache(thing, time);
         // StatDef is non-null here: filtered by Where(sw => sw.StatDef != null).
-        var score = StatWeights.Where(sw => sw.StatDef != null).Sum(statWeight =>
-            StatRanges.NormalizeStatValue(statWeight.StatDef!,
-                cache.GetStatValueDeviation(statWeight.StatDef!)) * statWeight.Weight);
-        if (thing.def.useHitPoints)
-        {
-            score *= HitPointsCurve.Evaluate((float)thing.HitPoints / thing.MaxHitPoints);
-        }
+        var score = StatWeights!.Where(sw => sw.StatDef != null).Sum(statWeight =>
+            StatRanges.NormalizeStatValue(statWeight.StatDef!, cache.GetStatValueDeviation(statWeight.StatDef!)) *
+            statWeight.Weight);
+        if (thing.def.useHitPoints) { score *= HitPointsCurve.Evaluate((float)thing.HitPoints / thing.MaxHitPoints); }
         return score;
     }
 
@@ -203,15 +189,23 @@ internal class MeleeWeaponRule : ItemRule
     {
         Initialize();
         var comp = thing.TryGetComp<CompForbiddable>();
-        return (comp == null || !comp.Forbidden) && (GetWhitelistedItems().Contains(thing.def) ||
+        return comp is not { Forbidden: true } && (GetWhitelistedItems().Contains(thing.def) ||
             (GetGloballyAvailableItems().Contains(thing.def) && SatisfiesLimits(thing, time)));
+    }
+
+    public static void ResetCache()
+    {
+        _allRelevantThings = null;
+        ResetEquipmentManagerCache();
     }
 
     private bool SatisfiesLimits(Thing thing, RimWorldTime time)
     {
         if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
         // StatDef is non-null here: filtered by Where(limit => limit.StatDef != null).
-        foreach (var statLimit in StatLimits.Where(limit => limit.StatDef != null))
+        // StatLimits is guaranteed non-null: SatisfiesLimits is only called from IsAvailable(),
+        // which calls Initialize() first.
+        foreach (var statLimit in StatLimits!.Where(limit => limit.StatDef != null))
         {
             var value = GetStatValue(thing, statLimit.StatDef!, time);
             if ((statLimit.MinValue != null && value < statLimit.MinValue) ||
@@ -223,32 +217,19 @@ internal class MeleeWeaponRule : ItemRule
     public void UpdateGloballyAvailableItems()
     {
         Initialize();
-        GloballyAvailableItems.Clear();
-        foreach (var def in AllRelevantThings) { _ = GloballyAvailableItems.Add(def); }
+        GloballyAvailableItems!.Clear();
+        foreach (var def in AllRelevantThings) { _ = GloballyAvailableItems!.Add(def); }
         if (UsableWithShields != null && UsableWithShieldsMethod != null)
         {
-            _ = GloballyAvailableItems.RemoveWhere(def =>
-                UsableWithShieldsMethod(def) != UsableWithShields);
+            _ = GloballyAvailableItems!.RemoveWhere(def => UsableWithShieldsMethod(def) != UsableWithShields);
         }
         if (Rottable != null)
         {
-            _ = GloballyAvailableItems.RemoveWhere(def =>
+            _ = GloballyAvailableItems!.RemoveWhere(def =>
                 def.GetCompProperties<CompProperties_Rottable>() != null != Rottable.Value);
         }
-        _ = GloballyAvailableItems.RemoveWhere(def => GetBlacklistedItems().Contains(def));
-        foreach (var def in GetWhitelistedItems()) { _ = GloballyAvailableItems.Add(def); }
+        _ = GloballyAvailableItems!.RemoveWhere(def => GetBlacklistedItems().Contains(def));
+        foreach (var def in GetWhitelistedItems()) { _ = GloballyAvailableItems!.Add(def); }
     }
 
-    public void UpdateStatRanges(Thing thing, RimWorldTime time)
-    {
-        if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
-        var cache = EquipmentManager.GetMeleeWeaponCache(thing, time);
-        // StatDef is non-null here: filtered by Where(sw/sl => sw/sl.StatDef != null).
-        var stats = StatWeights.Where(sw => sw.StatDef != null).Select(sw => sw.StatDef!)
-            .Union(StatLimits.Where(sl => sl.StatDef != null).Select(sl => sl.StatDef!));
-        foreach (var stat in stats)
-        {
-            StatRanges.NormalizeStatValue(stat, cache.GetStatValueDeviation(stat));
-        }
-    }
 }

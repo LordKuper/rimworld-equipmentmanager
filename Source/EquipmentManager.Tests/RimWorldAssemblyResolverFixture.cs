@@ -27,11 +27,11 @@ public class RimWorldAssemblyResolverFixture
         var attribute = typeof(RimWorldAssemblyResolverFixture).Assembly
             .GetCustomAttribute<AssemblyMetadataAttribute>();
         if (attribute is not null && attribute.Key == "RimWorldManagedDir")
+        {
             return attribute.Value ??
-                   throw new InvalidOperationException(
-                       "RimWorldManagedDir assembly metadata attribute is empty.");
-        throw new InvalidOperationException(
-            "RimWorldManagedDir assembly metadata attribute not found. " +
+                throw new InvalidOperationException("RimWorldManagedDir assembly metadata attribute is empty.");
+        }
+        throw new InvalidOperationException("RimWorldManagedDir assembly metadata attribute not found. " +
             "Verify that the test project's csproj defines RimWorldManagedDir correctly.");
     }
 
@@ -48,8 +48,7 @@ public class RimWorldAssemblyResolverFixture
 
             // Try to load from RimWorld's Managed directory
             var assemblyPath = Path.Combine(rimWorldManagedDir, assemblyName + ".dll");
-            if (File.Exists(assemblyPath)) return Assembly.LoadFrom(assemblyPath);
-            return null;
+            return File.Exists(assemblyPath) ? Assembly.LoadFrom(assemblyPath) : null;
         };
     }
 }

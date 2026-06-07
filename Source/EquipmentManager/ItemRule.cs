@@ -10,8 +10,6 @@ namespace EquipmentManager;
 
 internal class ItemRule : IExposable
 {
-    private static EquipmentManagerGameComponent? _equipmentManager;
-
     protected static readonly SimpleCurve HitPointsCurve =
     [
         new CurvePoint(0f, 0f),
@@ -20,23 +18,28 @@ internal class ItemRule : IExposable
         new CurvePoint(0.75f, 1f)
     ];
 
-    private HashSet<ThingDef> _blacklistedItems = [];
-    private int _id;
-    private bool _initialized;
-    private bool _protected;
-    private HashSet<ThingDef> _whitelistedItems = [];
-    protected HashSet<string> BlacklistedItemsDefNames = [];
-    protected HashSet<ThingDef> GloballyAvailableItems = [];
+    private static EquipmentManagerGameComponent? _equipmentManager;
+    // Scribe_Collections.Look sets these to null when no saved data exists; ??= in Initialize()
+    // restores them to empty before any first access.
+    protected HashSet<string>? BlacklistedItemsDefNames = [];
+    protected HashSet<ThingDef>? GloballyAvailableItems = [];
+
     // Label is populated by Scribe on load (IExposable lifecycle); = null! asserts the field
     // is always set before any read, consistent with the RimWorld load contract.
     public string Label = null!;
-    protected List<StatLimit> StatLimits = [];
-    protected List<StatWeight> StatWeights = [];
-    protected HashSet<string> WhitelistedItemsDefNames = [];
+    protected List<StatLimit>? StatLimits = [];
+    protected List<StatWeight>? StatWeights = [];
+    protected HashSet<string>? WhitelistedItemsDefNames = [];
+    // Scribe does not serialize _blacklistedItems/_whitelistedItems directly; they are rebuilt
+    // from the DefName sets in UpdateExclusiveItems(). Still need nullable guards post-Scribe.
+    private HashSet<ThingDef>? _blacklistedItems = [];
+    private int _id;
+    private bool _initialized;
+    private bool _protected;
+    private HashSet<ThingDef>? _whitelistedItems = [];
 
-    protected ItemRule(int id, string label, bool isProtected, List<StatWeight> statWeights,
-        List<StatLimit> statLimits, HashSet<string> whitelistedItemsDefNames,
-        HashSet<string> blacklistedItemsDefNames)
+    protected ItemRule(int id, string label, bool isProtected, List<StatWeight> statWeights, List<StatLimit> statLimits,
+        HashSet<string> whitelistedItemsDefNames, HashSet<string> blacklistedItemsDefNames)
     {
         _id = id;
         Label = label;
@@ -55,24 +58,6 @@ internal class ItemRule : IExposable
         _protected = isProtected;
     }
 
-    /// <summary>
-    ///     Returns the base set of default stat weights applied to all item rules.
-    ///     When Combat Extended is active the Bulk stat is included; otherwise it is omitted.
-    ///     Subclasses override this method to prepend their own stat weights and call
-    ///     <c>base.GetDefaultStatWeights()</c> to include the base set.
-    /// </summary>
-    protected internal virtual IEnumerable<StatWeight> GetDefaultStatWeights() =>
-        CombatExtendedHelper.CombatExtended
-            ? new[]
-            {
-                new StatWeight("Mass", -0.1f, false), new StatWeight("Bulk", -0.1f, false),
-                new StatWeight("MarketValue", 0.1f, false)
-            }
-            : new[]
-            {
-                new StatWeight("Mass", -0.1f, false), new StatWeight("MarketValue", 0.1f, false)
-            };
-
     protected static EquipmentManagerGameComponent EquipmentManager =>
         _equipmentManager ??= Current.Game.GetComponent<EquipmentManagerGameComponent>();
 
@@ -83,96 +68,117 @@ internal class ItemRule : IExposable
     {
         Scribe_Values.Look(ref _id, nameof(Id));
         // Use a nullable temp so Scribe can write null on new-game; restore non-null after.
-        string? label = Label;
+        var label = Label;
         Scribe_Values.Look(ref label, nameof(Label));
         Label = label ?? Label;
         Scribe_Values.Look(ref _protected, nameof(Protected));
         Scribe_Collections.Look(ref StatWeights, nameof(StatWeights), LookMode.Deep);
         Scribe_Collections.Look(ref StatLimits, nameof(StatLimits), LookMode.Deep);
-        Scribe_Collections.Look(ref WhitelistedItemsDefNames, nameof(WhitelistedItemsDefNames),
-            LookMode.Value);
-        Scribe_Collections.Look(ref BlacklistedItemsDefNames, nameof(BlacklistedItemsDefNames),
-            LookMode.Value);
+        Scribe_Collections.Look(ref WhitelistedItemsDefNames, nameof(WhitelistedItemsDefNames), LookMode.Value);
+        Scribe_Collections.Look(ref BlacklistedItemsDefNames, nameof(BlacklistedItemsDefNames), LookMode.Value);
     }
 
     public void AddBlacklistedItem(ThingDef thingDef)
     {
         if (thingDef == null) { throw new ArgumentNullException(nameof(thingDef)); }
-        if (!BlacklistedItemsDefNames.Add(thingDef.defName)) { return; }
-        _ = WhitelistedItemsDefNames.Remove(thingDef.defName);
+        Initialize();
+        if (!BlacklistedItemsDefNames!.Add(thingDef.defName)) { return; }
+        _ = WhitelistedItemsDefNames!.Remove(thingDef.defName);
         UpdateExclusiveItems();
     }
 
     public void AddWhitelistedItem(ThingDef thingDef)
     {
         if (thingDef == null) { throw new ArgumentNullException(nameof(thingDef)); }
-        if (!WhitelistedItemsDefNames.Add(thingDef.defName)) { return; }
-        _ = BlacklistedItemsDefNames.Remove(thingDef.defName);
+        Initialize();
+        if (!WhitelistedItemsDefNames!.Add(thingDef.defName)) { return; }
+        _ = BlacklistedItemsDefNames!.Remove(thingDef.defName);
         UpdateExclusiveItems();
     }
 
     public void DeleteBlacklistedItem(string defName)
     {
-        _ = BlacklistedItemsDefNames.Remove(defName);
+        Initialize();
+        _ = BlacklistedItemsDefNames!.Remove(defName);
         UpdateExclusiveItems();
     }
 
     public void DeleteStatLimit(string statDefName)
     {
-        _ = StatLimits.RemoveAll(limit => limit.StatDefName == statDefName);
+        Initialize();
+        _ = StatLimits!.RemoveAll(limit => limit.StatDefName == statDefName);
     }
 
     public void DeleteStatWeight(string statDefName)
     {
-        _ = StatWeights.RemoveAll(weight => weight.StatDefName == statDefName);
+        Initialize();
+        _ = StatWeights!.RemoveAll(weight => weight.StatDefName == statDefName);
     }
 
     public void DeleteWhitelistedItem(string defName)
     {
-        _ = WhitelistedItemsDefNames.Remove(defName);
+        Initialize();
+        _ = WhitelistedItemsDefNames!.Remove(defName);
         UpdateExclusiveItems();
     }
 
     public IReadOnlyCollection<ThingDef> GetBlacklistedItems()
     {
         Initialize();
-        return _blacklistedItems;
+        return _blacklistedItems!;
+    }
+
+    /// <summary>
+    ///     Returns the base set of default stat weights applied to all item rules.
+    ///     When Combat Extended is active the Bulk stat is included; otherwise it is omitted.
+    ///     Subclasses override this method to prepend their own stat weights and call
+    ///     <c>base.GetDefaultStatWeights()</c> to include the base set.
+    /// </summary>
+    protected internal virtual IEnumerable<StatWeight> GetDefaultStatWeights()
+    {
+        return CombatExtendedHelper.CombatExtended
+            ? new[]
+            {
+                new StatWeight("Mass", -0.1f, false), new StatWeight("Bulk", -0.1f, false),
+                new StatWeight("MarketValue", 0.1f, false)
+            }
+            : new[] { new StatWeight("Mass", -0.1f, false), new StatWeight("MarketValue", 0.1f, false) };
     }
 
     public IReadOnlyList<StatLimit> GetStatLimits()
     {
         Initialize();
-        return StatLimits;
+        return StatLimits!;
     }
 
     public IReadOnlyList<StatWeight> GetStatWeights()
     {
         Initialize();
-        return StatWeights;
+        return StatWeights!;
     }
 
     public IReadOnlyCollection<ThingDef> GetWhitelistedItems()
     {
         Initialize();
-        return _whitelistedItems;
+        return _whitelistedItems!;
     }
 
     protected void Initialize()
     {
         if (_initialized) { return; }
         _initialized = true;
-        if (StatWeights == null) { StatWeights = []; }
-        if (StatLimits == null) { StatLimits = []; }
+        StatWeights ??= [];
+        StatLimits ??= [];
         NormalizeLegacyCustomStatDefNames();
-        if (_whitelistedItems == null) { _whitelistedItems = []; }
-        if (WhitelistedItemsDefNames == null) { WhitelistedItemsDefNames = []; }
-        if (_blacklistedItems == null) { _blacklistedItems = []; }
-        if (BlacklistedItemsDefNames == null) { BlacklistedItemsDefNames = []; }
-        if (GloballyAvailableItems == null) { GloballyAvailableItems = []; }
+        _whitelistedItems ??= [];
+        WhitelistedItemsDefNames ??= [];
+        _blacklistedItems ??= [];
+        BlacklistedItemsDefNames ??= [];
+        GloballyAvailableItems ??= [];
         UpdateExclusiveItems();
     }
 
-    internal virtual void NormalizeLegacyCustomStatDefNames()
+    internal void NormalizeLegacyCustomStatDefNames()
     {
         StatWeights = StatWeights?.Select(LegacyCustomStatDefs.NormalizeStatWeight).ToList() ?? [];
         StatLimits = StatLimits?.Select(LegacyCustomStatDefs.NormalizeStatLimit).ToList() ?? [];
@@ -186,11 +192,12 @@ internal class ItemRule : IExposable
     public void SetStatLimit(StatDef statDef, float? min, float? max)
     {
         if (statDef == null) { throw new ArgumentNullException(nameof(statDef)); }
-        var statLimit = StatLimits.FirstOrDefault(limit => limit.StatDef == statDef);
+        Initialize();
+        var statLimit = StatLimits!.FirstOrDefault(limit => limit.StatDef == statDef);
         if (statLimit == null)
         {
             statLimit = new StatLimit(statDef.defName);
-            StatLimits.Add(statLimit);
+            StatLimits!.Add(statLimit);
         }
         statLimit.MinValue = min;
         statLimit.MinValueBuffer = min.ToString();
@@ -201,29 +208,24 @@ internal class ItemRule : IExposable
     public void SetStatWeight(StatDef statDef, float weight, bool isProtected)
     {
         if (statDef == null) { throw new ArgumentNullException(nameof(statDef)); }
-        var statWeight = StatWeights.FirstOrDefault(sw => sw.StatDef == statDef);
+        Initialize();
+        var statWeight = StatWeights!.FirstOrDefault(sw => sw.StatDef == statDef);
         if (statWeight == null)
         {
             statWeight = new StatWeight(statDef.defName, 0f, isProtected);
-            StatWeights.Add(statWeight);
+            StatWeights!.Add(statWeight);
         }
         statWeight.Weight = weight;
     }
 
     private void UpdateExclusiveItems()
     {
-        _whitelistedItems.Clear();
-        foreach (var def in WhitelistedItemsDefNames
-                     .Select(DefDatabase<ThingDef>.GetNamedSilentFail).Where(def => def != null))
-        {
-            _ = _whitelistedItems.Add(def);
-        }
-        _blacklistedItems.Clear();
-        foreach (var def in BlacklistedItemsDefNames
-                     .Select(DefDatabase<ThingDef>.GetNamedSilentFail).Where(def => def != null))
-        {
-            _ = _blacklistedItems.Add(def);
-        }
+        _whitelistedItems!.Clear();
+        foreach (var def in WhitelistedItemsDefNames!.Select(DefDatabase<ThingDef>.GetNamedSilentFail)
+                     .Where(def => def != null)) { _ = _whitelistedItems!.Add(def); }
+        _blacklistedItems!.Clear();
+        foreach (var def in BlacklistedItemsDefNames!.Select(DefDatabase<ThingDef>.GetNamedSilentFail)
+                     .Where(def => def != null)) { _ = _blacklistedItems!.Add(def); }
     }
 
     internal enum ToolEquipMode

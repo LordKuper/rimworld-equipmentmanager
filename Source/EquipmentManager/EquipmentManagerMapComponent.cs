@@ -15,31 +15,27 @@ namespace EquipmentManager;
 [UsedImplicitly]
 internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
 {
-    private HashSet<Pawn> _allPawns = [];
+    private readonly HashSet<Pawn> _allPawns = [];
     private EquipmentManagerGameComponent? _equipmentManager;
     private bool _hasUpdateTime;
-    private Dictionary<Pawn, PawnCache> _pawnCache = [];
+    private readonly Dictionary<Pawn, PawnCache> _pawnCache = [];
     private RimWorldTime _updateTime;
 
     private EquipmentManagerGameComponent EquipmentManager =>
         _equipmentManager ??= Current.Game.GetComponent<EquipmentManagerGameComponent>();
 
-    private void AssignAllTools(PawnCache pawn, ToolRule rule,
-        HashSet<Thing> assignedByOthers)
+    private void AssignAllTools(PawnCache pawn, ToolRule rule, HashSet<Thing> assignedByOthers)
     {
-        var workTypes = WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder
-            .Where(wt => !pawn.Pawn.WorkTypeIsDisabled(wt)).ToList();
-        var availableWeapons =
-            rule.GetCurrentlyAvailableItems(map, workTypes, _updateTime).ToList();
-        _ = availableWeapons.RemoveAll(thing => assignedByOthers.Contains(thing));
+        var workTypes = WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder.Where(wt => !pawn.Pawn.WorkTypeIsDisabled(wt))
+            .ToList();
+        var availableWeapons = rule.GetCurrentlyAvailableItems(map, workTypes, _updateTime).ToList();
+        _ = availableWeapons.RemoveAll(assignedByOthers.Contains);
         var carriedWeapons = pawn.Pawn.GetCarriedWeapons(true, true)
             .Where(thing => rule.IsAvailable(thing, workTypes, _updateTime)).ToList();
         availableWeapons.AddRange(carriedWeapons);
-        _ = availableWeapons.RemoveAll(thing => !EquipmentUtility.CanEquip(thing, pawn.Pawn) ||
-            (thing.Spawned &&
-                pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap != null &&
-                !pawn.Pawn.playerSettings
-                    .EffectiveAreaRestrictionInPawnCurrentMap[thing.Position]));
+        _ = availableWeapons.RemoveAll(thing => !EquipmentUtility.CanEquip(thing, pawn.Pawn) || (thing.Spawned &&
+            pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap != null &&
+            !pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap[thing.Position]));
         if (pawn.Pawn.story.traits.HasTrait(TraitDefOf.Brawler))
         {
             _ = availableWeapons.RemoveAll(thing => thing.def.IsRangedWeapon);
@@ -47,8 +43,7 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
         foreach (var weapon in availableWeapons.Where(weapon =>
                      pawn.AssignedWeapons.Keys.All(thing => thing.def != weapon.def) &&
                      (carriedWeapons.Contains(weapon) ||
-                         StatCalculator.CanPickupSidearmInstance((ThingWithComps)weapon, pawn.Pawn,
-                             out _))))
+                         StatCalculator.CanPickupSidearmInstance((ThingWithComps)weapon, pawn.Pawn, out _))))
         {
             pawn.AssignedWeapons.Add(weapon, "tool");
             _ = assignedByOthers.Add(weapon);
@@ -69,15 +64,13 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
         }
     }
 
-    private void AssignBestTool(PawnCache pawn, ToolRule rule,
-        HashSet<Thing> assignedByOthers)
+    private void AssignBestTool(PawnCache pawn, ToolRule rule, HashSet<Thing> assignedByOthers)
     {
         var sidearmMemory = CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn);
-        var workTypes = WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder
-            .Where(wt => !pawn.Pawn.WorkTypeIsDisabled(wt)).ToList();
-        var availableWeapons =
-            rule.GetCurrentlyAvailableItems(map, workTypes, _updateTime).ToList();
-        _ = availableWeapons.RemoveAll(thing => assignedByOthers.Contains(thing));
+        var workTypes = WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder.Where(wt => !pawn.Pawn.WorkTypeIsDisabled(wt))
+            .ToList();
+        var availableWeapons = rule.GetCurrentlyAvailableItems(map, workTypes, _updateTime).ToList();
+        _ = availableWeapons.RemoveAll(assignedByOthers.Contains);
         var carriedWeapons = pawn.Pawn.GetCarriedWeapons(true, true)
             .Where(thing => rule.IsAvailable(thing, workTypes, _updateTime)).ToList();
         availableWeapons.AddRange(carriedWeapons);
@@ -85,17 +78,14 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
         {
             _ = availableWeapons.RemoveAll(thing => thing.def.IsRangedWeapon);
         }
-        _ = availableWeapons.RemoveAll(thing => !EquipmentUtility.CanEquip(thing, pawn.Pawn) ||
-            (thing.Spawned &&
-                pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap != null &&
-                !pawn.Pawn.playerSettings
-                    .EffectiveAreaRestrictionInPawnCurrentMap[thing.Position]));
+        _ = availableWeapons.RemoveAll(thing => !EquipmentUtility.CanEquip(thing, pawn.Pawn) || (thing.Spawned &&
+            pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap != null &&
+            !pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap[thing.Position]));
         var bestWeapon = availableWeapons
             .Where(thing => carriedWeapons.Contains(thing) ||
                 StatCalculator.CanPickupSidearmInstance((ThingWithComps)thing, pawn.Pawn, out _))
             .OrderByDescending(thing => rule.GetThingScore(thing, workTypes, _updateTime))
-            .ThenByDescending(thing =>
-                sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
+            .ThenByDescending(thing => sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
             .ThenBy(thing => thing.GetHashCode()).FirstOrDefault();
         if (bestWeapon == null) { return; }
         if (pawn.AssignedWeapons.Keys.Any(thing => thing.def == bestWeapon.def)) { return; }
@@ -116,31 +106,25 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
         }
     }
 
-    private void AssignPrimaryMeleeWeapon(PawnCache pawn,
-        HashSet<Thing> assignedByOthers)
+    private void AssignPrimaryMeleeWeapon(PawnCache pawn, HashSet<Thing> assignedByOthers)
     {
         var sidearmMemory = CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn);
         sidearmMemory.primaryWeaponMode = Enums.PrimaryWeaponMode.Melee;
         if (pawn.AssignedLoadout!.PrimaryMeleeWeaponRuleId == null) { return; }
-        var rule =
-            EquipmentManager.GetMeleeWeaponRule((int)pawn.AssignedLoadout.PrimaryMeleeWeaponRuleId);
+        var rule = EquipmentManager.GetMeleeWeaponRule((int)pawn.AssignedLoadout.PrimaryMeleeWeaponRuleId);
         if (rule == null) { return; }
         var availableWeapons = rule.GetCurrentlyAvailableItems(map, _updateTime).ToList();
         var carriedWeapons = pawn.Pawn.GetCarriedWeapons(true, true)
             .Where(weapon => rule.IsAvailable(weapon, _updateTime)).ToList();
         availableWeapons.AddRange(carriedWeapons);
-        _ = availableWeapons.RemoveAll(thing => assignedByOthers.Contains(thing));
-        _ = availableWeapons.RemoveAll(thing => !EquipmentUtility.CanEquip(thing, pawn.Pawn) ||
-            (thing.Spawned &&
-                pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap != null &&
-                !pawn.Pawn.playerSettings
-                    .EffectiveAreaRestrictionInPawnCurrentMap[thing.Position]));
-        var bestWeapon = availableWeapons
-            .OrderByDescending(thing => rule.GetThingScore(thing, _updateTime))
-            .ThenByDescending(thing =>
-                sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
-            .ThenByDescending(thing => carriedWeapons.Contains(thing))
-            .ThenBy(thing => thing.GetHashCode()).FirstOrDefault();
+        _ = availableWeapons.RemoveAll(assignedByOthers.Contains);
+        _ = availableWeapons.RemoveAll(thing => !EquipmentUtility.CanEquip(thing, pawn.Pawn) || (thing.Spawned &&
+            pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap != null &&
+            !pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap[thing.Position]));
+        var bestWeapon = availableWeapons.OrderByDescending(thing => rule.GetThingScore(thing, _updateTime))
+            .ThenByDescending(thing => sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
+            .ThenByDescending(carriedWeapons.Contains).ThenBy(thing => thing.GetHashCode())
+            .FirstOrDefault();
         if (bestWeapon == null) { return; }
         pawn.AssignedWeapons.Add(bestWeapon, "primary");
         _ = assignedByOthers.Add(bestWeapon);
@@ -155,39 +139,32 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
         }
         else
         {
-            _ = pawn.Pawn.jobs.TryTakeOrderedJob(
-                JobMaker.MakeJob(JobDefOf.Equip, (LocalTargetInfo)bestWeapon),
+            _ = pawn.Pawn.jobs.TryTakeOrderedJob(JobMaker.MakeJob(JobDefOf.Equip, (LocalTargetInfo)bestWeapon),
                 requestQueueing: ShouldRequestQueueing(pawn));
         }
     }
 
-    private void AssignPrimaryRangedWeapon(PawnCache pawn,
-        HashSet<Thing> assignedByOthers)
+    private void AssignPrimaryRangedWeapon(PawnCache pawn, HashSet<Thing> assignedByOthers)
     {
         var sidearmMemory = CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn);
         sidearmMemory.primaryWeaponMode = Enums.PrimaryWeaponMode.Ranged;
         if (pawn.AssignedLoadout!.PrimaryRangedWeaponRuleId == null) { return; }
-        var rule =
-            EquipmentManager.GetRangedWeaponRule(
-                (int)pawn.AssignedLoadout.PrimaryRangedWeaponRuleId);
+        var rule = EquipmentManager.GetRangedWeaponRule((int)pawn.AssignedLoadout.PrimaryRangedWeaponRuleId);
         if (rule == null) { return; }
         var availableWeapons = rule.GetCurrentlyAvailableItems(map, _updateTime).ToList();
         var carriedWeapons = pawn.Pawn.GetCarriedWeapons(true, true)
             .Where(weapon => rule.IsAvailable(weapon, _updateTime)).ToList();
         availableWeapons.AddRange(carriedWeapons);
-        _ = availableWeapons.RemoveAll(thing => assignedByOthers.Contains(thing));
-        _ = availableWeapons.RemoveAll(thing => !EquipmentUtility.CanEquip(thing, pawn.Pawn) ||
-            (thing.Spawned &&
-                pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap != null &&
-                !pawn.Pawn.playerSettings
-                    .EffectiveAreaRestrictionInPawnCurrentMap[thing.Position]));
+        _ = availableWeapons.RemoveAll(assignedByOthers.Contains);
+        _ = availableWeapons.RemoveAll(thing => !EquipmentUtility.CanEquip(thing, pawn.Pawn) || (thing.Spawned &&
+            pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap != null &&
+            !pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap[thing.Position]));
         var weaponScores = availableWeapons.ToDictionary(thing => thing,
             thing => rule.GetThingScore(thing, _updateTime));
         var bestWeapon = availableWeapons.OrderByDescending(thing => weaponScores[thing])
-            .ThenByDescending(thing =>
-                sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
-            .ThenByDescending(thing => carriedWeapons.Contains(thing))
-            .ThenBy(thing => thing.GetHashCode()).FirstOrDefault();
+            .ThenByDescending(thing => sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
+            .ThenByDescending(carriedWeapons.Contains).ThenBy(thing => thing.GetHashCode())
+            .FirstOrDefault();
         if (bestWeapon == null) { return; }
         pawn.AssignedWeapons.Add(bestWeapon, "primary");
         _ = assignedByOthers.Add(bestWeapon);
@@ -202,20 +179,18 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
         }
         else
         {
-            _ = pawn.Pawn.jobs.TryTakeOrderedJob(
-                JobMaker.MakeJob(JobDefOf.Equip, (LocalTargetInfo)bestWeapon),
+            _ = pawn.Pawn.jobs.TryTakeOrderedJob(JobMaker.MakeJob(JobDefOf.Equip, (LocalTargetInfo)bestWeapon),
                 requestQueueing: ShouldRequestQueueing(pawn));
         }
         UpdateAmmo(pawn, bestWeapon, rule);
     }
 
-    private void AssignToolsForWorkTypes(PawnCache pawn, ToolRule rule,
-        List<WorkTypeDef> workTypes, HashSet<Thing> assignedByOthers)
+    private void AssignToolsForWorkTypes(PawnCache pawn, ToolRule rule, List<WorkTypeDef> workTypes,
+        HashSet<Thing> assignedByOthers)
     {
         var sidearmMemory = CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn);
-        var availableWeapons =
-            rule.GetCurrentlyAvailableItems(map, workTypes, _updateTime).ToList();
-        _ = availableWeapons.RemoveAll(thing => assignedByOthers.Contains(thing));
+        var availableWeapons = rule.GetCurrentlyAvailableItems(map, workTypes, _updateTime).ToList();
+        _ = availableWeapons.RemoveAll(assignedByOthers.Contains);
         _ = availableWeapons.RemoveAll(thing =>
             !StatCalculator.CanPickupSidearmInstance((ThingWithComps)thing, pawn.Pawn, out _));
         var carriedWeapons = pawn.Pawn.GetCarriedWeapons(true, true)
@@ -225,21 +200,15 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
         {
             _ = availableWeapons.RemoveAll(thing => thing.def.IsRangedWeapon);
         }
-        _ = availableWeapons.RemoveAll(thing => !EquipmentUtility.CanEquip(thing, pawn.Pawn) ||
-            (thing.Spawned &&
-                pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap != null &&
-                !pawn.Pawn.playerSettings
-                    .EffectiveAreaRestrictionInPawnCurrentMap[thing.Position]));
+        _ = availableWeapons.RemoveAll(thing => !EquipmentUtility.CanEquip(thing, pawn.Pawn) || (thing.Spawned &&
+            pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap != null &&
+            !pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap[thing.Position]));
         foreach (var workType in workTypes)
         {
             var things = availableWeapons.Where(thing => carriedWeapons.Contains(thing) ||
-                    StatCalculator.CanPickupSidearmInstance((ThingWithComps)thing, pawn.Pawn,
-                        out _))
-                .ToList();
-            var bestWeapon = things
-                .OrderByDescending(thing => rule.GetThingScore(thing, [workType], _updateTime))
-                .ThenByDescending(thing =>
-                    sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
+                StatCalculator.CanPickupSidearmInstance((ThingWithComps)thing, pawn.Pawn, out _)).ToList();
+            var bestWeapon = things.OrderByDescending(thing => rule.GetThingScore(thing, [workType], _updateTime))
+                .ThenByDescending(thing => sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
                 .ThenBy(thing => thing.GetHashCode()).FirstOrDefault();
             if (bestWeapon == null) { continue; }
             if (pawn.AssignedWeapons.Keys.Any(thing => thing.def == bestWeapon.def)) { continue; }
@@ -263,8 +232,7 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
     {
         base.MapComponentTick();
         if (!map.IsPlayerHome) { return; }
-        if (Find.TickManager.CurTimeSpeed == TimeSpeed.Paused ||
-            Find.TickManager.TicksGame % 60 != 0) { return; }
+        if (Find.TickManager.CurTimeSpeed == TimeSpeed.Paused || Find.TickManager.TicksGame % 60 != 0) { return; }
         var mapTime = RimWorldTime.GetMapTime(map);
         var hoursPassed = _hasUpdateTime ? mapTime - _updateTime : float.MaxValue;
         if (hoursPassed < 6f) { return; }
@@ -290,8 +258,7 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
     private void RemoveUnassignedWeapons()
     {
         foreach (var pawn in _pawnCache.Values.Where(pc =>
-                     pc.ShouldUpdateEquipment &&
-                     (pc.AssignedLoadout?.DropUnassignedWeapons ?? false)))
+                     pc.ShouldUpdateEquipment && (pc.AssignedLoadout?.DropUnassignedWeapons ?? false)))
         {
             var unassignedWeapons = pawn.Pawn.GetCarriedWeapons(true, true)
                 .Where(weapon => !pawn.AssignedWeapons.ContainsKey(weapon)).ToList();
@@ -300,17 +267,12 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
                 EquipmentManager.LogMessage(
                     $"Dropping {string.Join(", ", unassignedWeapons.Select(thing => thing.LabelCapNoCount))} from {pawn.Pawn.LabelShortCap}'s inventory");
             }
-            foreach (var weapon in unassignedWeapons)
-            {
-                WeaponAssingment.DropSidearm(pawn.Pawn, weapon, true, true);
-            }
+            foreach (var weapon in unassignedWeapons) { WeaponAssingment.DropSidearm(pawn.Pawn, weapon, true, true); }
             var sidearmMemory = CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn);
             foreach (var weapon in sidearmMemory.RememberedWeapons.Where(weapon =>
-                         pawn.AssignedWeapons.Keys.All(thing =>
-                             thing.toThingDefStuffDefPair() != weapon)).ToList())
+                         pawn.AssignedWeapons.Keys.All(thing => thing.toThingDefStuffDefPair() != weapon)).ToList())
             {
-                EquipmentManager.LogMessage(
-                    $"Forgetting {weapon.thing.LabelCap} for {pawn.Pawn.LabelShortCap}");
+                EquipmentManager.LogMessage($"Forgetting {weapon.thing.LabelCap} for {pawn.Pawn.LabelShortCap}");
                 sidearmMemory.ForgetSidearmMemory(weapon);
             }
             foreach (var rememberedWeapon in sidearmMemory.RememberedWeapons.Distinct().ToList())
@@ -348,23 +310,17 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
                 foreach (var ammoStack in mapAmmo.Where(thing => thing.def == ammoDef))
                 {
                     if (ammoStack.IsForbidden(pawn.Pawn)) { continue; }
-                    var assignedCount =
-                        _pawnCache.Values.Sum(pc => pc.AssignedAmmo.TryGetValue(ammoStack));
+                    var assignedCount = _pawnCache.Values.Sum(pc => pc.AssignedAmmo.TryGetValue(ammoStack));
                     if (assignedCount >= ammoStack.stackCount) { continue; }
-                    var countToPickup = Math.Min(ammoStack.stackCount - assignedCount,
-                        targetAmmoCount - currentAmmo);
-                    if (countToPickup <= 0 || !pawn.Pawn.CanReserve(ammoStack, 10, countToPickup))
-                    {
-                        continue;
-                    }
+                    var countToPickup = Math.Min(ammoStack.stackCount - assignedCount, targetAmmoCount - currentAmmo);
+                    if (countToPickup <= 0 || !pawn.Pawn.CanReserve(ammoStack, 10, countToPickup)) { continue; }
                     pawn.AssignedAmmo.Add(ammoStack, countToPickup);
                     currentAmmo += countToPickup;
                     EquipmentManager.LogMessage(
                         $"Assigning {countToPickup} of {ammoStack.LabelShortCap} to {pawn.Pawn.LabelShortCap} (ammo count = {currentAmmo})");
                     var job = JobMaker.MakeJob(JobDefOf.TakeCountToInventory, ammoStack);
                     job.count = countToPickup;
-                    _ = pawn.Pawn.jobs.TryTakeOrderedJob(job,
-                        requestQueueing: ShouldRequestQueueing(pawn));
+                    _ = pawn.Pawn.jobs.TryTakeOrderedJob(job, requestQueueing: ShouldRequestQueueing(pawn));
                 }
             }
         }
@@ -372,8 +328,7 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
         {
             while (currentAmmo > targetAmmoCount)
             {
-                var ammoStack = pawnAmmo.Where(t => t.stackCount > 0).OrderBy(t => t.MarketValue)
-                    .FirstOrDefault();
+                var ammoStack = pawnAmmo.Where(t => t.stackCount > 0).OrderBy(t => t.MarketValue).FirstOrDefault();
                 if (ammoStack == null) { break; }
                 var countToDrop = Math.Min(ammoStack.stackCount, currentAmmo - targetAmmoCount);
                 if (countToDrop <= 0) { break; }
@@ -388,18 +343,17 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
 
     private void UpdateLoadouts()
     {
-        foreach (var loadout in EquipmentManager.GetLoadouts()
-                     .Where(loadout => loadout.Priority > 0).OrderByDescending(loadout =>
-                         loadout.PassionLimits.Count + loadout.PawnCapacityLimits.Count +
+        foreach (var loadout in EquipmentManager.GetLoadouts().Where(loadout => loadout.Priority > 0)
+                     .OrderByDescending(loadout => loadout.PassionLimits.Count + loadout.PawnCapacityLimits.Count +
                          loadout.PawnCapacityWeights.Count + loadout.PawnTraits.Count +
-                         loadout.PawnWorkCapacities.Count + loadout.SkillLimits.Count +
-                         loadout.SkillWeights.Count + loadout.StatLimits.Count +
-                         loadout.StatWeights.Count).ThenByDescending(loadout => loadout.Priority))
+                         loadout.PawnWorkCapacities.Count + loadout.SkillLimits.Count + loadout.SkillWeights.Count +
+                         loadout.StatLimits.Count + loadout.StatWeights.Count)
+                     .ThenByDescending(loadout => loadout.Priority))
         {
             var availablePawns = _pawnCache.Values.Where(pc => pc.IsAvailable(loadout)).ToList();
             if (availablePawns.Count == 0) { continue; }
-            var totalPriority = availablePawns.SelectMany(pc => pc.AvailableLoadouts.Keys)
-                .Distinct().Sum(l => l.Priority);
+            var totalPriority = availablePawns.SelectMany(pc => pc.AvailableLoadouts.Keys).Distinct()
+                .Sum(l => l.Priority);
             if (totalPriority == 0) { continue; }
             var priorityShare = (float)loadout.Priority / totalPriority;
             var targetCount = (int)Math.Ceiling(availablePawns.Count * priorityShare);
@@ -407,8 +361,8 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
             while (assignedPawnsCount < targetCount)
             {
                 var pawn = availablePawns.Where(pc => pc.AssignedLoadout == null && pc.AutoLoadout)
-                    .OrderByDescending(pc => pc.AvailableLoadouts[loadout])
-                    .ThenBy(pc => pc.Pawn.GetHashCode()).FirstOrDefault();
+                    .OrderByDescending(pc => pc.AvailableLoadouts[loadout]).ThenBy(pc => pc.Pawn.GetHashCode())
+                    .FirstOrDefault();
                 if (pawn == null) { break; }
                 pawn.AssignedLoadout = loadout;
                 assignedPawnsCount++;
@@ -429,52 +383,42 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
 
     private void UpdateMeleeSidearms()
     {
-        foreach (var pawn in _pawnCache.Values.Where(pc =>
-                     pc.ShouldUpdateEquipment && pc.AssignedLoadout != null))
+        foreach (var pawn in _pawnCache.Values.Where(pc => pc.ShouldUpdateEquipment && pc.AssignedLoadout != null))
         {
             var assignedByOthers = new HashSet<Thing>(_pawnCache.Values.Where(pc => pc != pawn)
                 .SelectMany(pc => pc.AssignedWeapons.Keys));
             var sidearmMemory = CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn);
-            foreach (var rule in pawn.AssignedLoadout!.MeleeSidearmRules
-                         .Select(EquipmentManager.GetMeleeWeaponRule).Where(rule => rule != null))
+            foreach (var rule in pawn.AssignedLoadout!.MeleeSidearmRules.Select(EquipmentManager.GetMeleeWeaponRule)
+                         .Where(rule => rule != null))
             {
                 var availableWeapons = rule!.GetCurrentlyAvailableItems(map, _updateTime).ToList();
                 _ = availableWeapons.RemoveAll(thing =>
-                    !StatCalculator.CanPickupSidearmInstance((ThingWithComps)thing, pawn.Pawn,
-                        out _));
+                    !StatCalculator.CanPickupSidearmInstance((ThingWithComps)thing, pawn.Pawn, out _));
                 var carriedWeapons = pawn.Pawn.GetCarriedWeapons(true, true)
                     .Where(weapon => rule.IsAvailable(weapon, _updateTime)).ToList();
                 availableWeapons.AddRange(carriedWeapons);
-                _ = availableWeapons.RemoveAll(thing => assignedByOthers.Contains(thing));
-                _ = availableWeapons.RemoveAll(thing =>
-                    !EquipmentUtility.CanEquip(thing, pawn.Pawn) || (thing.Spawned &&
-                        pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap != null &&
-                        !pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap[
-                            thing.Position]));
+                _ = availableWeapons.RemoveAll(assignedByOthers.Contains);
+                _ = availableWeapons.RemoveAll(thing => !EquipmentUtility.CanEquip(thing, pawn.Pawn) ||
+                    (thing.Spawned && pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap != null &&
+                        !pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap[thing.Position]));
                 switch (rule.EquipMode)
                 {
                     case ItemRule.WeaponEquipMode.BestOne:
                         var bestWeapon = availableWeapons
                             .Where(thing => carriedWeapons.Contains(thing) ||
-                                StatCalculator.CanPickupSidearmInstance((ThingWithComps)thing,
-                                    pawn.Pawn, out _))
+                                StatCalculator.CanPickupSidearmInstance((ThingWithComps)thing, pawn.Pawn, out _))
                             .OrderByDescending(thing => rule.GetThingScore(thing, _updateTime))
                             .ThenByDescending(thing =>
-                                sidearmMemory.RememberedWeapons.Contains(
-                                    thing.toThingDefStuffDefPair()))
-                            .ThenByDescending(thing => carriedWeapons.Contains(thing))
+                                sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
+                            .ThenByDescending(carriedWeapons.Contains)
                             .ThenBy(thing => thing.GetHashCode()).FirstOrDefault();
                         if (bestWeapon == null) { continue; }
-                        if (pawn.AssignedWeapons.Keys.Any(thing => thing.def == bestWeapon.def))
-                        {
-                            continue;
-                        }
+                        if (pawn.AssignedWeapons.Keys.Any(thing => thing.def == bestWeapon.def)) { continue; }
                         pawn.AssignedWeapons.Add(bestWeapon, "melee sidearm");
                         assignedByOthers.Add(bestWeapon);
                         if (carriedWeapons.Contains(bestWeapon))
                         {
-                            if (!sidearmMemory.RememberedWeapons.Contains(
-                                    bestWeapon.toThingDefStuffDefPair()))
+                            if (!sidearmMemory.RememberedWeapons.Contains(bestWeapon.toThingDefStuffDefPair()))
                             {
                                 sidearmMemory.InformOfAddedSidearm(bestWeapon);
                             }
@@ -482,25 +426,22 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
                         else
                         {
                             _ = pawn.Pawn.jobs.TryTakeOrderedJob(
-                                JobMaker.MakeJob(SidearmsDefOf.EquipSecondary,
-                                    (LocalTargetInfo)bestWeapon),
+                                JobMaker.MakeJob(SidearmsDefOf.EquipSecondary, (LocalTargetInfo)bestWeapon),
                                 requestQueueing: ShouldRequestQueueing(pawn));
                         }
                         break;
                     case ItemRule.WeaponEquipMode.AllAvailable:
                         foreach (var weapon in availableWeapons.Where(weapon =>
-                                     pawn.AssignedWeapons.Keys.All(thing =>
-                                         thing.def != weapon.def) &&
+                                     pawn.AssignedWeapons.Keys.All(thing => thing.def != weapon.def) &&
                                      (carriedWeapons.Contains(weapon) ||
-                                         StatCalculator.CanPickupSidearmInstance(
-                                             (ThingWithComps)weapon, pawn.Pawn, out _))))
+                                         StatCalculator.CanPickupSidearmInstance((ThingWithComps)weapon, pawn.Pawn,
+                                             out _))))
                         {
                             pawn.AssignedWeapons.Add(weapon, "melee sidearm");
                             assignedByOthers.Add(weapon);
                             if (carriedWeapons.Contains(weapon))
                             {
-                                if (!sidearmMemory.RememberedWeapons.Contains(
-                                        weapon.toThingDefStuffDefPair()))
+                                if (!sidearmMemory.RememberedWeapons.Contains(weapon.toThingDefStuffDefPair()))
                                 {
                                     sidearmMemory.InformOfAddedSidearm(weapon);
                                 }
@@ -508,12 +449,9 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
                             else
                             {
                                 _ = pawn.Pawn.jobs.TryTakeOrderedJob(
-                                    JobMaker.MakeJob(SidearmsDefOf.EquipSecondary,
-                                        (LocalTargetInfo)weapon),
-                                    requestQueueing: new[]
-                                    {
-                                        JobDefOf.Equip, SidearmsDefOf.EquipSecondary
-                                    }.Contains(pawn.Pawn.CurJob?.def));
+                                    JobMaker.MakeJob(SidearmsDefOf.EquipSecondary, (LocalTargetInfo)weapon),
+                                    requestQueueing: new[] { JobDefOf.Equip, SidearmsDefOf.EquipSecondary }.Contains(
+                                        pawn.Pawn.CurJob?.def));
                             }
                         }
                         break;
@@ -526,12 +464,10 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
 
     private void UpdatePawnCache()
     {
-        if (_allPawns == null) { _allPawns = []; }
         _allPawns.Clear();
         _allPawns.AddRange(map.mapPawns.FreeColonistsSpawned.Where(pawn =>
-            pawn.Faction == Faction.OfPlayer && !pawn.HasExtraHomeFaction() &&
-            !pawn.HasExtraMiniFaction() && pawn.GuestStatus == null));
-        if (_pawnCache == null) { _pawnCache = []; }
+            pawn.Faction == Faction.OfPlayer && !pawn.HasExtraHomeFaction() && !pawn.HasExtraMiniFaction() &&
+            pawn.GuestStatus == null));
         foreach (var pawn in _pawnCache.Keys.Where(p => !_allPawns.Contains(p)).ToList())
         {
             _ = _pawnCache.Remove(pawn);
@@ -551,10 +487,8 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
 
     private void UpdatePrimaryWeapons()
     {
-        var assignedByOthers = new HashSet<Thing>(
-            _pawnCache.Values.SelectMany(pc => pc.AssignedWeapons.Keys));
-        foreach (var pawn in _pawnCache.Values.Where(pc =>
-                     pc.ShouldUpdateEquipment && pc.AssignedLoadout != null))
+        var assignedByOthers = new HashSet<Thing>(_pawnCache.Values.SelectMany(pc => pc.AssignedWeapons.Keys));
+        foreach (var pawn in _pawnCache.Values.Where(pc => pc.ShouldUpdateEquipment && pc.AssignedLoadout != null))
         {
             switch (pawn.AssignedLoadout!.PrimaryRuleType)
             {
@@ -574,40 +508,34 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
 
     private void UpdateRangedSidearms()
     {
-        foreach (var pawn in _pawnCache.Values.Where(pc =>
-                     pc.ShouldUpdateEquipment && pc.AssignedLoadout != null))
+        foreach (var pawn in _pawnCache.Values.Where(pc => pc.ShouldUpdateEquipment && pc.AssignedLoadout != null))
         {
             var assignedByOthers = new HashSet<Thing>(_pawnCache.Values.Where(pc => pc != pawn)
                 .SelectMany(pc => pc.AssignedWeapons.Keys));
-            foreach (var rule in pawn.AssignedLoadout!.RangedSidearmRules
-                         .Select(EquipmentManager.GetRangedWeaponRule).Where(rule => rule != null))
+            foreach (var rule in pawn.AssignedLoadout!.RangedSidearmRules.Select(EquipmentManager.GetRangedWeaponRule)
+                         .Where(rule => rule != null))
             {
                 var sidearmMemory = CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn);
                 var availableWeapons = rule!.GetCurrentlyAvailableItems(map, _updateTime).ToList();
                 var carriedWeapons = pawn.Pawn.GetCarriedWeapons(true, true)
                     .Where(weapon => rule.IsAvailable(weapon, _updateTime)).ToList();
                 availableWeapons.AddRange(carriedWeapons);
-                _ = availableWeapons.RemoveAll(thing => assignedByOthers.Contains(thing));
-                _ = availableWeapons.RemoveAll(thing =>
-                    !EquipmentUtility.CanEquip(thing, pawn.Pawn) || (thing.Spawned &&
-                        pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap != null &&
-                        !pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap[
-                            thing.Position]));
+                _ = availableWeapons.RemoveAll(assignedByOthers.Contains);
+                _ = availableWeapons.RemoveAll(thing => !EquipmentUtility.CanEquip(thing, pawn.Pawn) ||
+                    (thing.Spawned && pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap != null &&
+                        !pawn.Pawn.playerSettings.EffectiveAreaRestrictionInPawnCurrentMap[thing.Position]));
                 switch (rule.EquipMode)
                 {
                     case ItemRule.WeaponEquipMode.BestOne:
                         var bestWeapon = availableWeapons
                             .Where(thing => carriedWeapons.Contains(thing) ||
-                                StatCalculator.CanPickupSidearmInstance((ThingWithComps)thing,
-                                    pawn.Pawn, out _))
+                                StatCalculator.CanPickupSidearmInstance((ThingWithComps)thing, pawn.Pawn, out _))
                             .OrderByDescending(thing => rule.GetThingScore(thing, _updateTime))
                             .ThenByDescending(thing =>
-                                sidearmMemory.RememberedWeapons.Contains(
-                                    thing.toThingDefStuffDefPair()))
-                            .ThenByDescending(thing => carriedWeapons.Contains(thing))
+                                sidearmMemory.RememberedWeapons.Contains(thing.toThingDefStuffDefPair()))
+                            .ThenByDescending(carriedWeapons.Contains)
                             .ThenBy(thing => thing.GetHashCode()).FirstOrDefault();
-                        if (bestWeapon == null ||
-                            pawn.AssignedWeapons.Keys.Any(thing => thing.def == bestWeapon.def))
+                        if (bestWeapon == null || pawn.AssignedWeapons.Keys.Any(thing => thing.def == bestWeapon.def))
                         {
                             continue;
                         }
@@ -615,8 +543,7 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
                         assignedByOthers.Add(bestWeapon);
                         if (carriedWeapons.Contains(bestWeapon))
                         {
-                            if (!sidearmMemory.RememberedWeapons.Contains(
-                                    bestWeapon.toThingDefStuffDefPair()))
+                            if (!sidearmMemory.RememberedWeapons.Contains(bestWeapon.toThingDefStuffDefPair()))
                             {
                                 sidearmMemory.InformOfAddedSidearm(bestWeapon);
                             }
@@ -624,28 +551,24 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
                         else
                         {
                             _ = pawn.Pawn.jobs.TryTakeOrderedJob(
-                                JobMaker.MakeJob(SidearmsDefOf.EquipSecondary,
-                                    (LocalTargetInfo)bestWeapon),
+                                JobMaker.MakeJob(SidearmsDefOf.EquipSecondary, (LocalTargetInfo)bestWeapon),
                                 requestQueueing: ShouldRequestQueueing(pawn));
                         }
                         UpdateAmmo(pawn, bestWeapon, rule);
                         break;
                     case ItemRule.WeaponEquipMode.AllAvailable:
                         foreach (var weapon in availableWeapons.Where(weapon =>
-                                         pawn.AssignedWeapons.Keys.All(thing =>
-                                             thing.def != weapon.def) &&
+                                         pawn.AssignedWeapons.Keys.All(thing => thing.def != weapon.def) &&
                                          (carriedWeapons.Contains(weapon) ||
-                                             StatCalculator.CanPickupSidearmInstance(
-                                                 (ThingWithComps)weapon, pawn.Pawn, out _)))
-                                     .OrderByDescending(thing =>
-                                         rule.GetThingScore(thing, _updateTime)))
+                                             StatCalculator.CanPickupSidearmInstance((ThingWithComps)weapon, pawn.Pawn,
+                                                 out _)))
+                                     .OrderByDescending(thing => rule.GetThingScore(thing, _updateTime)))
                         {
                             pawn.AssignedWeapons.Add(weapon, "ranged sidearm");
                             assignedByOthers.Add(weapon);
                             if (carriedWeapons.Contains(weapon))
                             {
-                                if (!sidearmMemory.RememberedWeapons.Contains(
-                                        weapon.toThingDefStuffDefPair()))
+                                if (!sidearmMemory.RememberedWeapons.Contains(weapon.toThingDefStuffDefPair()))
                                 {
                                     sidearmMemory.InformOfAddedSidearm(weapon);
                                 }
@@ -653,8 +576,7 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
                             else
                             {
                                 _ = pawn.Pawn.jobs.TryTakeOrderedJob(
-                                    JobMaker.MakeJob(SidearmsDefOf.EquipSecondary,
-                                        (LocalTargetInfo)weapon),
+                                    JobMaker.MakeJob(SidearmsDefOf.EquipSecondary, (LocalTargetInfo)weapon),
                                     requestQueueing: ShouldRequestQueueing(pawn));
                             }
                             UpdateAmmo(pawn, weapon, rule);
@@ -669,10 +591,8 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
 
     private void UpdateTools()
     {
-        var assignedByOthers = new HashSet<Thing>(
-            _pawnCache.Values.SelectMany(pc => pc.AssignedWeapons.Keys));
-        foreach (var pawn in _pawnCache.Values.Where(pc =>
-                     pc.ShouldUpdateEquipment && pc.AssignedLoadout != null))
+        var assignedByOthers = new HashSet<Thing>(_pawnCache.Values.SelectMany(pc => pc.AssignedWeapons.Keys));
+        foreach (var pawn in _pawnCache.Values.Where(pc => pc.ShouldUpdateEquipment && pc.AssignedLoadout != null))
         {
             if (pawn.AssignedLoadout!.ToolRuleId == null) { continue; }
             var rule = EquipmentManager.GetToolRule((int)pawn.AssignedLoadout.ToolRuleId);
@@ -682,14 +602,12 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
                 case ItemRule.ToolEquipMode.OneForEveryWorkType:
                     AssignToolsForWorkTypes(pawn, rule,
                         WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder
-                            .Where(wt => wt.visible && !pawn.Pawn.WorkTypeIsDisabled(wt)).ToList(),
-                        assignedByOthers);
+                            .Where(wt => wt.visible && !pawn.Pawn.WorkTypeIsDisabled(wt)).ToList(), assignedByOthers);
                     break;
                 case ItemRule.ToolEquipMode.OneForEveryAssignedWorkType:
                     AssignToolsForWorkTypes(pawn, rule,
                         WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder.Where(wt =>
-                            wt.visible && pawn.Pawn.workSettings.WorkIsActive(wt)).ToList(),
-                        assignedByOthers);
+                            wt.visible && pawn.Pawn.workSettings.WorkIsActive(wt)).ToList(), assignedByOthers);
                     break;
                 case ItemRule.ToolEquipMode.BestOne:
                     AssignBestTool(pawn, rule, assignedByOthers);

@@ -4,23 +4,15 @@ using RimWorld;
 namespace EquipmentManager.Tests;
 
 /// <summary>
-///     Tests for the consumed <see cref="Common.StatRanges" /> behavior,
+///     Tests for the consumed <see cref="StatRanges" /> behavior,
 ///     verifying the first-sample seeding correctness (C-4 defect fix).
 ///     StatRanges is a process-global static cache that normalizes values to [0,1]
 ///     based on accumulated min/max ranges. This test uses a mock StatDef to verify
 ///     the core logic without requiring full game context.
 /// </summary>
-[TestFixture]
-[NonParallelizable]
+[TestFixture, NonParallelizable]
 public class StatRangesTests
 {
-    private static StatDef GetTestStat()
-    {
-        // Create a dummy StatDef for testing. In a real game context, this would come
-        // from DefDatabase. For this test, we create a minimal valid instance.
-        return new StatDef { defName = "TestStat" };
-    }
-
     [SetUp]
     public void SetUp()
     {
@@ -31,6 +23,13 @@ public class StatRangesTests
     public void TearDown()
     {
         StatRanges.Clear();
+    }
+
+    private static StatDef GetTestStat()
+    {
+        // Create a dummy StatDef for testing. In a real game context, this would come
+        // from DefDatabase. For this test, we create a minimal valid instance.
+        return new StatDef { defName = "TestStat" };
     }
 
     /// <summary>

@@ -1,6 +1,5 @@
 ﻿using System.Text;
 using EquipmentManager.CustomWidgets;
-using LordKuper.Common.UI;
 using UnityEngine;
 using Verse;
 
@@ -9,8 +8,8 @@ namespace EquipmentManager.Windows;
 internal class LogDialog : Window
 {
     private EquipmentManagerGameComponent? _equipmentManager;
-    private Vector2 _scrollPosition;
     private float _listingViewHeight;
+    private Vector2 _scrollPosition;
 
     public LogDialog()
     {
@@ -33,10 +32,7 @@ internal class LogDialog : Window
     private void CopyAllMessagesToClipboard()
     {
         var stringBuilder = new StringBuilder();
-        foreach (var message in EquipmentManager.GetLog())
-        {
-            _ = stringBuilder.AppendLine(message);
-        }
+        foreach (var message in EquipmentManager.GetLog()) { _ = stringBuilder.AppendLine(message); }
         GUIUtility.systemCopyBuffer = stringBuilder.ToString();
     }
 
@@ -47,15 +43,11 @@ internal class LogDialog : Window
         Text.Font = GameFont.Tiny;
         var widgetRow = new WidgetRow(0.0f, 0.0f, maxWidth: inRect.width);
         if (widgetRow.ButtonText(Resources.Strings.Loadouts.CopyToClipboard,
-                Resources.Strings.Loadouts.CopyToClipboardTooltip))
-        {
-            CopyAllMessagesToClipboard();
-        }
+                Resources.Strings.Loadouts.CopyToClipboardTooltip)) { CopyAllMessagesToClipboard(); }
         Text.Anchor = TextAnchor.MiddleLeft;
         var outRect = inRect;
         outRect.yMin += 26f;
-        Widgets.DrawBoxSolidWithOutline(outRect, new Color(1f, 1f, 1f, 0.05f),
-            new Color(1f, 1f, 1f, 0.4f));
+        Widgets.DrawBoxSolidWithOutline(outRect, new Color(1f, 1f, 1f, 0.05f), new Color(1f, 1f, 1f, 0.4f));
         var viewRect = outRect.ContractedBy(UiHelpers.ElementGap / 2f);
         viewRect.width -= GUI.skin.verticalScrollbar.fixedWidth + UiHelpers.ElementGap;
         viewRect.height = _listingViewHeight + UiHelpers.ElementGap;

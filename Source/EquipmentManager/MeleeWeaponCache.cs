@@ -9,7 +9,7 @@ using Verse;
 
 namespace EquipmentManager;
 
-internal class MeleeWeaponCache : ThingCache
+internal class MeleeWeaponCache(Thing thing) : ThingCache(thing, 24f)
 {
     // CE reflection-delegate fields: legitimately null when Combat Extended is absent.
     // Kept nullable with existing null-guards per ADR-0003.
@@ -17,9 +17,6 @@ internal class MeleeWeaponCache : ThingCache
     private AccessTools.FieldRef<Tool, float>? _armorPenetrationSharpDelegate;
     private bool _initialized;
     private Type? _toolType;
-
-    public MeleeWeaponCache(Thing thing) : base(thing, 24f) { }
-
     private float ArmorPenetration { get; set; }
 
     private AccessTools.FieldRef<Tool, float>? ArmorPenetrationBluntDelegate
@@ -53,16 +50,14 @@ internal class MeleeWeaponCache : ThingCache
     {
         try
         {
-            if (Enum.TryParse(MeleeWeaponStats.GetStatName(statDef.defName),
-                    out MeleeWeaponStat meleeWeaponStat))
+            if (Enum.TryParse(MeleeWeaponStats.GetStatName(statDef.defName), out MeleeWeaponStat meleeWeaponStat))
             {
                 switch (meleeWeaponStat)
                 {
                     case MeleeWeaponStat.ArmorPenetration:
                         return ArmorPenetration;
                     case MeleeWeaponStat.DpsSharp:
-                        var sharpVerbProperties =
-                            VerbUtility.GetAllVerbProperties(Thing.def.Verbs, Thing.def.tools);
+                        var sharpVerbProperties = VerbUtility.GetAllVerbProperties(Thing.def.Verbs, Thing.def.tools);
                         if (sharpVerbProperties == null) { return 0f; }
                         var sharpVerbs = sharpVerbProperties.Where(vp =>
                             (vp.verbProps?.IsMeleeAttack ?? false) && "Sharp".Equals(
@@ -70,18 +65,14 @@ internal class MeleeWeaponCache : ThingCache
                                 StringComparison.OrdinalIgnoreCase)).ToList();
                         if (!sharpVerbs.Any()) { return 0f; }
                         var sharpDamage = sharpVerbs.AverageWeighted(
-                            vp => vp.verbProps.AdjustedMeleeSelectionWeight(vp.tool, null, Thing,
-                                null, false),
-                            vp => vp.verbProps.AdjustedMeleeDamageAmount(vp.tool, null, Thing,
-                                null));
+                            vp => vp.verbProps.AdjustedMeleeSelectionWeight(vp.tool, null, Thing, null, false),
+                            vp => vp.verbProps.AdjustedMeleeDamageAmount(vp.tool, null, Thing, null));
                         var sharpCooldown = sharpVerbs.AverageWeighted(
-                            vp => vp.verbProps.AdjustedMeleeSelectionWeight(vp.tool, null, Thing,
-                                null, false),
+                            vp => vp.verbProps.AdjustedMeleeSelectionWeight(vp.tool, null, Thing, null, false),
                             vp => vp.verbProps.AdjustedCooldown(vp.tool, null, Thing));
                         return sharpCooldown == 0f ? 0f : sharpDamage / sharpCooldown;
                     case MeleeWeaponStat.DpsBlunt:
-                        var bluntVerbProperties =
-                            VerbUtility.GetAllVerbProperties(Thing.def.Verbs, Thing.def.tools);
+                        var bluntVerbProperties = VerbUtility.GetAllVerbProperties(Thing.def.Verbs, Thing.def.tools);
                         if (bluntVerbProperties == null) { return 0f; }
                         var bluntVerbs = bluntVerbProperties.Where(vp =>
                             (vp.verbProps?.IsMeleeAttack ?? false) && "Blunt".Equals(
@@ -89,13 +80,10 @@ internal class MeleeWeaponCache : ThingCache
                                 StringComparison.OrdinalIgnoreCase)).ToList();
                         if (!bluntVerbs.Any()) { return 0f; }
                         var bluntDamage = bluntVerbs.AverageWeighted(
-                            vp => vp.verbProps.AdjustedMeleeSelectionWeight(vp.tool, null, Thing,
-                                null, false),
-                            vp => vp.verbProps.AdjustedMeleeDamageAmount(vp.tool, null, Thing,
-                                null));
+                            vp => vp.verbProps.AdjustedMeleeSelectionWeight(vp.tool, null, Thing, null, false),
+                            vp => vp.verbProps.AdjustedMeleeDamageAmount(vp.tool, null, Thing, null));
                         var bluntCooldown = bluntVerbs.AverageWeighted(
-                            vp => vp.verbProps.AdjustedMeleeSelectionWeight(vp.tool, null, Thing,
-                                null, false),
+                            vp => vp.verbProps.AdjustedMeleeSelectionWeight(vp.tool, null, Thing, null, false),
                             vp => vp.verbProps.AdjustedCooldown(vp.tool, null, Thing));
                         return bluntCooldown == 0f ? 0f : bluntDamage / bluntCooldown;
                     case MeleeWeaponStat.TechLevel:
@@ -104,8 +92,7 @@ internal class MeleeWeaponCache : ThingCache
                         throw new ArgumentOutOfRangeException(nameof(statDef));
                 }
             }
-            Logger.LogError(
-                $"Tried to evaluate unknown custom melee stat ({statDef.defName})");
+            Logger.LogError($"Tried to evaluate unknown custom melee stat ({statDef.defName})");
             return 0f;
         }
         catch (Exception e)
@@ -142,18 +129,13 @@ internal class MeleeWeaponCache : ThingCache
         _initialized = true;
         if (!CombatExtendedHelper.CombatExtended) { return; }
         _toolType = AccessTools.TypeByName("CombatExtended.ToolCE");
-        if (_toolType == null)
-        {
-            Logger.LogError("Could not find 'CombatExtended.ToolCE'");
-        }
-        _armorPenetrationSharpDelegate =
-            AccessTools.FieldRefAccess<float>(ToolType, "armorPenetrationSharp");
+        if (_toolType == null) { Logger.LogError("Could not find 'CombatExtended.ToolCE'"); }
+        _armorPenetrationSharpDelegate = AccessTools.FieldRefAccess<float>(ToolType, "armorPenetrationSharp");
         if (_armorPenetrationSharpDelegate == null)
         {
             Logger.LogError("Could not find 'CombatExtended.ToolCE.armorPenetrationSharp'");
         }
-        _armorPenetrationBluntDelegate =
-            AccessTools.FieldRefAccess<float>(ToolType, "armorPenetrationBlunt");
+        _armorPenetrationBluntDelegate = AccessTools.FieldRefAccess<float>(ToolType, "armorPenetrationBlunt");
         if (_armorPenetrationBluntDelegate == null)
         {
             Logger.LogError("Could not find 'CombatExtended.ToolCE.armorPenetrationBlunt'");
@@ -186,8 +168,7 @@ internal class MeleeWeaponCache : ThingCache
                         }
                         else
                         {
-                            if (ArmorPenetrationSharpDelegate != null &&
-                                ArmorPenetrationBluntDelegate != null)
+                            if (ArmorPenetrationSharpDelegate != null && ArmorPenetrationBluntDelegate != null)
                             {
                                 ArmorPenetration += ArmorPenetrationSharpDelegate(tool) +
                                     ArmorPenetrationBluntDelegate(tool);

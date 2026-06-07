@@ -18,14 +18,10 @@ internal class Loadout : PawnColumnWorker
     private static EquipmentManagerGameComponent EquipmentManager =>
         _equipmentManager ??= Current.Game.GetComponent<EquipmentManagerGameComponent>();
 
-    private static IEnumerable<Widgets.DropdownMenuElement<EquipmentManager.Loadout?>>
-        Button_GenerateMenu(Pawn pawn)
+    private static IEnumerable<Widgets.DropdownMenuElement<EquipmentManager.Loadout?>> Button_GenerateMenu(Pawn pawn)
     {
         var loadouts = EquipmentManager.GetLoadouts().ToList();
-        if (!loadouts.Any())
-        {
-            return Array.Empty<Widgets.DropdownMenuElement<EquipmentManager.Loadout?>>();
-        }
+        if (!loadouts.Any()) { return Array.Empty<Widgets.DropdownMenuElement<EquipmentManager.Loadout?>>(); }
         var elements = new List<Widgets.DropdownMenuElement<EquipmentManager.Loadout?>>
         {
             new()
@@ -34,13 +30,12 @@ internal class Loadout : PawnColumnWorker
                     () => EquipmentManager.SetPawnLoadout(pawn, null, true))
             }
         };
-        elements.AddRange(loadouts.Select(currentLoadout =>
-            new Widgets.DropdownMenuElement<EquipmentManager.Loadout?>
-            {
-                option = new FloatMenuOption(currentLoadout.Label,
-                    () => EquipmentManager.SetPawnLoadout(pawn, currentLoadout, false)),
-                payload = currentLoadout
-            }));
+        elements.AddRange(loadouts.Select(currentLoadout => new Widgets.DropdownMenuElement<EquipmentManager.Loadout?>
+        {
+            option = new FloatMenuOption(currentLoadout.Label,
+                () => EquipmentManager.SetPawnLoadout(pawn, currentLoadout, false)),
+            payload = currentLoadout
+        }));
         return elements;
     }
 
@@ -52,31 +47,26 @@ internal class Loadout : PawnColumnWorker
 
     public override void DoCell(Rect rect, Pawn pawn, PawnTable table)
     {
-        var loadoutButtonRect = new Rect(rect.x, rect.y + 2f,
-            Mathf.FloorToInt((float)((rect.width - 4.0) * 0.7)), rect.height - 4f);
+        var loadoutButtonRect = new Rect(rect.x, rect.y + 2f, Mathf.FloorToInt((float)((rect.width - 4.0) * 0.7)),
+            rect.height - 4f);
         if (pawn.IsQuestLodger())
         {
             Text.Anchor = TextAnchor.MiddleCenter;
-            Widgets.Label(loadoutButtonRect,
-                "Unchangeable".Translate().Truncate(loadoutButtonRect.width));
+            Widgets.Label(loadoutButtonRect, "Unchangeable".Translate().Truncate(loadoutButtonRect.width));
             Text.Anchor = TextAnchor.UpperLeft;
         }
         else
         {
             var pawnLoadout = EquipmentManager.GetPawnLoadout(pawn);
             var loadout = EquipmentManager.GetLoadout(pawnLoadout.LoadoutId);
-            var label = loadout != null
-                ? loadout.Label
-                : Resources.Strings.Loadouts.Default.NoLoadout;
+            var label = loadout != null ? loadout.Label : Resources.Strings.Loadouts.Default.NoLoadout;
             if (pawnLoadout.Automatic) { label = $"* {label}"; }
-            Widgets.Dropdown(loadoutButtonRect, pawn, _ => EquipmentManager.GetLoadout(pawn),
-                Button_GenerateMenu, label, dragLabel: label.Truncate(loadoutButtonRect.width),
-                paintable: true);
+            Widgets.Dropdown(loadoutButtonRect, pawn, _ => EquipmentManager.GetLoadout(pawn), Button_GenerateMenu,
+                label, dragLabel: label.Truncate(loadoutButtonRect.width), paintable: true);
         }
         var editButtonRect = new Rect(rect.x + loadoutButtonRect.width + 4f, rect.y + 2f,
             Mathf.FloorToInt((float)((rect.width - 4.0) * 0.3)), rect.height - 4f);
-        if (!pawn.IsQuestLodger() &&
-            Widgets.ButtonText(editButtonRect, "AssignTabEdit".Translate()))
+        if (!pawn.IsQuestLodger() && Widgets.ButtonText(editButtonRect, "AssignTabEdit".Translate()))
         {
             Find.WindowStack.Add(new ManageLoadoutsDialog(EquipmentManager.GetLoadout(pawn)));
         }
@@ -86,8 +76,7 @@ internal class Loadout : PawnColumnWorker
     {
         base.DoHeader(rect, table);
         MouseoverSounds.DoRegion(rect);
-        var buttonRect = new Rect(rect.x, rect.y + (rect.height - 65f), Mathf.Min(rect.width, 360f),
-            32f);
+        var buttonRect = new Rect(rect.x, rect.y + (rect.height - 65f), Mathf.Min(rect.width, 360f), 32f);
         if (Widgets.ButtonText(buttonRect, Resources.Strings.Loadouts.ManageLoadouts))
         {
             Find.WindowStack.Add(new ManageLoadoutsDialog(null));

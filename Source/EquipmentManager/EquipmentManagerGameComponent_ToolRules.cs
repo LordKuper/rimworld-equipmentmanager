@@ -10,13 +10,15 @@ internal partial class EquipmentManagerGameComponent
 {
     private readonly Dictionary<Thing, ToolCache> _toolCache = new();
     private readonly Dictionary<ThingDef, ToolCache> _toolDefsCache = new();
-    // Populated by Scribe on load (IExposable lifecycle); = null! asserts the field is always
-    // set before any read, consistent with the RimWorld load contract.
-    private List<ToolRule> _toolRules = null!;
+
+    // Populated by Scribe on load (IExposable lifecycle); null when no saved data exists.
+    // GetToolRules() guards with ??= to restore default rules.
+    private List<ToolRule>? _toolRules;
 
     public ToolRule AddToolRule()
     {
-        var id = _toolRules.Any() ? _toolRules.Max(l => l.Id) + 1 : 0;
+        _ = GetToolRules(); // ensure list is initialized
+        var id = _toolRules!.Any() ? _toolRules!.Max(l => l.Id) + 1 : 0;
         var toolRule = new ToolRule(id, false) { Label = $"{id}" };
         foreach (var statWeight in toolRule.GetDefaultStatWeights())
         {
@@ -29,16 +31,17 @@ internal partial class EquipmentManagerGameComponent
             if (def != null) { toolRule.AddBlacklistedItem(def); }
         }
         toolRule.UpdateGloballyAvailableItems();
-        _toolRules.Add(toolRule);
+        _toolRules!.Add(toolRule);
         return toolRule;
     }
 
     public void AddToolRule(ToolRule toolRule)
     {
         toolRule.NormalizeLegacyCustomStatDefNames();
-        var existingRule = _toolRules.FirstOrDefault(rule => rule.Id == toolRule.Id);
-        if (existingRule != null) { _ = _toolRules.Remove(existingRule); }
-        _toolRules.Add(toolRule);
+        _ = GetToolRules(); // ensure list is initialized
+        var existingRule = _toolRules!.FirstOrDefault(rule => rule.Id == toolRule.Id);
+        if (existingRule != null) { _ = _toolRules!.Remove(existingRule); }
+        _toolRules!.Add(toolRule);
     }
 
     public ToolRule CopyToolRule(ToolRule toolRule)
@@ -69,7 +72,8 @@ internal partial class EquipmentManagerGameComponent
         {
             if (loadout.ToolRuleId == toolRule.Id) { loadout.ToolRuleId = null; }
         }
-        _ = _toolRules.Remove(toolRule);
+        _ = GetToolRules(); // ensure list is initialized
+        _ = _toolRules!.Remove(toolRule);
     }
 
     private void ExposeData_ToolRules()
@@ -111,7 +115,7 @@ internal partial class EquipmentManagerGameComponent
     {
         if (_toolRules == null || _toolRules.Count == 0)
         {
-            _toolRules = new List<ToolRule>(ToolRule.DefaultRules);
+            _toolRules = [.. ToolRule.DefaultRules];
         }
         return _toolRules;
     }

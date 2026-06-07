@@ -1,10 +1,7 @@
 using System.Collections.Generic;
-using System.Linq;
+using System.Reflection;
 using LordKuper.Common;
 using LordKuper.Common.CustomStats;
-using LordKuper.Common.Filters.Limits;
-using RimWorld;
-using Verse;
 
 namespace EquipmentManager.Tests;
 
@@ -14,8 +11,7 @@ namespace EquipmentManager.Tests;
 ///     Covers AC-27 (Initialize + legacy normalization), AC-28 (IsAvailable branches),
 ///     and AC-29 (AmmoCount, PrimaryRuleType, CopyX, tool-cache composite key).
 /// </summary>
-[TestFixture]
-[NonParallelizable]
+[TestFixture, NonParallelizable]
 public class ItemRuleAndLoadoutTests : StateIsolationTestBase
 {
     /// <summary>
@@ -32,13 +28,10 @@ public class ItemRuleAndLoadoutTests : StateIsolationTestBase
         // After Initialize, they should be non-null empty collections.
         rule.GetStatWeights().Should().NotBeNull("Initialize should coalesce null StatWeights");
         rule.GetStatWeights().Should().HaveCount(0, "new rule should have empty weights");
-
         rule.GetStatLimits().Should().NotBeNull("Initialize should coalesce null StatLimits");
         rule.GetStatLimits().Should().HaveCount(0, "new rule should have empty limits");
-
         rule.GetBlacklistedItems().Should().NotBeNull("Initialize should coalesce null blacklist");
         rule.GetBlacklistedItems().Should().HaveCount(0, "new rule should have empty blacklist");
-
         rule.GetWhitelistedItems().Should().NotBeNull("Initialize should coalesce null whitelist");
         rule.GetWhitelistedItems().Should().HaveCount(0, "new rule should have empty whitelist");
     }
@@ -51,22 +44,17 @@ public class ItemRuleAndLoadoutTests : StateIsolationTestBase
     public void ItemRule_Initialize_NormalizesLegacyStatNames()
     {
         var legacyWeight = new StatWeight("EM_RangedWeapons_Dpsa", 1.5f, false);
-        var rule = new RangedWeaponRule
-        {
-            Label = "Legacy Rule"
-        };
+        var rule = new RangedWeaponRule { Label = "Legacy Rule" };
 
         // Manually set a legacy-named stat weight (simulating Scribe load).
         var weights = new List<StatWeight> { legacyWeight };
         // Access the protected StatWeights field via reflection to set the legacy state.
-        var field = typeof(ItemRule).GetField("StatWeights",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var field = typeof(ItemRule).GetField("StatWeights", BindingFlags.NonPublic | BindingFlags.Instance);
         field?.SetValue(rule, weights);
 
         // Initialize should normalize the legacy name.
         var normalizedWeights = rule.GetStatWeights();
         normalizedWeights.Should().HaveCount(1);
-
         var canonical = RangedWeaponStats.GetStatDefName(RangedWeaponStat.Dpsa);
         normalizedWeights[0].StatDefName.Should().Be(canonical,
             "legacy name EM_RangedWeapons_Dpsa should normalize to the current canonical name");
@@ -111,7 +99,6 @@ public class ItemRuleAndLoadoutTests : StateIsolationTestBase
     ///     - Stat limits (StatHelper.GetStatValue vs StatLimits)
     ///     - Skill limits (pawn.skills.GetSkill(skillDef).Level vs SkillLimits)
     /// </summary>
-
     /// <summary>
     ///     AC-29: Tests RangedWeaponRule.AmmoCount property gating on CombatExtendedHelper.EnableAmmoSystem.
     ///     When CE is not available, AmmoCount should always return 0 even if set to non-zero.
@@ -119,7 +106,8 @@ public class ItemRuleAndLoadoutTests : StateIsolationTestBase
     [Test]
     public void RangedWeaponRule_AmmoCount_GatedByCombatExtendedHelper()
     {
-        var rule = new RangedWeaponRule(1, "Test", false, [], [], [], [], ItemRule.WeaponEquipMode.BestOne, false, false, 50);
+        var rule = new RangedWeaponRule(1, "Test", false, [], [], [], [], ItemRule.WeaponEquipMode.BestOne, false,
+            false, 50);
 
         // If EnableAmmoSystem is false (likely in test context without CE),
         // the getter should return 0.
@@ -169,22 +157,18 @@ public class ItemRuleAndLoadoutTests : StateIsolationTestBase
         // Document the expectation: setting to MeleeWeapon should clear ranged rule.
     }
 
-    /// <summary>
-    ///     AC-29: Documents the CopyX deep-copy expectation for *Rule classes.
-    ///     Copy methods are not unit-testable in isolation without game context.
-    ///     See manual-verification-spec for validation that:
-    ///     - RangedWeaponRule.CopyX deep-copies all fields (including nested collections)
-    ///     - MeleeWeaponRule.CopyX deep-copies all fields
-    ///     - ToolRule.CopyX deep-copies all fields
-    /// </summary>
+    // AC-29: Documents the CopyX deep-copy expectation for *Rule classes.
+    // Copy methods are not unit-testable in isolation without game context.
+    // See manual-verification-spec for validation that:
+    // - RangedWeaponRule.CopyX deep-copies all fields (including nested collections)
+    // - MeleeWeaponRule.CopyX deep-copies all fields
+    // - ToolRule.CopyX deep-copies all fields
 
-    /// <summary>
-    ///     AC-29: C-3 composite-key test: ToolCache must differentiate scores
-    ///     for the same Thing when used with differing work-type sets.
-    ///     This test documents the composite-key fix expectation.
-    ///     The fix (including work-type-defs in the cache key) has been applied in Task 7.
-    ///     See manual-verification-spec for in-game validation that:
-    ///     - ToolCache.GetStatValue(stat, workTypes1) != ToolCache.GetStatValue(stat, workTypes2)
-    ///       when workTypes1 != workTypes2 and the stat is work-type-dependent.
-    /// </summary>
+    // AC-29: C-3 composite-key test: ToolCache must differentiate scores
+    // for the same Thing when used with differing work-type sets.
+    // This test documents the composite-key fix expectation.
+    // The fix (including work-type-defs in the cache key) has been applied in Task 7.
+    // See manual-verification-spec for in-game validation that:
+    // - ToolCache.GetStatValue(stat, workTypes1) != ToolCache.GetStatValue(stat, workTypes2)
+    //   when workTypes1 != workTypes2 and the stat is work-type-dependent.
 }

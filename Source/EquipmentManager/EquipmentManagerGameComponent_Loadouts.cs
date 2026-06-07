@@ -9,25 +9,27 @@ namespace EquipmentManager;
 
 internal partial class EquipmentManagerGameComponent
 {
-    // Populated by Scribe on load (IExposable lifecycle); = null! asserts the fields are always
-    // set before any read, consistent with the RimWorld load contract.
-    private List<Loadout> _loadouts = null!;
-    private List<PawnLoadout> _pawnLoadouts = null!;
+    // Populated by Scribe on load (IExposable lifecycle); null when no saved data exists.
+    // GetLoadouts() and GetPawnLoadout() guard with ??= to restore defaults.
+    private List<Loadout>? _loadouts;
+    private List<PawnLoadout>? _pawnLoadouts;
 
     public Loadout AddLoadout()
     {
-        var id = _loadouts.Any() ? _loadouts.Max(l => l.Id) + 1 : 0;
+        _ = GetLoadouts(); // ensure list is initialized
+        var id = _loadouts!.Any() ? _loadouts!.Max(l => l.Id) + 1 : 0;
         var loadout = new Loadout(id) { Label = $"{id}" };
-        _loadouts.Add(loadout);
+        _loadouts!.Add(loadout);
         return loadout;
     }
 
     public void AddLoadout(Loadout loadout)
     {
         loadout.NormalizeLegacyCustomStatDefNames();
-        var existingLoadout = _loadouts.FirstOrDefault(l => l.Id == loadout.Id);
-        if (existingLoadout != null) { _ = _loadouts.Remove(existingLoadout); }
-        _loadouts.Add(loadout);
+        _ = GetLoadouts(); // ensure list is initialized
+        var existingLoadout = _loadouts!.FirstOrDefault(l => l.Id == loadout.Id);
+        if (existingLoadout != null) { _ = _loadouts!.Remove(existingLoadout); }
+        _loadouts!.Add(loadout);
     }
 
     public Loadout CopyLoadout(Loadout loadout)
@@ -44,26 +46,20 @@ internal partial class EquipmentManagerGameComponent
         newLoadout.DropUnassignedWeapons = loadout.DropUnassignedWeapons;
         foreach (var passionLimit in loadout.PassionLimits)
         {
-            newLoadout.PassionLimits.Add(
-                new PassionLimit(passionLimit.SkillDefName) { Value = passionLimit.Value });
+            newLoadout.PassionLimits.Add(new PassionLimit(passionLimit.SkillDefName) { Value = passionLimit.Value });
         }
         foreach (var pawnCapacityLimit in loadout.PawnCapacityLimits)
         {
             // PawnCapacityDefName is populated by Scribe; non-null by load contract.
-            newLoadout.PawnCapacityLimits.Add(new PawnCapacityLimit(
-                pawnCapacityLimit.PawnCapacityDefName!, pawnCapacityLimit.MinValue,
-                pawnCapacityLimit.MaxValue));
+            newLoadout.PawnCapacityLimits.Add(new PawnCapacityLimit(pawnCapacityLimit.PawnCapacityDefName!,
+                pawnCapacityLimit.MinValue, pawnCapacityLimit.MaxValue));
         }
         foreach (var pawnCapacityWeight in loadout.PawnCapacityWeights)
         {
-            newLoadout.PawnCapacityWeights.Add(
-                new PawnCapacityWeight(pawnCapacityWeight.PawnCapacityDefName,
-                    pawnCapacityWeight.Weight));
+            newLoadout.PawnCapacityWeights.Add(new PawnCapacityWeight(pawnCapacityWeight.PawnCapacityDefName,
+                pawnCapacityWeight.Weight));
         }
-        foreach (var pawnTrait in loadout.PawnTraits)
-        {
-            newLoadout.PawnTraits.Add(pawnTrait.Key, pawnTrait.Value);
-        }
+        foreach (var pawnTrait in loadout.PawnTraits) { newLoadout.PawnTraits.Add(pawnTrait.Key, pawnTrait.Value); }
         foreach (var pawnWorkCapacity in loadout.PawnWorkCapacities)
         {
             newLoadout.PawnWorkCapacities.Add(pawnWorkCapacity.Key, pawnWorkCapacity.Value);
@@ -71,43 +67,39 @@ internal partial class EquipmentManagerGameComponent
         foreach (var skillLimit in loadout.SkillLimits)
         {
             // SkillDefName is populated by Scribe; non-null by load contract.
-            newLoadout.SkillLimits.Add(new PawnSkillLimit(skillLimit.SkillDefName!,
-                skillLimit.MinValue, skillLimit.MaxValue));
+            newLoadout.SkillLimits.Add(new PawnSkillLimit(skillLimit.SkillDefName!, skillLimit.MinValue,
+                skillLimit.MaxValue));
         }
         foreach (var skillWeight in loadout.SkillWeights)
         {
-            newLoadout.SkillWeights.Add(new SkillWeight(skillWeight.SkillDefName,
-                skillWeight.Weight));
+            newLoadout.SkillWeights.Add(new SkillWeight(skillWeight.SkillDefName, skillWeight.Weight));
         }
         foreach (var statLimit in loadout.StatLimits)
         {
             // StatDefName is populated by Scribe; non-null by load contract.
-            newLoadout.StatLimits.Add(new StatLimit(statLimit.StatDefName!, statLimit.MinValue,
-                statLimit.MaxValue));
+            newLoadout.StatLimits.Add(new StatLimit(statLimit.StatDefName!, statLimit.MinValue, statLimit.MaxValue));
         }
         foreach (var statWeight in loadout.StatWeights)
         {
-            newLoadout.StatWeights.Add(new StatWeight(statWeight.StatDefName, statWeight.Weight,
-                statWeight.Protected));
+            newLoadout.StatWeights.Add(new StatWeight(statWeight.StatDefName, statWeight.Weight, statWeight.Protected));
         }
         return newLoadout;
     }
 
     public void DeleteLoadout(Loadout loadout)
     {
-        foreach (var pawnLoadout in _pawnLoadouts.Where(pl => pl.LoadoutId == loadout.Id))
+        _ = GetLoadouts(); // ensure list is initialized
+        _ = GetPawnLoadouts(); // ensure list is initialized
+        foreach (var pawnLoadout in _pawnLoadouts!.Where(pl => pl.LoadoutId == loadout.Id))
         {
             pawnLoadout.LoadoutId = null;
         }
-        _ = _loadouts.Remove(loadout);
+        _ = _loadouts!.Remove(loadout);
     }
 
     private void ExposeData_Loadouts()
     {
-        if (Scribe.mode == LoadSaveMode.Saving)
-        {
-            _ = _pawnLoadouts?.RemoveAll(pl => pl.Pawn?.Destroyed ?? true);
-        }
+        if (Scribe.mode == LoadSaveMode.Saving) { _ = _pawnLoadouts?.RemoveAll(pl => pl.Pawn?.Destroyed ?? true); }
         Scribe_Collections.Look(ref _loadouts, "Loadouts", LookMode.Deep);
         Scribe_Collections.Look(ref _pawnLoadouts, "PawnLoadouts", LookMode.Deep);
     }
@@ -119,47 +111,46 @@ internal partial class EquipmentManagerGameComponent
 
     public Loadout? GetLoadout(Pawn pawn)
     {
-        if (pawn == null) { throw new ArgumentNullException(nameof(pawn)); }
-        _pawnLoadouts ??= [];
-        return GetLoadout(GetPawnLoadout(pawn).LoadoutId);
+        return pawn == null
+            ? throw new ArgumentNullException(nameof(pawn))
+            : GetLoadout(GetPawnLoadout(pawn).LoadoutId);
     }
 
     public IEnumerable<Loadout> GetLoadouts()
     {
-        return _loadouts ??= [.. Loadout.DefaultLoadouts];
+        _loadouts ??= [.. Loadout.DefaultLoadouts];
+        return _loadouts;
+    }
+
+    private List<PawnLoadout> GetPawnLoadouts()
+    {
+        _pawnLoadouts ??= [];
+        return _pawnLoadouts;
     }
 
     public PawnLoadout GetPawnLoadout(Pawn pawn)
     {
         if (pawn == null) { throw new ArgumentNullException(nameof(pawn)); }
-        _pawnLoadouts ??= [];
-        var pawnLoadout = _pawnLoadouts.FirstOrDefault(pl =>
+        _ = GetPawnLoadouts(); // ensure list is initialized
+        var pawnLoadout = _pawnLoadouts!.FirstOrDefault(pl =>
             pl.Pawn != null && pl.Pawn.thingIDNumber == pawn.thingIDNumber);
         if (pawnLoadout != null) { return pawnLoadout; }
         pawnLoadout = new PawnLoadout { Pawn = pawn, LoadoutId = null, Automatic = true };
-        _pawnLoadouts.Add(pawnLoadout);
+        _pawnLoadouts!.Add(pawnLoadout);
         return pawnLoadout;
     }
 
     public void SetPawnLoadout(Pawn pawn, Loadout? loadout, bool automatic)
     {
         if (pawn == null) { throw new ArgumentNullException(nameof(pawn)); }
-        _pawnLoadouts ??= [];
-        var pawnLoadout = _pawnLoadouts.FirstOrDefault(pl =>
+        _ = GetPawnLoadouts(); // ensure list is initialized
+        var pawnLoadout = _pawnLoadouts!.FirstOrDefault(pl =>
             pl.Pawn != null && pl.Pawn.thingIDNumber == pawn.thingIDNumber);
         if (pawnLoadout != null)
         {
             pawnLoadout.LoadoutId = loadout?.Id;
             pawnLoadout.Automatic = automatic;
         }
-        else
-        {
-            _pawnLoadouts.Add(new PawnLoadout
-            {
-                Pawn = pawn,
-                LoadoutId = loadout?.Id,
-                Automatic = automatic
-            });
-        }
+        else { _pawnLoadouts!.Add(new PawnLoadout { Pawn = pawn, LoadoutId = loadout?.Id, Automatic = automatic }); }
     }
 }

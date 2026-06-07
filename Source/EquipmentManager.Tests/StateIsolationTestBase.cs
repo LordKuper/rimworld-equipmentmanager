@@ -30,15 +30,6 @@ public abstract class StateIsolationTestBase
     private readonly Dictionary<Type, object?> _snapshot = new();
 
     /// <summary>
-    ///     Gets the value of a static field via reflection.
-    /// </summary>
-    private static object? GetStaticFieldValue(Type type, string fieldName)
-    {
-        var field = type.GetField(fieldName, BindingFlags.Static | BindingFlags.NonPublic);
-        return field?.GetValue(null);
-    }
-
-    /// <summary>
     ///     Restores the snapshotted mutable static state after each test.
     /// </summary>
     [TearDown]
@@ -47,10 +38,7 @@ public abstract class StateIsolationTestBase
         foreach (var type in CachingTypes)
         {
             var field = type.GetField(EquipmentManagerFieldName, BindingFlags.Static | BindingFlags.NonPublic);
-            if (field != null)
-            {
-                field.SetValue(null, _snapshot.TryGetValue(type, out var value) ? value : null);
-            }
+            if (field != null) { field.SetValue(null, _snapshot.TryGetValue(type, out var value) ? value : null); }
         }
     }
 
@@ -64,10 +52,7 @@ public abstract class StateIsolationTestBase
         foreach (var type in CachingTypes)
         {
             var field = type.GetField(EquipmentManagerFieldName, BindingFlags.Static | BindingFlags.NonPublic);
-            if (field != null)
-            {
-                _snapshot[type] = field.GetValue(null);
-            }
+            if (field != null) { _snapshot[type] = field.GetValue(null); }
         }
     }
 }

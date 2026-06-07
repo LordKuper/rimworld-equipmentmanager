@@ -47,8 +47,7 @@ internal static class UiHelpers
         GUI.color = color;
     }
 
-    public static Rect DoLabeledRect(Rect rect, string label, string? tooltip = null,
-        float labelWidthFactor = 0.25f)
+    public static Rect DoLabeledRect(Rect rect, string label, string? tooltip = null, float labelWidthFactor = 0.25f)
     {
         var anchor = Text.Anchor;
         Text.Anchor = TextAnchor.MiddleRight;
@@ -56,32 +55,14 @@ internal static class UiHelpers
         Widgets.Label(labelRect, label);
         Text.Anchor = anchor;
         if (!string.IsNullOrEmpty(tooltip)) { TooltipHandler.TipRegion(labelRect, tooltip); }
-        return new Rect(labelRect.xMax + ElementGap, rect.y,
-            rect.width - labelRect.width - ElementGap, rect.height);
-    }
-
-    public static void DoLabeledText(Rect rect, string label, string? value,
-        float labelWidthFactor = 0.25f)
-    {
-        var font = Text.Font;
-        var anchor = Text.Anchor;
-        Text.Font = GameFont.Medium;
-        Text.Anchor = TextAnchor.MiddleRight;
-        var labelRect = new Rect(rect.x, rect.y, rect.width * labelWidthFactor, rect.height);
-        Widgets.Label(labelRect, label);
-        Text.Anchor = TextAnchor.MiddleLeft;
-        var valueRect = new Rect(labelRect.xMax + ElementGap, rect.y,
-            rect.width - labelRect.width - ElementGap, rect.height);
-        Widgets.Label(valueRect, value ?? string.Empty);
-        Text.Font = font;
-        Text.Anchor = anchor;
+        return new Rect(labelRect.xMax + ElementGap, rect.y, rect.width - labelRect.width - ElementGap, rect.height);
     }
 
     public static Rect GetBoolSettingRect(Rect rect, int index, float columnWidth)
     {
         var rowIndex = Math.DivRem(index, BoolSettingsColumnCount, out var columnIndex);
-        return new Rect(rect.x + (columnWidth + ElementGap) * columnIndex,
-            rect.y + ListRowHeight * rowIndex, columnWidth, ListRowHeight).ContractedBy(4f);
+        return new Rect(rect.x + (columnWidth + ElementGap) * columnIndex, rect.y + ListRowHeight * rowIndex,
+            columnWidth, ListRowHeight).ContractedBy(4f);
     }
 
     public static MultiCheckboxState GetSettingCheckboxState(bool? value)
@@ -93,5 +74,4 @@ internal static class UiHelpers
             _ => MultiCheckboxState.On
         };
     }
-
 }

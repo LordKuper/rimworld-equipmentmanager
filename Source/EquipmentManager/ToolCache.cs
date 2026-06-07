@@ -9,31 +9,24 @@ using Verse;
 
 namespace EquipmentManager;
 
-internal class ToolCache : ThingCache
+internal class ToolCache(Thing thing) : ThingCache(thing, 24f)
 {
     private static EquipmentManagerGameComponent? _equipmentManager;
     private readonly Dictionary<string, float> _workTypeScores = new();
 
-    public ToolCache(Thing thing) : base(thing, 24f) { }
-
     private static EquipmentManagerGameComponent EquipmentManager =>
         _equipmentManager ??= Current.Game.GetComponent<EquipmentManagerGameComponent>();
 
-    private float GetCustomStatValue(StatDef statDef,
-        IReadOnlyCollection<WorkTypeDef> workTypeDefs)
+    private float GetCustomStatValue(StatDef statDef, IReadOnlyCollection<WorkTypeDef> workTypeDefs)
     {
         if (Enum.TryParse(ToolStats.GetStatName(statDef.defName), out ToolStat toolStat))
         {
             switch (toolStat)
             {
                 case ToolStat.WorkType:
-                    if (!workTypeDefs.Any())
-                    {
-                        throw new ArgumentException("At least one work type must be passed",
-                            nameof(workTypeDefs));
-                    }
-                    return GetWorkTypesScore(
-                        workTypeDefs.Select(workTypeDef => workTypeDef.defName));
+                    return !workTypeDefs.Any()
+                        ? throw new ArgumentException("At least one work type must be passed", nameof(workTypeDefs))
+                        : GetWorkTypesScore(workTypeDefs.Select(workTypeDef => workTypeDef.defName));
                 case ToolStat.TechLevel:
                     return (float)Thing.def.techLevel;
                 default:
@@ -44,17 +37,13 @@ internal class ToolCache : ThingCache
         return 0f;
     }
 
-    public float GetStatValue(StatDef statDef,
-        IReadOnlyCollection<WorkTypeDef> workTypeDefs)
+    public float GetStatValue(StatDef statDef, IReadOnlyCollection<WorkTypeDef> workTypeDefs)
     {
         // WorkType-dependent stats vary by the caller's active work-type set and cannot be cached
         // under a StatDef-only key. Compute them on demand without touching the shared cache.
         if (ToolStats.IsCustomStat(statDef.defName) &&
             Enum.TryParse(ToolStats.GetStatName(statDef.defName), out ToolStat toolStat) &&
-            toolStat == ToolStat.WorkType)
-        {
-            return GetCustomStatValue(statDef, workTypeDefs);
-        }
+            toolStat == ToolStat.WorkType) { return GetCustomStatValue(statDef, workTypeDefs); }
         if (!StatValues.TryGetValue(statDef, out var value))
         {
             value = ToolStats.IsCustomStat(statDef.defName)
@@ -65,8 +54,7 @@ internal class ToolCache : ThingCache
         return value;
     }
 
-    public float GetStatValueDeviation(StatDef statDef,
-        IReadOnlyCollection<WorkTypeDef> workTypeDefs)
+    public float GetStatValueDeviation(StatDef statDef, IReadOnlyCollection<WorkTypeDef> workTypeDefs)
     {
         return statDef == null ? throw new ArgumentNullException(nameof(statDef)) :
             ToolStats.IsCustomStat(statDef.defName) ? GetCustomStatValue(statDef, workTypeDefs) :

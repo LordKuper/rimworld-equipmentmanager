@@ -10,12 +10,12 @@ namespace EquipmentManager.Windows;
 
 internal partial class ManageWeaponRulesDialog
 {
-    private readonly List<ThingDef> _globallyAvailableWorkTypes = new();
     private readonly List<Thing> _currentlyAvailableMapThings = new();
-    private float _workTypesScrollableContentHeight;
-    private Vector2 _workTypesScrollPosition;
-    private Vector2 _workTypesThingIconBoxScrollPosition;
+    private readonly List<ThingDef> _globallyAvailableWorkTypes = new();
     private Vector2 _workTypesMapThingIconBoxScrollPosition;
+    private Vector2 _workTypesScrollPosition;
+    private float _workTypesScrollableContentHeight;
+    private Vector2 _workTypesThingIconBoxScrollPosition;
 
     private WorkTypeThingRule? SelectedWorkTypeRule
     {
@@ -29,13 +29,11 @@ internal partial class ManageWeaponRulesDialog
 
     private void DoTab_WorkTypes(Rect rect)
     {
-        WorkTypeThingRuleWidget.DoWidgetTab(rect, ref _workTypesScrollableContentHeight,
-            ref _workTypesScrollPosition, AvailableItemIconsRowCount,
-            EquipmentManager.GetWorkTypeRules().ToList(),
-            SelectedWorkTypeRule, rule => SelectedWorkTypeRule = rule,
-            UpdateAvailableItems_WorkTypes, ref _workTypesThingIconBoxScrollPosition,
-            _globallyAvailableWorkTypes, ref _workTypesMapThingIconBoxScrollPosition,
-            _currentlyAvailableMapThings);
+        WorkTypeThingRuleWidget.DoWidgetTab(rect, ref _workTypesScrollableContentHeight, ref _workTypesScrollPosition,
+            AvailableItemIconsRowCount, EquipmentManager.GetWorkTypeRules().ToList(), SelectedWorkTypeRule,
+            rule => SelectedWorkTypeRule = rule, UpdateAvailableItems_WorkTypes,
+            ref _workTypesThingIconBoxScrollPosition, _globallyAvailableWorkTypes,
+            ref _workTypesMapThingIconBoxScrollPosition, _currentlyAvailableMapThings);
     }
 
     private void UpdateAvailableItems_WorkTypes()

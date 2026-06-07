@@ -4,11 +4,10 @@ using System.Linq;
 using EquipmentManager.CustomWidgets;
 using LordKuper.Common;
 using LordKuper.Common.Filters.Limits;
+using LordKuper.Common.UI.Widgets;
 using RimWorld;
 using UnityEngine;
 using Verse;
-using LordKuper.Common.UI;
-using LordKuper.Common.UI.Widgets;
 
 namespace EquipmentManager.Windows;
 
@@ -16,16 +15,16 @@ internal partial class ManageWeaponRulesDialog : Window
 {
     private const float ItemIconGap = 4f;
     private const float ItemIconSize = 32f;
+    private static DialogTab _currentTab = DialogTab.MeleeWeapons;
+    private readonly List<TabRecord> _tabs = new();
     private Vector2 _blacklistScrollPosition;
     private Vector2 _currentItemsScrollPosition;
-    private static DialogTab _currentTab = DialogTab.MeleeWeapons;
     private EquipmentManagerGameComponent? _equipmentManager;
     private Vector2 _globalItemsScrollPosition;
+    private bool _initialized;
     private Vector2 _statLimitsScrollPosition;
     private Vector2 _statWeightsScrollPosition;
     private Vector2 _whitelistScrollPosition;
-    private readonly List<TabRecord> _tabs = new();
-    private bool _initialized;
 
     public ManageWeaponRulesDialog()
     {
@@ -42,10 +41,7 @@ internal partial class ManageWeaponRulesDialog : Window
         _equipmentManager ??= Current.Game.GetComponent<EquipmentManagerGameComponent>();
 
     private int ExclusiveItemIconsRowCount => InitialSize.y < MaxSize.y ? 2 : 3;
-
-    public override Vector2 InitialSize =>
-        LordKuper.Common.UI.Windows.GetWindowSize(new Vector2(850f, 650f), MaxSize);
-
+    public override Vector2 InitialSize => LordKuper.Common.UI.Windows.GetWindowSize(new Vector2(850f, 650f), MaxSize);
     private static Vector2 MaxSize => new(1000f, 1000f);
 
     private static void CheckSelectedItemRuleHasName(ItemRule? rule)
@@ -66,13 +62,12 @@ internal partial class ManageWeaponRulesDialog : Window
         DoGloballyAvailableItems(globalRect, globalItems, globalItemRightClickAction, refreshAction,
             globalTooltipGetter);
         UiHelpers.DoGapLineVertical(gapRect);
-        DoCurrentlyAvailableItems(currentRect, currentItems, currentItemRightClickAction,
-            refreshAction, currentTooltipGetter);
+        DoCurrentlyAvailableItems(currentRect, currentItems, currentItemRightClickAction, refreshAction,
+            currentTooltipGetter);
     }
 
-    private void DoBlacklist(Rect rect, IReadOnlyCollection<ThingDef> items,
-        IEnumerable<ThingDef> allItems, Action<ThingDef> addAction,
-        Action<ThingDef> rightClickAction, Func<ThingDef, string> tooltipGetter)
+    private void DoBlacklist(Rect rect, IReadOnlyCollection<ThingDef> items, IEnumerable<ThingDef> allItems,
+        Action<ThingDef> addAction, Action<ThingDef> rightClickAction, Func<ThingDef, string> tooltipGetter)
     {
         var font = Text.Font;
         var anchor = Text.Anchor;
@@ -86,20 +81,19 @@ internal partial class ManageWeaponRulesDialog : Window
             rect.width - labelRect.width - UiHelpers.ElementGap, labelRect.height);
         if (Widgets.ButtonText(buttonRect, Resources.Strings.Add))
         {
-            Find.WindowStack.Add(new FloatMenu(allItems
-                .Where(def => items.All(weight => weight != def)).Select(def =>
-                    new FloatMenuOption($"{def.LabelCap}", () => addAction(def))).ToList()));
+            Find.WindowStack.Add(new FloatMenu(allItems.Where(def => items.All(weight => weight != def))
+                .Select(def => new FloatMenuOption($"{def.LabelCap}", () => addAction(def))).ToList()));
         }
         Text.Font = font;
         Text.Anchor = anchor;
         ThingIconBox.DoThingDefBox(
             new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
-                rect.yMax - (labelRect.yMax + UiHelpers.ElementGap)), ref _blacklistScrollPosition,
-            items.ToList(), rightClickAction, tooltipGetter);
+                rect.yMax - (labelRect.yMax + UiHelpers.ElementGap)), ref _blacklistScrollPosition, items.ToList(),
+            rightClickAction, tooltipGetter);
     }
 
-    private void DoCurrentlyAvailableItems(Rect rect, IReadOnlyList<Thing> items,
-        Action<Thing> rightClickAction, Action refreshAction, Func<Thing, string> tooltipGetter)
+    private void DoCurrentlyAvailableItems(Rect rect, IReadOnlyList<Thing> items, Action<Thing> rightClickAction,
+        Action refreshAction, Func<Thing, string> tooltipGetter)
     {
         var font = Text.Font;
         var anchor = Text.Anchor;
@@ -116,31 +110,28 @@ internal partial class ManageWeaponRulesDialog : Window
         Text.Anchor = anchor;
         ThingIconBox.DoThingBox(
             new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
-                rect.yMax - (labelRect.yMax + UiHelpers.ElementGap)),
-            ref _currentItemsScrollPosition, items, rightClickAction, tooltipGetter);
+                rect.yMax - (labelRect.yMax + UiHelpers.ElementGap)), ref _currentItemsScrollPosition, items,
+            rightClickAction, tooltipGetter);
     }
 
-    private void DoExclusiveItems(Rect rect, HashSet<ThingDef> allItems,
-        IReadOnlyCollection<ThingDef> whitelistedItems,
+    private void DoExclusiveItems(Rect rect, HashSet<ThingDef> allItems, IReadOnlyCollection<ThingDef> whitelistedItems,
         Action<ThingDef> whitelistedItemsRightClickAction, Action<ThingDef> addToWhitelistAction,
-        IReadOnlyCollection<ThingDef> blacklistedItems,
-        Action<ThingDef> blacklistedItemsRightClickAction, Action<ThingDef> addToBlacklistAction,
-        Func<ThingDef, string> tooltipGetter)
+        IReadOnlyCollection<ThingDef> blacklistedItems, Action<ThingDef> blacklistedItemsRightClickAction,
+        Action<ThingDef> addToBlacklistAction, Func<ThingDef, string> tooltipGetter)
     {
         var columnWidth = (rect.width - UiHelpers.ElementGap) / 2f;
         var whitelistRect = new Rect(rect.x, rect.y, columnWidth, rect.height);
         var gapRect = new Rect(whitelistRect.xMax, rect.y, UiHelpers.ElementGap, rect.height);
         var blacklistRect = new Rect(gapRect.xMax, rect.y, columnWidth, rect.height);
-        DoWhitelist(whitelistRect, whitelistedItems, allItems, addToWhitelistAction,
-            whitelistedItemsRightClickAction, tooltipGetter);
+        DoWhitelist(whitelistRect, whitelistedItems, allItems, addToWhitelistAction, whitelistedItemsRightClickAction,
+            tooltipGetter);
         UiHelpers.DoGapLineVertical(gapRect);
-        DoBlacklist(blacklistRect, blacklistedItems, allItems, addToBlacklistAction,
-            blacklistedItemsRightClickAction, tooltipGetter);
+        DoBlacklist(blacklistRect, blacklistedItems, allItems, addToBlacklistAction, blacklistedItemsRightClickAction,
+            tooltipGetter);
     }
 
-    private void DoGloballyAvailableItems(Rect rect, IReadOnlyList<ThingDef> items,
-        Action<ThingDef> rightClickAction, Action refreshAction,
-        Func<ThingDef, string> tooltipGetter)
+    private void DoGloballyAvailableItems(Rect rect, IReadOnlyList<ThingDef> items, Action<ThingDef> rightClickAction,
+        Action refreshAction, Func<ThingDef, string> tooltipGetter)
     {
         var font = Text.Font;
         var anchor = Text.Anchor;
@@ -157,15 +148,14 @@ internal partial class ManageWeaponRulesDialog : Window
         Text.Anchor = anchor;
         ThingIconBox.DoThingDefBox(
             new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
-                rect.yMax - (labelRect.yMax + UiHelpers.ElementGap)),
-            ref _globalItemsScrollPosition, items, rightClickAction, tooltipGetter);
+                rect.yMax - (labelRect.yMax + UiHelpers.ElementGap)), ref _globalItemsScrollPosition, items,
+            rightClickAction, tooltipGetter);
     }
 
-    private static void DoRuleSetting(Rect settingRect, Func<bool?> getter,
-        Action<bool?> setter, string label, string tooltip)
+    private static void DoRuleSetting(Rect settingRect, Func<bool?> getter, Action<bool?> setter, string label,
+        string tooltip)
     {
-        var checkboxRect = new Rect(settingRect.x, settingRect.y, settingRect.height,
-            settingRect.height);
+        var checkboxRect = new Rect(settingRect.x, settingRect.y, settingRect.height, settingRect.height);
         var state = UiHelpers.GetSettingCheckboxState(getter());
         var newState = Widgets.CheckboxMulti(checkboxRect, state);
         if (newState != state) { setter(UiHelpers.CycleSettingValue(state)); }
@@ -178,9 +168,8 @@ internal partial class ManageWeaponRulesDialog : Window
         Text.Anchor = anchor;
     }
 
-    private void DoRuleStatLimits(Rect rect, IEnumerable<StatDef> statDefs,
-        IReadOnlyList<StatLimit> statLimits, Action<StatDef> addAction,
-        Action<string> deleteAction)
+    private void DoRuleStatLimits(Rect rect, IEnumerable<StatDef> statDefs, IReadOnlyList<StatLimit> statLimits,
+        Action<StatDef> addAction, Action<string> deleteAction)
     {
         var font = Text.Font;
         var anchor = Text.Anchor;
@@ -194,78 +183,52 @@ internal partial class ManageWeaponRulesDialog : Window
         if (Widgets.ButtonText(buttonRect, Resources.Strings.Add))
         {
             Find.WindowStack.Add(new FloatMenu(statDefs
-                .Where(def => statLimits.All(weight => weight.StatDefName != def.defName))
-                .Select(statDef =>
-                    new FloatMenuOption(
-                        $"{statDef.LabelCap} [{statDef.category?.LabelCap ?? "No category"}]",
+                .Where(def => statLimits.All(weight => weight.StatDefName != def.defName)).Select(statDef =>
+                    new FloatMenuOption($"{statDef.LabelCap} [{statDef.category?.LabelCap ?? "No category"}]",
                         () => addAction(statDef))).ToList()));
         }
         var listRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
             rect.yMax - labelRect.yMax - UiHelpers.ElementGap);
         var scrollViewRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap,
-            rect.width - GUI.skin.verticalScrollbar.fixedWidth - 4f,
-            UiHelpers.ListRowHeight * statLimits.Count);
+            rect.width - GUI.skin.verticalScrollbar.fixedWidth - 4f, UiHelpers.ListRowHeight * statLimits.Count);
         Widgets.BeginScrollView(listRect, ref _statLimitsScrollPosition, scrollViewRect);
         for (var i = 0; i < statLimits.Count; i++)
         {
             var statLimit = statLimits[i];
             var rowRect = new Rect(scrollViewRect.x, scrollViewRect.y + UiHelpers.ListRowHeight * i,
                 scrollViewRect.width, UiHelpers.ListRowHeight).ContractedBy(4f);
-            var deleteButtonRect = new Rect(rowRect.x, rowRect.y, rowRect.height, rowRect.height)
-                .ContractedBy(4f);
+            var deleteButtonRect = new Rect(rowRect.x, rowRect.y, rowRect.height, rowRect.height).ContractedBy(4f);
             if (Widgets.ButtonImageFitted(deleteButtonRect, Resources.Textures.Delete))
             {
                 deleteAction(statLimit.StatDefName!);
                 break;
             }
-            var statLabelRect = new Rect(deleteButtonRect.xMax + UiHelpers.ElementGap / 2f,
-                rowRect.y, rowRect.width / 2f - deleteButtonRect.width - UiHelpers.ElementGap / 2f,
-                rowRect.height);
+            var statLabelRect = new Rect(deleteButtonRect.xMax + UiHelpers.ElementGap / 2f, rowRect.y,
+                rowRect.width / 2f - deleteButtonRect.width - UiHelpers.ElementGap / 2f, rowRect.height);
             if (statLimit.StatDef != null && !statLimit.StatDef.description.NullOrEmpty())
             {
                 TooltipHandler.TipRegion(statLabelRect, statLimit.StatDef?.description);
             }
-            _ = Widgets.LabelFit(statLabelRect,
-                statLimit.StatDef?.LabelCap ?? statLimit.StatDefName);
+            _ = Widgets.LabelFit(statLabelRect, statLimit.StatDef?.LabelCap ?? statLimit.StatDefName);
             var statInputRect = new Rect(statLabelRect.xMax + UiHelpers.ElementGap, rowRect.y,
                 rowRect.xMax - statLabelRect.xMax - UiHelpers.ElementGap, rowRect.height);
             var limitInputWidth = (statInputRect.width - UiHelpers.ElementGap * 3) / 2f;
-            var minValueRect = new Rect(statInputRect.x, statInputRect.y, limitInputWidth,
-                statInputRect.height);
-            statLimit.MinValueBuffer =
-                Widgets.TextField(minValueRect, statLimit.MinValueBuffer, 10);
-            var dashRect = new Rect(minValueRect.xMax, statInputRect.y, UiHelpers.ElementGap * 3,
-                statInputRect.height);
+            var minValueRect = new Rect(statInputRect.x, statInputRect.y, limitInputWidth, statInputRect.height);
+            statLimit.MinValueBuffer = Widgets.TextField(minValueRect, statLimit.MinValueBuffer, 10);
+            var dashRect = new Rect(minValueRect.xMax, statInputRect.y, UiHelpers.ElementGap * 3, statInputRect.height);
             Text.Anchor = TextAnchor.MiddleCenter;
             Widgets.Label(dashRect, "-");
             Text.Anchor = TextAnchor.UpperLeft;
-            var maxValueRect = new Rect(dashRect.xMax, statInputRect.y, limitInputWidth,
-                statInputRect.height);
-            statLimit.MaxValueBuffer =
-                Widgets.TextField(maxValueRect, statLimit.MaxValueBuffer, 10);
+            var maxValueRect = new Rect(dashRect.xMax, statInputRect.y, limitInputWidth, statInputRect.height);
+            statLimit.MaxValueBuffer = Widgets.TextField(maxValueRect, statLimit.MaxValueBuffer, 10);
         }
         Widgets.EndScrollView();
         Text.Font = font;
         Text.Anchor = anchor;
     }
 
-    private void DoRuleStats(Rect rect, IReadOnlyList<StatDef> statDefs,
-        IReadOnlyList<StatWeight> statWeights, Action<StatDef> addWeightAction,
-        Action<string> deleteWeightAction, IReadOnlyList<StatLimit> statLimits,
-        Action<StatDef> addLimitAction, Action<string> deleteLimitAction)
-    {
-        var columnWidth = (rect.width - UiHelpers.ElementGap) / 2f;
-        var weightsRect = new Rect(rect.x, rect.y, columnWidth, rect.height);
-        var gapRect = new Rect(weightsRect.xMax, rect.y, UiHelpers.ElementGap, rect.height);
-        var limitsRect = new Rect(gapRect.xMax, rect.y, columnWidth, rect.height);
-        DoRuleStatWeights(weightsRect, statDefs, statWeights, addWeightAction, deleteWeightAction);
-        UiHelpers.DoGapLineVertical(gapRect);
-        DoRuleStatLimits(limitsRect, statDefs, statLimits, addLimitAction, deleteLimitAction);
-    }
-
-    private void DoRuleStatWeights(Rect rect, IEnumerable<StatDef> statDefs,
-        IReadOnlyList<StatWeight> statWeights, Action<StatDef> addAction,
-        Action<string> deleteAction)
+    private void DoRuleStatWeights(Rect rect, IEnumerable<StatDef> statDefs, IReadOnlyList<StatWeight> statWeights,
+        Action<StatDef> addAction, Action<string> deleteAction)
     {
         var font = Text.Font;
         var anchor = Text.Anchor;
@@ -279,25 +242,21 @@ internal partial class ManageWeaponRulesDialog : Window
         if (Widgets.ButtonText(buttonRect, Resources.Strings.Add))
         {
             Find.WindowStack.Add(new FloatMenu(statDefs
-                .Where(def => statWeights.All(weight => weight.StatDefName != def.defName))
-                .Select(statDef =>
-                    new FloatMenuOption(
-                        $"{statDef.LabelCap} [{statDef.category?.LabelCap ?? "No category"}]",
+                .Where(def => statWeights.All(weight => weight.StatDefName != def.defName)).Select(statDef =>
+                    new FloatMenuOption($"{statDef.LabelCap} [{statDef.category?.LabelCap ?? "No category"}]",
                         () => addAction(statDef))).ToList()));
         }
         var listRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
             rect.yMax - labelRect.yMax - UiHelpers.ElementGap);
         var scrollViewRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap,
-            rect.width - GUI.skin.verticalScrollbar.fixedWidth - 4f,
-            UiHelpers.ListRowHeight * statWeights.Count);
+            rect.width - GUI.skin.verticalScrollbar.fixedWidth - 4f, UiHelpers.ListRowHeight * statWeights.Count);
         Widgets.BeginScrollView(listRect, ref _statWeightsScrollPosition, scrollViewRect);
         for (var i = 0; i < statWeights.Count; i++)
         {
             var statWeight = statWeights[i];
             var rowRect = new Rect(scrollViewRect.x, scrollViewRect.y + UiHelpers.ListRowHeight * i,
                 scrollViewRect.width, UiHelpers.ListRowHeight).ContractedBy(4f);
-            var deleteButtonRect = new Rect(rowRect.x, rowRect.y, rowRect.height, rowRect.height)
-                .ContractedBy(4f);
+            var deleteButtonRect = new Rect(rowRect.x, rowRect.y, rowRect.height, rowRect.height).ContractedBy(4f);
             if (!statWeight.Protected)
             {
                 if (Widgets.ButtonImageFitted(deleteButtonRect, Resources.Textures.Delete))
@@ -306,15 +265,13 @@ internal partial class ManageWeaponRulesDialog : Window
                     break;
                 }
             }
-            var statLabelRect = new Rect(deleteButtonRect.xMax + UiHelpers.ElementGap / 2f,
-                rowRect.y, rowRect.width / 2f - deleteButtonRect.width - UiHelpers.ElementGap / 2f,
-                rowRect.height);
+            var statLabelRect = new Rect(deleteButtonRect.xMax + UiHelpers.ElementGap / 2f, rowRect.y,
+                rowRect.width / 2f - deleteButtonRect.width - UiHelpers.ElementGap / 2f, rowRect.height);
             if (statWeight.StatDef != null && !statWeight.StatDef.description.NullOrEmpty())
             {
                 TooltipHandler.TipRegion(statLabelRect, statWeight.StatDef?.description);
             }
-            _ = Widgets.LabelFit(statLabelRect,
-                statWeight.StatDef?.LabelCap ?? statWeight.StatDefName);
+            _ = Widgets.LabelFit(statLabelRect, statWeight.StatDef?.LabelCap ?? statWeight.StatDefName);
             var statInputRect = new Rect(statLabelRect.xMax + UiHelpers.ElementGap, rowRect.y,
                 rowRect.xMax - statLabelRect.xMax - UiHelpers.ElementGap, rowRect.height);
             Widgets.HorizontalSlider(statInputRect, ref statWeight.Weight, new FloatRange(-2f, 2f),
@@ -325,8 +282,21 @@ internal partial class ManageWeaponRulesDialog : Window
         Text.Anchor = anchor;
     }
 
-    private static void DoWeaponRuleEquipMode(Rect rect,
-        Func<ItemRule.WeaponEquipMode> getter, Action<ItemRule.WeaponEquipMode> setter)
+    private void DoRuleStats(Rect rect, IReadOnlyList<StatDef> statDefs, IReadOnlyList<StatWeight> statWeights,
+        Action<StatDef> addWeightAction, Action<string> deleteWeightAction, IReadOnlyList<StatLimit> statLimits,
+        Action<StatDef> addLimitAction, Action<string> deleteLimitAction)
+    {
+        var columnWidth = (rect.width - UiHelpers.ElementGap) / 2f;
+        var weightsRect = new Rect(rect.x, rect.y, columnWidth, rect.height);
+        var gapRect = new Rect(weightsRect.xMax, rect.y, UiHelpers.ElementGap, rect.height);
+        var limitsRect = new Rect(gapRect.xMax, rect.y, columnWidth, rect.height);
+        DoRuleStatWeights(weightsRect, statDefs, statWeights, addWeightAction, deleteWeightAction);
+        UiHelpers.DoGapLineVertical(gapRect);
+        DoRuleStatLimits(limitsRect, statDefs, statLimits, addLimitAction, deleteLimitAction);
+    }
+
+    private static void DoWeaponRuleEquipMode(Rect rect, Func<ItemRule.WeaponEquipMode> getter,
+        Action<ItemRule.WeaponEquipMode> setter)
     {
         var font = Text.Font;
         var anchor = Text.Anchor;
@@ -341,16 +311,15 @@ internal partial class ManageWeaponRulesDialog : Window
         {
             Find.WindowStack.Add(new FloatMenu(Enum.GetValues(typeof(ItemRule.WeaponEquipMode))
                 .OfType<ItemRule.WeaponEquipMode>().Select(mode =>
-                    new FloatMenuOption(Resources.Strings.WeaponRules.GetWeaponEquipModeLabel(mode), () => setter(mode)))
-                .ToList()));
+                    new FloatMenuOption(Resources.Strings.WeaponRules.GetWeaponEquipModeLabel(mode),
+                        () => setter(mode))).ToList()));
         }
         Text.Font = font;
         Text.Anchor = anchor;
     }
 
-    private void DoWhitelist(Rect rect, IReadOnlyCollection<ThingDef> items,
-        IEnumerable<ThingDef> allItems, Action<ThingDef> addAction,
-        Action<ThingDef> rightClickAction, Func<ThingDef, string> tooltipGetter)
+    private void DoWhitelist(Rect rect, IReadOnlyCollection<ThingDef> items, IEnumerable<ThingDef> allItems,
+        Action<ThingDef> addAction, Action<ThingDef> rightClickAction, Func<ThingDef, string> tooltipGetter)
     {
         var font = Text.Font;
         var anchor = Text.Anchor;
@@ -364,16 +333,15 @@ internal partial class ManageWeaponRulesDialog : Window
             rect.width - labelRect.width - UiHelpers.ElementGap, labelRect.height);
         if (Widgets.ButtonText(buttonRect, Resources.Strings.Add))
         {
-            Find.WindowStack.Add(new FloatMenu(allItems
-                .Where(def => items.All(weight => weight != def)).Select(def =>
-                    new FloatMenuOption($"{def.LabelCap}", () => addAction(def))).ToList()));
+            Find.WindowStack.Add(new FloatMenu(allItems.Where(def => items.All(weight => weight != def))
+                .Select(def => new FloatMenuOption($"{def.LabelCap}", () => addAction(def))).ToList()));
         }
         Text.Font = font;
         Text.Anchor = anchor;
         ThingIconBox.DoThingDefBox(
             new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
-                rect.yMax - (labelRect.yMax + UiHelpers.ElementGap)), ref _whitelistScrollPosition,
-            items.ToList(), rightClickAction, tooltipGetter);
+                rect.yMax - (labelRect.yMax + UiHelpers.ElementGap)), ref _whitelistScrollPosition, items.ToList(),
+            rightClickAction, tooltipGetter);
     }
 
     public override void DoWindowContents(Rect inRect)
@@ -402,26 +370,23 @@ internal partial class ManageWeaponRulesDialog : Window
         }
     }
 
-    private void GetWeaponRuleTabRects(Rect rect, int ruleSettingCount, int itemPropertiesCount,
-        out Rect buttonRowRect, out Rect labelRect, out Rect equipModeRect,
-        out Rect ruleSettingsRect, out Rect itemPropertiesRect, out Rect availableItemsRect,
-        out Rect exclusiveItemsRect, out Rect statsRect)
+    private void GetWeaponRuleTabRects(Rect rect, int ruleSettingCount, int itemPropertiesCount, out Rect buttonRowRect,
+        out Rect labelRect, out Rect equipModeRect, out Rect ruleSettingsRect, out Rect itemPropertiesRect,
+        out Rect availableItemsRect, out Rect exclusiveItemsRect, out Rect statsRect)
     {
         var sectionHeaderHeight = Text.LineHeightOf(GameFont.Medium) + UiHelpers.ElementGap;
         buttonRowRect = new Rect(rect.x, rect.y, rect.width, UiHelpers.ButtonHeight);
         labelRect = new Rect(rect.x, buttonRowRect.yMax + UiHelpers.ElementGap,
             (rect.width - UiHelpers.ElementGap) / 2f, UiHelpers.LabelHeight);
-        equipModeRect = new Rect(rect.center.x + UiHelpers.ElementGap / 2f,
-            buttonRowRect.yMax + UiHelpers.ElementGap, (rect.width - UiHelpers.ElementGap) / 2f,
-            UiHelpers.LabelHeight);
-        var itemPropertiesRowCount =
-            (int)Math.Ceiling((double)itemPropertiesCount / UiHelpers.BoolSettingsColumnCount);
+        equipModeRect = new Rect(rect.center.x + UiHelpers.ElementGap / 2f, buttonRowRect.yMax + UiHelpers.ElementGap,
+            (rect.width - UiHelpers.ElementGap) / 2f, UiHelpers.LabelHeight);
+        var itemPropertiesRowCount = (int)Math.Ceiling((double)itemPropertiesCount / UiHelpers.BoolSettingsColumnCount);
         if (ruleSettingCount != 0)
         {
             ruleSettingsRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
                 sectionHeaderHeight + UiHelpers.ListRowHeight * ruleSettingCount);
-            itemPropertiesRect = new Rect(rect.x, ruleSettingsRect.yMax + UiHelpers.ElementGap,
-                rect.width, sectionHeaderHeight + UiHelpers.ListRowHeight * itemPropertiesRowCount);
+            itemPropertiesRect = new Rect(rect.x, ruleSettingsRect.yMax + UiHelpers.ElementGap, rect.width,
+                sectionHeaderHeight + UiHelpers.ListRowHeight * itemPropertiesRowCount);
         }
         else
         {
@@ -431,17 +396,15 @@ internal partial class ManageWeaponRulesDialog : Window
         }
         var availableItemsBoxHeight = ItemIconSize * AvailableItemIconsRowCount +
             ItemIconGap * (AvailableItemIconsRowCount + 1);
-        availableItemsRect = new Rect(rect.x,
-            rect.yMax - availableItemsBoxHeight - sectionHeaderHeight, rect.width,
+        availableItemsRect = new Rect(rect.x, rect.yMax - availableItemsBoxHeight - sectionHeaderHeight, rect.width,
             availableItemsBoxHeight + sectionHeaderHeight);
         var exclusiveItemsBoxHeight = ItemIconSize * ExclusiveItemIconsRowCount +
             ItemIconGap * (ExclusiveItemIconsRowCount + 1);
         exclusiveItemsRect = new Rect(rect.x,
-            availableItemsRect.y - exclusiveItemsBoxHeight - sectionHeaderHeight -
-            UiHelpers.ElementGap, rect.width, exclusiveItemsBoxHeight + sectionHeaderHeight);
+            availableItemsRect.y - exclusiveItemsBoxHeight - sectionHeaderHeight - UiHelpers.ElementGap, rect.width,
+            exclusiveItemsBoxHeight + sectionHeaderHeight);
         statsRect = new Rect(rect.x, itemPropertiesRect.yMax + UiHelpers.ElementGap, rect.width,
-            exclusiveItemsRect.y - UiHelpers.ElementGap - itemPropertiesRect.yMax -
-            UiHelpers.ElementGap);
+            exclusiveItemsRect.y - UiHelpers.ElementGap - itemPropertiesRect.yMax - UiHelpers.ElementGap);
     }
 
     private void Initialize()

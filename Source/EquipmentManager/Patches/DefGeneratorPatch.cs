@@ -3,12 +3,10 @@ using EquipmentManager.DefOfs;
 using HarmonyLib;
 using JetBrains.Annotations;
 using RimWorld;
-using Verse;
 
 namespace EquipmentManager.Patches;
 
-[HarmonyPatch(typeof(DefGenerator), nameof(DefGenerator.GenerateImpliedDefs_PreResolve)),
- UsedImplicitly]
+[HarmonyPatch(typeof(DefGenerator), nameof(DefGenerator.GenerateImpliedDefs_PreResolve)), UsedImplicitly]
 internal static class DefGeneratorPatch
 {
     [UsedImplicitly]

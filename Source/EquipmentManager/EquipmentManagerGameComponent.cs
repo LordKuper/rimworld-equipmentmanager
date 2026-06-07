@@ -53,14 +53,12 @@ internal partial class EquipmentManagerGameComponent : GameComponent
             if (key.Destroyed) { destroyedRanged.Add(key); }
         }
         foreach (var key in destroyedRanged) { _ = _rangedWeaponsCache.Remove(key); }
-
         var destroyedMelee = new List<Thing>();
         foreach (var key in _meleeWeaponsCache.Keys)
         {
             if (key.Destroyed) { destroyedMelee.Add(key); }
         }
         foreach (var key in destroyedMelee) { _ = _meleeWeaponsCache.Remove(key); }
-
         var destroyedTools = new List<Thing>();
         foreach (var key in _toolCache.Keys)
         {
