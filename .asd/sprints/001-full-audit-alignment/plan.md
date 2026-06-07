@@ -94,21 +94,21 @@ Commands (from `commands.yaml`): build `dotnet build Source/EquipmentManager.sln
 <!-- owner: backend-dev | AC: AC-1 (also feeds AC-41) | deps: Task 1, Task 2, Task 3, Task 4, Task 5 -->
 
 ### Task 7: C-3 — ToolCache composite cache key including workTypeDefs
-- [ ] Key the cache entry by `(statDef, workTypeDefs)` for WorkType-dependent stats in `ToolCache.GetStatValue` (or do not cache WorkType-dependent stats), so differing work-type sets no longer return a stale first-set score within one cache window.
-- [ ] Verify against the migrated `WorkTypeThingRule` scoring path (Task 1) and the re-based cache (Task 3).
-- [ ] Build green; correctness asserted by the AC-29 test (Task 14).
+- [x] Key the cache entry by `(statDef, workTypeDefs)` for WorkType-dependent stats in `ToolCache.GetStatValue` (or do not cache WorkType-dependent stats), so differing work-type sets no longer return a stale first-set score within one cache window.
+- [x] Verify against the migrated `WorkTypeThingRule` scoring path (Task 1) and the re-based cache (Task 3).
+- [x] Build green; correctness asserted by the AC-29 test (Task 14).
 <!-- owner: backend-dev | AC: AC-15 | deps: Task 1, Task 3 (Phase B) -->
 
 ### Task 8: C-12 — assignedByOthers single-build-per-pass optimization
-- [ ] In `EquipmentManagerMapComponent`, compute the `assignedByOthers` set once per assignment pass and mutate it incrementally (`assignedByOthers.Add(...)`), removing the per-pawn `_pawnCache.Values.SelectMany(...)` rebuild (O(pawns²×weapons)) from `AssignAllTools`/`AssignBestTool`/primary melee/ranged passes; extend the pattern the sidearm passes already use.
-- [ ] Confirm `grep -n "SelectMany" EquipmentManagerMapComponent.cs` no longer shows the per-pawn rebuild in those methods.
-- [ ] Build green.
+- [x] In `EquipmentManagerMapComponent`, compute the `assignedByOthers` set once per assignment pass and mutate it incrementally (`assignedByOthers.Add(...)`), removing the per-pawn `_pawnCache.Values.SelectMany(...)` rebuild (O(pawns²×weapons)) from `AssignAllTools`/`AssignBestTool`/primary melee/ranged passes; extend the pattern the sidearm passes already use.
+- [x] Confirm `grep -n "SelectMany" EquipmentManagerMapComponent.cs` no longer shows the per-pawn rebuild in those methods.
+- [x] Build green.
 <!-- owner: backend-dev | AC: AC-19 | deps: Task 6 (after Phase A) -->
 
 ### Task 9: C-13 — defName-keyed WorkType-rule lookup (replace O(workTypes×rules) scan)
-- [ ] Build a `Dictionary<string, WorkTypeThingRule>` once (on the game component, invalidated on rule edit) and look up by defName in `ToolCache.Update`, replacing the per-iteration `GetWorkTypeRules().FirstOrDefault(...)` linear scan.
-- [ ] Confirm `grep -n "FirstOrDefault" ToolCache.cs` no longer shows the per-iteration scan.
-- [ ] Build green.
+- [x] Build a `Dictionary<string, WorkTypeThingRule>` once (on the game component, invalidated on rule edit) and look up by defName in `ToolCache.Update`, replacing the per-iteration `GetWorkTypeRules().FirstOrDefault(...)` linear scan.
+- [x] Confirm `grep -n "FirstOrDefault" ToolCache.cs` no longer shows the per-iteration scan.
+- [x] Build green.
 <!-- owner: backend-dev | AC: AC-20 | deps: Task 1 (uses WorkTypeThingRule), Task 6 -->
 
 ### Task 10: C-1/C-2 — production nullable migration (headline)
@@ -123,11 +123,11 @@ Commands (from `commands.yaml`): build `dotnet build Source/EquipmentManager.sln
 <!-- owner: backend-dev | AC: AC-9, AC-10, AC-11, AC-12, AC-13, AC-14 | deps: Task 6 (HARD: must follow Phase A) -->
 
 ### Task 11: C-16 — route 61 raw Verse.Log.* through the project Logger wrapper
-- [ ] Replace the 61 raw `Verse.Log.Error/Warning/Message` calls across the 7 files (`CombatExtendedHelper.cs`, `RangedWeaponCache.cs`, `MeleeWeaponCache.cs`, `ImportLoadoutsDialog.cs`, `ToolCache.cs`, `EquipmentManagerMod.cs`, `DefGeneratorPatch.cs`) with `Logger.LogError/LogWarning/LogMessage`.
-- [ ] Drop the hand-typed `"Equipment Manager: "` literal prefixes (the wrapper prefixes via `EquipmentManagerMod.ModId`).
-- [ ] Route through the EM `Logger` wrapper, NOT bare `Common.Logger.Log*` (AC-22, kept-local Logger non-finding).
-- [ ] Confirm `grep -rn` for raw `Verse.Log`/`Log.Error`/`Log.Warning`/`Log.Message` returns only the `Logger.cs` wrapper body; no `"Equipment Manager: "` literals remain.
-- [ ] Build green.
+- [x] Replace the 61 raw `Verse.Log.Error/Warning/Message` calls across the 7 files (`CombatExtendedHelper.cs`, `RangedWeaponCache.cs`, `MeleeWeaponCache.cs`, `ImportLoadoutsDialog.cs`, `ToolCache.cs`, `EquipmentManagerMod.cs`, `DefGeneratorPatch.cs`) with `Logger.LogError/LogWarning/LogMessage`.
+- [x] Drop the hand-typed `"Equipment Manager: "` literal prefixes (the wrapper prefixes via `EquipmentManagerMod.ModId`).
+- [x] Route through the EM `Logger` wrapper, NOT bare `Common.Logger.Log*` (AC-22, kept-local Logger non-finding).
+- [x] Confirm `grep -rn` for raw `Verse.Log`/`Log.Error`/`Log.Warning`/`Log.Message` returns only the `Logger.cs` wrapper body; no `"Equipment Manager: "` literals remain.
+- [x] Build green.
 <!-- owner: backend-dev | AC: AC-21, AC-22 | deps: Task 6 (after Phase A; independent of nullable) -->
 
 ### Task 12: C-18 — stat-range / NormalizeStatValue unit test (covers C-4)
