@@ -21,7 +21,7 @@
       }
     },
     "impl": {
-      "iteration": 3,
+      "iteration": 4,
       "verdicts": {
         "iter-02": {
           "quality": "CONCERNS",
@@ -31,6 +31,26 @@
           "documentation": "APPROVE",
           "performance": "APPROVE",
           "external": "CONCERNS",
+          "ui": "WAIVED"
+        },
+        "iter-03": {
+          "quality": "APPROVE",
+          "implementation": "APPROVE",
+          "testing": "APPROVE",
+          "simplification": "CONCERNS",
+          "documentation": "APPROVE",
+          "performance": "APPROVE",
+          "external": "APPROVE",
+          "ui": "WAIVED"
+        },
+        "iter-04": {
+          "quality": "APPROVE",
+          "implementation": "APPROVE",
+          "testing": "APPROVE",
+          "simplification": "APPROVE",
+          "documentation": "APPROVE",
+          "performance": "APPROVE",
+          "external": "APPROVE",
           "ui": "WAIVED"
         }
       }

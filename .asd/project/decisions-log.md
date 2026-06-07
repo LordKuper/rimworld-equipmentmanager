@@ -136,3 +136,15 @@ Append-only. Never edited or removed. New entries appended below.
 - **Decision**: impl fix for impl-review iter-02 complete; re-entering impl-review iter-03. Resolved CS8604 guards, ASD-ref removal (incl. newly-introduced C-3/AC-29 refs), C-3 test [Ignore]+manual (ToolCache needs live Thing+Current.Game), Copy-test honest naming + manual-spec for game-context production Copy. Gates: build 0/0, 18 tests pass + 6 [Ignore], jb inspect 0, no ASD refs in test code.
 - **Rationale**: impl-review iter-02 CONCERNS resolved in impl fix mode; returning to impl-review for re-evaluation (impl⇄impl-review cycle).
 - **Affected docs**: `.asd/sprints/001-full-audit-alignment/state.json`, `.asd/sprints/001-full-audit-alignment/reviews/`.
+
+## 2026-06-07 — Sprint 001 impl-review iter-03 aggregated; re-entering iter-04
+
+- **Decision**: impl-review iter-03: 6 internal + external APPROVE; simplification CONCERNS (1 critical dead-code: empty conditional in PassionLimit.Initialize) → fixed inline (deletion, commit 58b6c85). Re-entering impl-review iter-04 to confirm DoD.
+- **Rationale**: Sole CONCERNS finding was a one-line dead-code deletion resolved in place; re-evaluating at iter-04 to confirm the impl-review Definition of Done (impl⇄impl-review cycle).
+- **Affected docs**: `.asd/sprints/001-full-audit-alignment/state.json`, `.asd/sprints/001-full-audit-alignment/reviews/`.
+
+## 2026-06-07 — Sprint 001 impl-review iter-04: DoD MET; advancing to pr
+
+- **Decision**: impl-review iter-04: DoD MET — all reviewers APPROVE (quality, implementation, testing, simplification, documentation, performance, external); UI waived. Gates: build 0/0, 21 active tests pass + ~5 [Ignore] game-context, jb inspect 0, dotnet format clean, FluentAssertions-only. Advancing to pr phase.
+- **Rationale**: All required impl-review reviewers returned APPROVE at iteration 04; UI reviewer waived for this lean zero-UI sprint. impl-review Definition of Done satisfied; the impl⇄impl-review cycle is closed.
+- **Affected docs**: `.asd/sprints/001-full-audit-alignment/state.json`, `.asd/sprints/001-full-audit-alignment/reviews/`.
