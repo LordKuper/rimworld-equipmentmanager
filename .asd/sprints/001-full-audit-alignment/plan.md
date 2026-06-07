@@ -29,7 +29,7 @@ Implementation plan for sprint `001-full-audit-alignment` — a full-audit-drive
 - [audit.md](./audit.md) — C-1…C-25, RU-1…RU-8, DM-1…DM-6; no related open stubs
 - [sprint.md](./sprint.md) — goal, acceptance, nine workstreams, free-expansion ceiling
 
-Commands (from `commands.yaml`): build `dotnet build Source/EquipmentManager.slnx -c Release`; test `dotnet test Source/EquipmentManager.slnx`; lint `dotnet format Source/EquipmentManager.slnx --verify-no-changes`; format `dotnet format Source/EquipmentManager.slnx`. ReSharper `jb-inspect` is not runnable against `.slnx` in this toolchain (R-C8); NetAnalyzers 9.0.0 covers the analyzer baseline.
+Commands (from `commands.yaml`): build `dotnet build Source/EquipmentManager.slnx -c Release`; test `dotnet test Source/EquipmentManager.slnx`; lint `dotnet format Source/EquipmentManager.slnx --verify-no-changes`; format `dotnet format Source/EquipmentManager.slnx`; jb-inspect `jb inspectcode "Source\EquipmentManager.slnx" -o=".\TestResults\jb-inspect.sarif" --no-build --toolset-path="C:\Program Files\dotnet\sdk\10.0.300\MSBuild.dll"` (R-C8 RESOLVED — workaround in commands.yaml). NetAnalyzers 9.0.0 also covers the analyzer baseline.
 
 ## Definition of Done
 
@@ -202,7 +202,7 @@ Commands (from `commands.yaml`): build `dotnet build Source/EquipmentManager.sln
 - **R-C3 CE reflection fragility** — nullable migration must keep CE delegate fields `T?` with guards (Task 10, AC-14, ADR-0003).
 - **R-C4 static-state test isolation drift** — extend `StateIsolationTestBase` `CachingTypes`/fields when new static-touching tests are added (Tasks 12–14).
 - **R-C5 simplification approval gate** — C-10 (Task 15) is DEFERRED this sprint (no Complication Approval sought; Simplicity Default). Recorded-deferred only; no abstraction added.
-- **R-C8 jb-inspect unavailable on `.slnx`** — rely on NetAnalyzers + `dotnet format --verify-no-changes` for the lint dimension.
+- **R-C8 jb-inspect unavailable on `.slnx`** — RESOLVED: `--toolset-path="C:\Program Files\dotnet\sdk\10.0.300\MSBuild.dll"` + `--no-build` workaround registered in `commands.yaml`. All ReSharper findings resolved to zero (jb inspectcode 0/0, commit b48b9f4).
 - **OQ-1 WorkType default-weight parity** — decided by the Task 13 characterization test; the Task 1 migration encodes the chosen default-weight behavior.
 
 ## Dependencies
