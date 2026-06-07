@@ -169,9 +169,9 @@ Commands (from `commands.yaml`): build `dotnet build Source/EquipmentManager.sln
 <!-- owner: backend-dev | AC: AC-7, AC-38, AC-39 | deps: Task 1 (RU-7 widget migration); DM-3/DM-4 independent -->
 
 ### Task 17: Formatting + analyzer conformance
-- [ ] Run `dotnet format Source/EquipmentManager.slnx` across the solution; ensure `dotnet format Source/EquipmentManager.slnx --verify-no-changes` exits 0 (per-`.csproj` if `.slnx` cannot run it) (AC-23).
-- [ ] Confirm NetAnalyzers 9.0.0 reports 0 findings on the green build (AC-24); C-17 is satisfied by the clean post-nullable build.
-- [ ] Run after all code-changing tasks (A–E) are in.
+- [x] Run `dotnet format Source/EquipmentManager.slnx` across the solution; ensure `dotnet format Source/EquipmentManager.slnx --verify-no-changes` exits 0 (per-`.csproj` if `.slnx` cannot run it) (AC-23).
+- [x] Confirm NetAnalyzers 9.0.0 reports 0 findings on the green build (AC-24); C-17 is satisfied by the clean post-nullable build.
+- [x] Run after all code-changing tasks (A–E) are in.
 <!-- owner: backend-dev | AC: AC-23, AC-24 | deps: Task 10, Task 11, Task 14 -->
 
 ### Task 18: Upstream-contract + localization invariant verification
@@ -190,9 +190,9 @@ Commands (from `commands.yaml`): build `dotnet build Source/EquipmentManager.sln
 <!-- owner: backend-dev | AC: AC-36, AC-37, AC-40 | deps: Task 10 (nullable must be live before as-built confirmation) -->
 
 ### Task 20: Final build + suite gate
-- [ ] Run `dotnet build Source/EquipmentManager.slnx -c Release` → green (0 warnings, 0 errors).
-- [ ] Run `dotnet test Source/EquipmentManager.slnx` → entire suite passes.
-- [ ] Run `dotnet format Source/EquipmentManager.slnx --verify-no-changes` → exits 0.
+- [x] Run `dotnet build Source/EquipmentManager.slnx -c Release` → green (0 warnings, 0 errors).
+- [x] Run `dotnet test Source/EquipmentManager.slnx` → entire suite passes.
+- [x] Run `dotnet format Source/EquipmentManager.slnx --verify-no-changes` → exits 0.
 - [ ] All impl-review reviewers green (verified in the impl-review phase).
 <!-- owner: backend-dev | AC: AC-41 | deps: ALL prior tasks -->
 
