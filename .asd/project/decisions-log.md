@@ -130,3 +130,9 @@ Append-only. Never edited or removed. New entries appended below.
 - **Decision**: impl-review iter-02: 5 internal APPROVE (implementation, testing, simplification, documentation, performance); quality+external CONCERNS (no FAIL) → impl fix mode (iter-02). Findings: (quality high) C-3 tool-cache composite-key characterization test still missing; (quality medium) 3 `*Rule.Copy` tests hand-rebuild objects instead of calling production `EquipmentManager.Copy*Rule` → false AC-29 deep-copy coverage; (external high) residual `C-4` ASD-artifact references in `StatRangesTests.cs` (lines 8, 37, 52) untouched by prior fix. All test-file fixes.
 - **Rationale**: Unresolved CONCERNS with no FAIL routes back to impl fix mode per `review-policy.md`; impl⇄impl-review cycle continues.
 - **Affected docs**: `.asd/sprints/001-full-audit-alignment/state.json`, `.asd/sprints/001-full-audit-alignment/reviews/`.
+
+## 2026-06-07 — Sprint 001 impl fix for impl-review iter-02 complete
+
+- **Decision**: impl fix for impl-review iter-02 complete; re-entering impl-review iter-03. Resolved CS8604 guards, ASD-ref removal (incl. newly-introduced C-3/AC-29 refs), C-3 test [Ignore]+manual (ToolCache needs live Thing+Current.Game), Copy-test honest naming + manual-spec for game-context production Copy. Gates: build 0/0, 18 tests pass + 6 [Ignore], jb inspect 0, no ASD refs in test code.
+- **Rationale**: impl-review iter-02 CONCERNS resolved in impl fix mode; returning to impl-review for re-evaluation (impl⇄impl-review cycle).
+- **Affected docs**: `.asd/sprints/001-full-audit-alignment/state.json`, `.asd/sprints/001-full-audit-alignment/reviews/`.

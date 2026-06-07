@@ -55,6 +55,5 @@ internal class PassionLimit : IExposable
         _isInitialized = true;
         if (_skillDefName == null) { return; }
         _skillDef = DefDatabase<SkillDef>.GetNamedSilentFail(_skillDefName);
-        if (SkillDef == null) { }
     }
 }

@@ -21,7 +21,7 @@
       }
     },
     "impl": {
-      "iteration": 2,
+      "iteration": 3,
       "verdicts": {
         "iter-02": {
           "quality": "CONCERNS",
@@ -40,7 +40,7 @@
   "updated_at": "2026-06-07",
   "plan_approved": true,
   "design_promote_done": true,
-  "review_fixes_pending": "iter-02",
+  "review_fixes_pending": null,
   "subsystems_touched": [],
   "new_subsystems": [],
   "escalations": []
