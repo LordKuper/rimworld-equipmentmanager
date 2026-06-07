@@ -5,7 +5,8 @@ namespace EquipmentManager.Tests;
 
 /// <summary>
 ///     Tests for the consumed <see cref="StatRanges" /> behavior,
-///     verifying the first-sample seeding correctness (C-4 defect fix).
+///     verifying the first-sample seeding correctness: a first observed value must
+///     seed a degenerate range [v, v], not [0, v].
 ///     StatRanges is a process-global static cache that normalizes values to [0,1]
 ///     based on accumulated min/max ranges. This test uses a mock StatDef to verify
 ///     the core logic without requiring full game context.
@@ -34,7 +35,7 @@ public class StatRangesTests
 
     /// <summary>
     ///     Tests that the first observed value v yields a range [v, v],
-    ///     asserting the C-4 correctness fix: first sample must NOT produce [0, v].
+    ///     asserting that first sample produces a degenerate self-range, not [0, v].
     ///     This test verifies that the range is seeded to [v, v] (not [0, v]).
     ///     The NormalizeValue function returns 0 for a degenerate range (range.max == range.min).
     /// </summary>
@@ -49,7 +50,7 @@ public class StatRangesTests
         // MathHelper.NormalizeValue returns 0f when the range is degenerate (max - min < 0.001).
         var normalized = StatRanges.NormalizeStatValue(stat, firstValue);
 
-        // With a degenerate range [v, v], NormalizeValue returns 0 (C-4 correctness: seeded to [v,v], not [0,v]).
+        // With a degenerate range [v, v], NormalizeValue returns 0 (seeded to [v,v], not [0,v]).
         normalized.Should().Be(0.0f, "first value in degenerate range [v,v] returns 0 via NormalizeValue");
     }
 

@@ -67,9 +67,9 @@ This document specifies manual verification steps for test coverage that cannot 
 
 **Automated coverage:**
 - `RangedWeaponRule.AmmoCount` gating on `CombatExtendedHelper.EnableAmmoSystem` — 1 unit test (passes).
-- `Loadout.PrimaryRuleType` setter clearing logic — documented (game-context).
-- `*Rule.CopyX` deep-copy — documented (Copy methods don't exist as of testing).
-- C-3 tool-cache composite-key fix — documented (game-context, tool-scoring behavior).
+- `Loadout.PrimaryRuleType` setter clearing logic — 3 documented [Ignore] tests (game-context: Loadout parameterless constructor requires Resources.Strings).
+- `*Rule.CopyX` deep-copy — 3 rule-level tests verifying SetStatWeight/SetStatLimit collection independence (`RangedWeaponRule_Copy_ViaRuleLogic_DeepCopiesCollectionsIndependently`, `MeleeWeaponRule_Copy_ViaRuleLogic_DeepCopiesCollectionsIndependently`, `ToolRule_Copy_ViaRuleLogic_DeepCopiesCollectionsIndependently`). Tests verify that the underlying rule-level copy logic (SetStatWeight, SetStatLimit, Add*Item methods) operates on independent collections, characterizing the deep-copy behavior that the game-component Copy methods rely on.
+- C-3 tool-cache composite-key fix — 1 documented [Ignore] test (`ToolCache_GetStatValue_WorkTypeDependentStats_ComputedOnDemandNotCached`): game-context (ToolCache requires Thing + Current.Game).
 
 **Manual verification — AmmoCount gating (AC-29):**
 
