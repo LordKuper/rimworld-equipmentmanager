@@ -3,7 +3,7 @@
 <Defs>
 	<PawnColumnDef>
 		<defName>EM_Loadout</defName>
-		<workerClass>EquipmentManager.PawnColumnWorkers.Loadout</workerClass>
+		<workerClass>LordKuper.EquipmentManager.PawnColumnWorkers.Loadout</workerClass>
 		<label>current loadout</label>
 		<sortable>true</sortable>
 	</PawnColumnDef>
