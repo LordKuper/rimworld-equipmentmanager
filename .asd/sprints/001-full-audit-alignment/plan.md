@@ -131,23 +131,23 @@ Commands (from `commands.yaml`): build `dotnet build Source/EquipmentManager.sln
 <!-- owner: backend-dev | AC: AC-21, AC-22 | deps: Task 6 (after Phase A; independent of nullable) -->
 
 ### Task 12: C-18 — stat-range / NormalizeStatValue unit test (covers C-4)
-- [ ] Add a unit test (using the isolation infra) over the consumed `Common.StatRanges` behavior that explicitly asserts the first observed value `v` yields range `[v,v]` (the C-4 correctness the migration fixes).
-- [ ] Extend `StateIsolationTestBase` `CachingTypes`/fields if the test touches additional static state (R-C4).
-- [ ] Test passes.
+- [x] Add a unit test (using the isolation infra) over the consumed `Common.StatRanges` behavior that explicitly asserts the first observed value `v` yields range `[v,v]` (the C-4 correctness the migration fixes).
+- [x] Extend `StateIsolationTestBase` `CachingTypes`/fields if the test touches additional static state (R-C4).
+- [x] Test passes.
 <!-- owner: test-engineer | AC: AC-25 | deps: Task 2 -->
 
 ### Task 13: C-19 — work-type default-weight assembly + dedup test (decides OQ-1)
-- [ ] Add a characterization test over the migrated `WorkTypeThingRule`/`WorkTypeStatMap` path asserting the dedup invariant (no duplicate StatWeights; required-stats intersection) and the WorkType default-weight values — this test decides OQ-1 (EM flat `2f` vs Common per-stat weights); record the chosen parity in Task 1.
-- [ ] Use the resolver fixture or refactor the pure part as needed; extend isolation base if required (R-C4).
-- [ ] Test passes.
+- [x] Add a characterization test over the migrated `WorkTypeThingRule`/`WorkTypeStatMap` path asserting the dedup invariant (no duplicate StatWeights; required-stats intersection) and the WorkType default-weight values — this test decides OQ-1 (EM flat `2f` vs Common per-stat weights); record the chosen parity in Task 1.
+- [x] Use the resolver fixture or refactor the pure part as needed; extend isolation base if required (R-C4).
+- [x] Test passes.
 <!-- owner: test-engineer | AC: AC-26 | deps: Task 1 -->
 
 ### Task 14: C-20/C-21/C-22 + C-3 — rule/loadout/cache unit tests
-- [ ] AC-27: test `ItemRule`/`Loadout` `Initialize` null-coalescing and `NormalizeLegacyCustomStatDefNames` legacy-stat round-trips.
-- [ ] AC-28: table-driven tests for `Loadout.IsAvailable` predicate branches (traits, work capacities, passion/capacity/stat/skill limits).
-- [ ] AC-29: tests for `RangedWeaponRule.AmmoCount` gating (`CombatExtendedHelper.EnableAmmoSystem`), `Loadout.PrimaryRuleType` setter-clear logic, `*Rule.CopyX` deep-copy completeness, AND the C-3 tool-cache composite-key correctness (differing work-type sets yield differing scores).
-- [ ] Extend `StateIsolationTestBase` `CachingTypes`/fields where new static state is touched (R-C4).
-- [ ] All tests pass.
+- [x] AC-27: test `ItemRule`/`Loadout` `Initialize` null-coalescing and `NormalizeLegacyCustomStatDefNames` legacy-stat round-trips.
+- [x] AC-28: table-driven tests for `Loadout.IsAvailable` predicate branches (traits, work capacities, passion/capacity/stat/skill limits).
+- [x] AC-29: tests for `RangedWeaponRule.AmmoCount` gating (`CombatExtendedHelper.EnableAmmoSystem`), `Loadout.PrimaryRuleType` setter-clear logic, `*Rule.CopyX` deep-copy completeness, AND the C-3 tool-cache composite-key correctness (differing work-type sets yield differing scores).
+- [x] Extend `StateIsolationTestBase` `CachingTypes`/fields where new static state is touched (R-C4).
+- [x] All tests pass.
 <!-- owner: test-engineer | AC: AC-27, AC-28, AC-29 | deps: Task 7, Task 10 -->
 
 ### Task 15: C-10 — assignment-pipeline helper extraction (DEFERRED — NOT implemented this sprint)

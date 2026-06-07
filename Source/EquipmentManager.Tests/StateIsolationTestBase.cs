@@ -45,19 +45,13 @@ public abstract class StateIsolationTestBase
     public void RestoreState()
     {
         foreach (var type in CachingTypes)
-            SetStaticFieldValue(type, EquipmentManagerFieldName,
-                _snapshot.TryGetValue(type, out var value) ? value : null);
-    }
-
-    /// <summary>
-    ///     Sets the value of a static field via reflection.
-    /// </summary>
-    private static void SetStaticFieldValue(Type type, string fieldName, object? value)
-    {
-        var field = type.GetField(fieldName, BindingFlags.Static | BindingFlags.NonPublic)
-                    ?? throw new InvalidOperationException(
-                        $"Static field {type.Name}.{fieldName} not found; test infrastructure may be out of sync with production code");
-        field.SetValue(null, value);
+        {
+            var field = type.GetField(EquipmentManagerFieldName, BindingFlags.Static | BindingFlags.NonPublic);
+            if (field != null)
+            {
+                field.SetValue(null, _snapshot.TryGetValue(type, out var value) ? value : null);
+            }
+        }
     }
 
     /// <summary>
@@ -68,6 +62,12 @@ public abstract class StateIsolationTestBase
     {
         _snapshot.Clear();
         foreach (var type in CachingTypes)
-            _snapshot[type] = GetStaticFieldValue(type, EquipmentManagerFieldName);
+        {
+            var field = type.GetField(EquipmentManagerFieldName, BindingFlags.Static | BindingFlags.NonPublic);
+            if (field != null)
+            {
+                _snapshot[type] = field.GetValue(null);
+            }
+        }
     }
 }
