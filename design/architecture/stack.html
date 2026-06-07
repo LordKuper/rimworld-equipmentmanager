@@ -16,7 +16,7 @@ source: Source/EquipmentManager/EquipmentManager.csproj
   <meta name="subsystem" content="—">
   <meta name="sprint-id" content="—">
   <meta name="status" content="approved">
-  <meta name="updated" content="2026-06-07">
+  <meta name="updated" content="2026-06-07"><!-- nullable as-built confirmed sprint 001-full-audit-alignment -->
   <meta name="responsibility" content="current tech stack reference (languages, frameworks, runtime, infra)">
   <meta name="provenance" content="reverse-engineered">
   <meta name="source" content="Source/EquipmentManager/EquipmentManager.csproj">
@@ -116,7 +116,7 @@ source: Source/EquipmentManager/EquipmentManager.csproj
       <tr><td><strong>C#</strong></td><td class="ver"><code>LangVersion latest</code>, compiled for <code>net48</code></td><td><span class="chip area">production + tests</span></td></tr>
     </tbody>
   </table>
-  <p><b>Nullability</b>: target standard is <code>&lt;Nullable&gt;enable&lt;/Nullable&gt;</code> for all projects. The test project already enables it. The production nullable migration is a <b>decided</b> change (see <a href="adr/adr-0001-production-nullable-migration.html">ADR-0001</a>) and is <b>in progress</b> in sprint <code>001-full-audit-alignment</code>: flipping <code>&lt;Nullable&gt;enable&lt;/Nullable&gt;</code> on production surfaces 131 distinct sites / 300 occurrences across 32 files that must each be resolved to reach zero NRT diagnostics under <code>TreatWarningsAsErrors</code>. <em>As-built status not yet confirmed:</em> the production csproj flip lands during that sprint's implementation phase, after the <a href="adr/adr-0002-consume-lordkuper-common.html">ADR-0002</a> consolidation deletes (which shrink the migration surface). This paragraph must be finalized to the "enabled / as-built" wording at impl/pr time once the flip is merged and the build is green (DM-1 / AC-36; for the impl-review documentation reviewer to confirm).</p>
+  <p><b>Nullability</b>: <code>&lt;Nullable&gt;enable&lt;/Nullable&gt;</code> is enabled on both the production project (<code>EquipmentManager.csproj</code>) and the test project (<code>EquipmentManager.Tests.csproj</code>). The production nullable migration landed in sprint <code>001-full-audit-alignment</code> (see <a href="adr/adr-0001-production-nullable-migration.html">ADR-0001</a>): all NRT diagnostics resolved with real annotations and guards, all 224 JetBrains nullability attributes (<code>[NotNull]</code>/<code>[CanBeNull]</code>/<code>[ItemNotNull]</code>) removed in favour of C# nullable reference types, and the build is green under <code>TreatWarningsAsErrors</code> + <code>WarningLevel 9999</code>. No <code>#pragma warning disable</code> masking is used. <code>using JetBrains.Annotations;</code> is retained only in files still using a non-nullability JetBrains attribute (<code>[UsedImplicitly]</code>). As-built status: <strong>confirmed</strong> (doc-to-code reconciliation, DM-1 / AC-36, validated by impl-review documentation reviewer).</p>
 </section>
 
 <section id="frameworks">
