@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 using EquipmentManager.CustomWidgets;
-using JetBrains.Annotations;
 using LordKuper.Common;
 using LordKuper.Common.Filters.Limits;
 using LordKuper.Common.UI;
@@ -14,16 +13,16 @@ namespace EquipmentManager.Windows;
 
 internal class ImportLoadoutsDialog : Window
 {
-    private EquipmentManagerGameComponent _equipmentManager;
     private readonly List<Loadout> _loadouts = [];
     private readonly List<MeleeWeaponRule> _meleeWeaponRules = [];
     private readonly List<RangedWeaponRule> _rangedWeaponRules = [];
     private readonly Dictionary<string, string> _savedGames = new();
     private readonly List<ToolRule> _toolRules = [];
-    private readonly List<WorkTypeRule> _workTypeRules = [];
+    private readonly List<WorkTypeThingRule> _workTypeRules = [];
+    private EquipmentManagerGameComponent? _equipmentManager;
     private Vector2 _loadoutsListScrollPosition;
     private Vector2 _savedGamesListScrollPosition;
-    private string _selectedSaveGame;
+    private string? _selectedSaveGame;
 
     public ImportLoadoutsDialog()
     {
@@ -38,25 +37,21 @@ internal class ImportLoadoutsDialog : Window
         _equipmentManager ??= Current.Game.GetComponent<EquipmentManagerGameComponent>();
 
     public override Vector2 InitialSize =>
-        UiHelpers.GetWindowSize(new Vector2(850f, 500f), new Vector2(1000f, 500f));
+        LordKuper.Common.UI.Windows.GetWindowSize(new Vector2(850f, 500f), new Vector2(1000f, 500f));
 
     private void DoButtonRow(Rect rect)
     {
-        var importButtonRect =
-            new Rect(rect.center.x - UiHelpers.ActionButtonWidth - UiHelpers.ButtonGap, rect.y,
-                UiHelpers.ActionButtonWidth, UiHelpers.ButtonHeight);
+        var importButtonRect = new Rect(rect.center.x - UiHelpers.ActionButtonWidth - UiHelpers.ButtonGap, rect.y,
+            UiHelpers.ActionButtonWidth, UiHelpers.ButtonHeight);
         if (Widgets.ButtonText(importButtonRect, Resources.Strings.Loadouts.ImportData,
                 active: _selectedSaveGame != null && _loadouts.Any()))
         {
             ImportSaveGameData();
             Close();
         }
-        var cancelImportButtonRect = new Rect(rect.center.x + UiHelpers.ButtonGap, rect.y,
-            UiHelpers.ActionButtonWidth, UiHelpers.ButtonHeight);
-        if (Widgets.ButtonText(cancelImportButtonRect, Resources.Strings.Loadouts.CancelDataImport))
-        {
-            Close();
-        }
+        var cancelImportButtonRect = new Rect(rect.center.x + UiHelpers.ButtonGap, rect.y, UiHelpers.ActionButtonWidth,
+            UiHelpers.ButtonHeight);
+        if (Widgets.ButtonText(cancelImportButtonRect, Resources.Strings.Loadouts.CancelDataImport)) { Close(); }
     }
 
     private void DoLoadoutList(Rect rect)
@@ -65,11 +60,9 @@ internal class ImportLoadoutsDialog : Window
         Widgets.Label(new Rect(rect.x, rect.y, rect.width, Text.LineHeight),
             Resources.Strings.Loadouts.LoadoutListHeader);
         Text.Font = GameFont.Small;
-        var listingRect = new Rect(rect.x,
-            rect.y + Text.LineHeightOf(GameFont.Medium) + UiHelpers.ElementGap, rect.width,
-            rect.height - Text.LineHeightOf(GameFont.Medium) - UiHelpers.ElementGap * 2);
-        Widgets.DrawBoxSolidWithOutline(listingRect, new Color(1f, 1f, 1f, 0.05f),
-            new Color(1f, 1f, 1f, 0.4f));
+        var listingRect = new Rect(rect.x, rect.y + Text.LineHeightOf(GameFont.Medium) + UiHelpers.ElementGap,
+            rect.width, rect.height - Text.LineHeightOf(GameFont.Medium) - UiHelpers.ElementGap * 2);
+        Widgets.DrawBoxSolidWithOutline(listingRect, new Color(1f, 1f, 1f, 0.05f), new Color(1f, 1f, 1f, 0.4f));
         var listing = new Listing_Standard(listingRect, () => _loadoutsListScrollPosition);
         var viewRect = new Rect(rect.x, rect.y,
             rect.width - GUI.skin.verticalScrollbar.fixedWidth - UiHelpers.ElementGap,
@@ -92,11 +85,9 @@ internal class ImportLoadoutsDialog : Window
         Widgets.Label(new Rect(rect.x, rect.y, rect.width, Text.LineHeight),
             Resources.Strings.Loadouts.SavedGamesListHeader);
         Text.Font = GameFont.Small;
-        var listingRect = new Rect(rect.x,
-            rect.y + Text.LineHeightOf(GameFont.Medium) + UiHelpers.ElementGap, rect.width,
-            rect.height - Text.LineHeightOf(GameFont.Medium) - UiHelpers.ElementGap * 2);
-        Widgets.DrawBoxSolidWithOutline(listingRect, new Color(1f, 1f, 1f, 0.05f),
-            new Color(1f, 1f, 1f, 0.4f));
+        var listingRect = new Rect(rect.x, rect.y + Text.LineHeightOf(GameFont.Medium) + UiHelpers.ElementGap,
+            rect.width, rect.height - Text.LineHeightOf(GameFont.Medium) - UiHelpers.ElementGap * 2);
+        Widgets.DrawBoxSolidWithOutline(listingRect, new Color(1f, 1f, 1f, 0.05f), new Color(1f, 1f, 1f, 0.4f));
         var listing = new Listing_Standard(listingRect, () => _savedGamesListScrollPosition);
         var viewRect = new Rect(rect.x, rect.y,
             rect.width - GUI.skin.verticalScrollbar.fixedWidth - UiHelpers.ElementGap,
@@ -108,22 +99,17 @@ internal class ImportLoadoutsDialog : Window
         {
             var rowRect = listing.GetRect(UiHelpers.ListRowHeight * 1.5f);
             var toggleButtonRect = new Rect(rowRect.x,
-                    rowRect.y +
-                    (UiHelpers.ListRowHeight * 1.5f - Math.Min(32f, UiHelpers.ListRowHeight)) / 2f,
-                    Math.Min(32f, UiHelpers.ListRowHeight), Math.Min(32f, UiHelpers.ListRowHeight))
-                .ContractedBy(4f);
-            Buttons.DoIconButtonToggle(toggleButtonRect,
-                () => savedGame.Key == _selectedSaveGame,
-                newValue =>
-                {
-                    if (!newValue) { return; }
-                    _selectedSaveGame = savedGame.Key;
-                    ReadSaveGameData(savedGame.Key);
-                }, null, Widgets.CheckboxOnTex, null, Widgets.CheckboxOffTex);
+                rowRect.y + (UiHelpers.ListRowHeight * 1.5f - Math.Min(32f, UiHelpers.ListRowHeight)) / 2f,
+                Math.Min(32f, UiHelpers.ListRowHeight), Math.Min(32f, UiHelpers.ListRowHeight)).ContractedBy(4f);
+            Buttons.DoIconButtonToggle(toggleButtonRect, () => savedGame.Key == _selectedSaveGame, newValue =>
+            {
+                if (!newValue) { return; }
+                _selectedSaveGame = savedGame.Key;
+                ReadSaveGameData(savedGame.Key);
+            }, null, Widgets.CheckboxOnTex, null, Widgets.CheckboxOffTex);
             var nameRectX = toggleButtonRect.x + toggleButtonRect.width + 4f;
-            Widgets.Label(
-                new Rect(nameRectX, rowRect.y, rowRect.xMax - nameRectX, rowRect.height)
-                    .ContractedBy(4f), savedGame.Value);
+            Widgets.Label(new Rect(nameRectX, rowRect.y, rowRect.xMax - nameRectX, rowRect.height).ContractedBy(4f),
+                savedGame.Value);
         }
         Text.Anchor = TextAnchor.UpperLeft;
         listing.End();
@@ -133,20 +119,18 @@ internal class ImportLoadoutsDialog : Window
     public override void DoWindowContents(Rect inRect)
     {
         const int columnCount = 2;
-        var columnWidth =
-            (inRect.width - UiHelpers.ElementGap * 2 - UiHelpers.ElementGap * (columnCount - 1)) /
+        var columnWidth = (inRect.width - UiHelpers.ElementGap * 2 - UiHelpers.ElementGap * (columnCount - 1)) /
             columnCount;
         var columnHeight = inRect.height - UiHelpers.ElementGap * 2 -
             (UiHelpers.ButtonHeight + UiHelpers.ButtonGap * 2);
-        var savedGamesRect = new Rect(inRect.x + UiHelpers.ElementGap,
-            inRect.y + UiHelpers.ElementGap, columnWidth, columnHeight);
+        var savedGamesRect = new Rect(inRect.x + UiHelpers.ElementGap, inRect.y + UiHelpers.ElementGap, columnWidth,
+            columnHeight);
         DoSavedGamesList(savedGamesRect);
-        var loadoutsRect = new Rect(savedGamesRect.xMax + UiHelpers.ElementGap,
-            inRect.y + UiHelpers.ElementGap, columnWidth, columnHeight);
+        var loadoutsRect = new Rect(savedGamesRect.xMax + UiHelpers.ElementGap, inRect.y + UiHelpers.ElementGap,
+            columnWidth, columnHeight);
         DoLoadoutList(loadoutsRect);
-        var actionButtonsRect = new Rect(inRect.x,
-            inRect.yMax - UiHelpers.ButtonHeight - UiHelpers.ButtonGap, inRect.width,
-            UiHelpers.ButtonHeight);
+        var actionButtonsRect = new Rect(inRect.x, inRect.yMax - UiHelpers.ButtonHeight - UiHelpers.ButtonGap,
+            inRect.width, UiHelpers.ButtonHeight);
         DoButtonRow(actionButtonsRect);
     }
 
@@ -154,10 +138,7 @@ internal class ImportLoadoutsDialog : Window
     {
         Find.WindowStack.WindowOfType<ManageWeaponRulesDialog>()?.Close();
         Find.WindowStack.WindowOfType<ManageLoadoutsDialog>()?.Close();
-        foreach (var loadout in EquipmentManager.GetLoadouts().ToList())
-        {
-            EquipmentManager.DeleteLoadout(loadout);
-        }
+        foreach (var loadout in EquipmentManager.GetLoadouts().ToList()) { EquipmentManager.DeleteLoadout(loadout); }
         foreach (var rule in EquipmentManager.GetMeleeWeaponRules().ToList())
         {
             EquipmentManager.DeleteMeleeWeaponRule(rule);
@@ -168,10 +149,7 @@ internal class ImportLoadoutsDialog : Window
             EquipmentManager.DeleteRangedWeaponRule(rule);
         }
         foreach (var rule in _rangedWeaponRules) { EquipmentManager.AddRangedWeaponRule(rule); }
-        foreach (var rule in EquipmentManager.GetToolRules().ToList())
-        {
-            EquipmentManager.DeleteToolRule(rule);
-        }
+        foreach (var rule in EquipmentManager.GetToolRules().ToList()) { EquipmentManager.DeleteToolRule(rule); }
         foreach (var rule in _toolRules) { EquipmentManager.AddToolRule(rule); }
         foreach (var rule in EquipmentManager.GetWorkTypeRules().ToList())
         {
@@ -183,8 +161,7 @@ internal class ImportLoadoutsDialog : Window
 
     private void LoadSavedGames()
     {
-        foreach (var file in GenFilePaths.AllSavedGameFiles.OrderByDescending(info =>
-                     info.LastWriteTimeUtc))
+        foreach (var file in GenFilePaths.AllSavedGameFiles.OrderByDescending(info => info.LastWriteTimeUtc))
         {
             try
             {
@@ -204,8 +181,7 @@ internal class ImportLoadoutsDialog : Window
             }
             catch (Exception e)
             {
-                Log.Warning(
-                    $"Equipment Manager: Could not process save game file {file.FullName}: {e.Message}");
+                Logger.LogWarning($"Could not process save game file {file.FullName}: {e.Message}", e);
             }
         }
     }
@@ -216,16 +192,15 @@ internal class ImportLoadoutsDialog : Window
         LoadSavedGames();
     }
 
-    [NotNull]
-    private static Dictionary<string, string> ReadDictionary([NotNull] XmlReader xmlReader)
+    private static Dictionary<string, string> ReadDictionary(XmlReader xmlReader)
     {
         var result = new Dictionary<string, string>();
         var keys = new List<string>();
         var values = new List<string>();
         if (xmlReader.Name != "keys" || xmlReader.NodeType != XmlNodeType.Element)
         {
-            throw new ArgumentException(
-                "XmlReader was not on a 'keys' node while parsing a dictionary", nameof(xmlReader));
+            throw new ArgumentException("XmlReader was not on a 'keys' node while parsing a dictionary",
+                nameof(xmlReader));
         }
         if (xmlReader.IsEmptyElement) { _ = xmlReader.Read(); }
         else
@@ -257,7 +232,7 @@ internal class ImportLoadoutsDialog : Window
         return result;
     }
 
-    private void ReadLoadoutData([NotNull] XmlReader xmlReader)
+    private void ReadLoadoutData(XmlReader xmlReader)
     {
         if (!xmlReader.ReadToFollowing("li") || !xmlReader.Read()) { return; }
         var id = 0;
@@ -411,17 +386,17 @@ internal class ImportLoadoutsDialog : Window
                     xmlReader.ReadEndElement();
                     break;
                 default:
-                    Log.Warning($"Equipment Manager: Unknown Loadout property '{xmlReader.Name}'");
+                    Logger.LogWarning($"Unknown Loadout property '{xmlReader.Name}'");
                     break;
             }
         }
         _loadouts.Add(new Loadout(id, label, priority, primaryRuleType, primaryRangedWeaponRuleId,
-            primaryMeleeWeaponRuleId, rangedSidearmRules, meleeSidearmRules, toolRuleId, pawnTraits,
-            pawnWorkCapacities, dropUnassignedWeapons, passionLimits, pawnCapacityLimits,
-            pawnCapacityWeights, skillLimits, skillWeights, statLimits, statWeights));
+            primaryMeleeWeaponRuleId, rangedSidearmRules, meleeSidearmRules, toolRuleId, pawnTraits, pawnWorkCapacities,
+            dropUnassignedWeapons, passionLimits, pawnCapacityLimits, pawnCapacityWeights, skillLimits, skillWeights,
+            statLimits, statWeights));
     }
 
-    private void ReadLoadoutsData(string savedGameFile, [NotNull] XmlReader xmlReader)
+    private void ReadLoadoutsData(string savedGameFile, XmlReader xmlReader)
     {
         if (xmlReader.ReadToFollowing("Loadouts"))
         {
@@ -432,18 +407,14 @@ internal class ImportLoadoutsDialog : Window
             }
             else
             {
-                Log.Error(
-                    $"Equipment Manager: Could not find any 'li' nodes inside the 'Loadouts' node in the save game file {savedGameFile}");
+                Logger.LogError(
+                    $"Could not find any 'li' nodes inside the 'Loadouts' node in the save game file {savedGameFile}");
             }
         }
-        else
-        {
-            Log.Error(
-                $"Equipment Manager: Could not find 'Loadouts' node in the save game file {savedGameFile}");
-        }
+        else { Logger.LogError($"Could not find 'Loadouts' node in the save game file {savedGameFile}"); }
     }
 
-    private void ReadMeleeWeaponRuleData([NotNull] XmlReader xmlReader)
+    private void ReadMeleeWeaponRuleData(XmlReader xmlReader)
     {
         if (!xmlReader.ReadToFollowing("li") || !xmlReader.Read()) { return; }
         var id = 0;
@@ -520,41 +491,33 @@ internal class ImportLoadoutsDialog : Window
                     rottable = bool.Parse(xmlReader.ReadElementContentAsString());
                     break;
                 default:
-                    Log.Warning(
-                        $"Equipment Manager: Unknown MeleeWeaponRule property '{xmlReader.Name}'");
+                    Logger.LogWarning($"Unknown MeleeWeaponRule property '{xmlReader.Name}'");
                     break;
             }
         }
         _meleeWeaponRules.Add(new MeleeWeaponRule(id, label, isProtected, statWeights, statLimits,
-            whitelistedItemsDefNames, blacklistedItemsDefNames, equipMode, usableWithShields,
-            rottable));
+            whitelistedItemsDefNames, blacklistedItemsDefNames, equipMode, usableWithShields, rottable));
     }
 
-    private void ReadMeleeWeaponRulesData(string savedGameFile, [NotNull] XmlReader xmlReader)
+    private void ReadMeleeWeaponRulesData(string savedGameFile, XmlReader xmlReader)
     {
         if (xmlReader.ReadToFollowing("MeleeWeaponRules"))
         {
             var node = xmlReader.ReadSubtree();
             if (node.ReadToDescendant("li"))
             {
-                do { ReadMeleeWeaponRuleData(node.ReadSubtree()); } while
-                    (node.ReadToNextSibling("li"));
+                do { ReadMeleeWeaponRuleData(node.ReadSubtree()); } while (node.ReadToNextSibling("li"));
             }
             else
             {
-                Log.Error(
-                    $"Equipment Manager: Could not find any 'li' nodes inside the 'MeleeWeaponRules' node in the save game file {savedGameFile}");
+                Logger.LogError(
+                    $"Could not find any 'li' nodes inside the 'MeleeWeaponRules' node in the save game file {savedGameFile}");
             }
         }
-        else
-        {
-            Log.Error(
-                $"Equipment Manager: Could not find 'MeleeWeaponRules' node in the save game file {savedGameFile}");
-        }
+        else { Logger.LogError($"Could not find 'MeleeWeaponRules' node in the save game file {savedGameFile}"); }
     }
 
-    [NotNull]
-    private static PassionLimit ReadPassionLimitData([NotNull] XmlReader xmlReader)
+    private static PassionLimit ReadPassionLimitData(XmlReader xmlReader)
     {
         var skillDefName = string.Empty;
         var passionValue = PassionValue.None;
@@ -577,8 +540,7 @@ internal class ImportLoadoutsDialog : Window
         return new PassionLimit(skillDefName) { Value = passionValue };
     }
 
-    [NotNull]
-    private static PawnCapacityLimit ReadPawnCapacityLimitData([NotNull] XmlReader xmlReader)
+    private static PawnCapacityLimit ReadPawnCapacityLimitData(XmlReader xmlReader)
     {
         var pawnCapacityDefName = string.Empty;
         float? minValue = null;
@@ -605,8 +567,7 @@ internal class ImportLoadoutsDialog : Window
         return new PawnCapacityLimit(pawnCapacityDefName, minValue, maxValue);
     }
 
-    [NotNull]
-    private static PawnCapacityWeight ReadPawnCapacityWeightData([NotNull] XmlReader xmlReader)
+    private static PawnCapacityWeight ReadPawnCapacityWeightData(XmlReader xmlReader)
     {
         var pawnCapacityDefName = string.Empty;
         var weight = 0f;
@@ -629,7 +590,7 @@ internal class ImportLoadoutsDialog : Window
         return new PawnCapacityWeight(pawnCapacityDefName, weight);
     }
 
-    private void ReadRangedWeaponRuleData([NotNull] XmlReader xmlReader)
+    private void ReadRangedWeaponRuleData(XmlReader xmlReader)
     {
         if (!xmlReader.ReadToFollowing("li") || !xmlReader.Read()) { return; }
         var id = 0;
@@ -710,37 +671,30 @@ internal class ImportLoadoutsDialog : Window
                     ammoCount = xmlReader.ReadElementContentAsInt();
                     break;
                 default:
-                    Log.Warning(
-                        $"Equipment Manager: Unknown RangedWeaponRule property '{xmlReader.Name}'");
+                    Logger.LogWarning($"Unknown RangedWeaponRule property '{xmlReader.Name}'");
                     break;
             }
         }
         _rangedWeaponRules.Add(new RangedWeaponRule(id, label, isProtected, statWeights, statLimits,
-            whitelistedItemsDefNames, blacklistedItemsDefNames, equipMode, explosive, manualCast,
-            ammoCount));
+            whitelistedItemsDefNames, blacklistedItemsDefNames, equipMode, explosive, manualCast, ammoCount));
     }
 
-    private void ReadRangedWeaponRulesData(string savedGameFile, [NotNull] XmlReader xmlReader)
+    private void ReadRangedWeaponRulesData(string savedGameFile, XmlReader xmlReader)
     {
         if (xmlReader.ReadToFollowing("RangedWeaponRules"))
         {
             var node = xmlReader.ReadSubtree();
             if (node.ReadToDescendant("li"))
             {
-                do { ReadRangedWeaponRuleData(node.ReadSubtree()); } while
-                    (node.ReadToNextSibling("li"));
+                do { ReadRangedWeaponRuleData(node.ReadSubtree()); } while (node.ReadToNextSibling("li"));
             }
             else
             {
-                Log.Error(
-                    $"Equipment Manager: Could not find any 'li' nodes inside the 'RangedWeaponRules' node in the save game file {savedGameFile}");
+                Logger.LogError(
+                    $"Could not find any 'li' nodes inside the 'RangedWeaponRules' node in the save game file {savedGameFile}");
             }
         }
-        else
-        {
-            Log.Error(
-                $"Equipment Manager: Could not find 'RangedWeaponRules' node in the save game file {savedGameFile}");
-        }
+        else { Logger.LogError($"Could not find 'RangedWeaponRules' node in the save game file {savedGameFile}"); }
     }
 
     private void ReadSaveGameData(string savedGameFile)
@@ -770,27 +724,20 @@ internal class ImportLoadoutsDialog : Window
                         {
                             do
                             {
-                                if (!xmlReader.HasAttributes || xmlReader.IsEmptyElement)
-                                {
-                                    continue;
-                                }
+                                if (!xmlReader.HasAttributes || xmlReader.IsEmptyElement) { continue; }
                                 while (xmlReader.MoveToNextAttribute())
                                 {
                                     if (xmlReader.Name != "Class") { continue; }
-                                    if (xmlReader.Value ==
-                                        typeof(EquipmentManagerGameComponent).FullName)
+                                    if (xmlReader.Value == typeof(EquipmentManagerGameComponent).FullName)
                                     {
                                         _ = xmlReader.MoveToElement();
-                                        ReadWorkTypeRulesData(savedGameFile,
-                                            xmlReader.ReadSubtree());
+                                        ReadWorkTypeRulesData(savedGameFile, xmlReader.ReadSubtree());
                                         xmlReader.ReadEndElement();
                                         ReadToolRulesData(savedGameFile, xmlReader.ReadSubtree());
                                         xmlReader.ReadEndElement();
-                                        ReadMeleeWeaponRulesData(savedGameFile,
-                                            xmlReader.ReadSubtree());
+                                        ReadMeleeWeaponRulesData(savedGameFile, xmlReader.ReadSubtree());
                                         xmlReader.ReadEndElement();
-                                        ReadRangedWeaponRulesData(savedGameFile,
-                                            xmlReader.ReadSubtree());
+                                        ReadRangedWeaponRulesData(savedGameFile, xmlReader.ReadSubtree());
                                         xmlReader.ReadEndElement();
                                         ReadLoadoutsData(savedGameFile, xmlReader.ReadSubtree());
                                         xmlReader.Close();
@@ -804,32 +751,23 @@ internal class ImportLoadoutsDialog : Window
                     }
                     else
                     {
-                        Log.Warning(
-                            $"Equipment Manager: Could not find game components' data in the save game file {savedGameFile}");
+                        Logger.LogWarning(
+                            $"Could not find game components' data in the save game file {savedGameFile}");
                     }
                 }
-                else
-                {
-                    Log.Error(
-                        $"Equipment Manager: Could not find game data in the save game file {savedGameFile}");
-                }
+                else { Logger.LogError($"Could not find game data in the save game file {savedGameFile}"); }
             }
-            else
-            {
-                Log.Error(
-                    $"Equipment Manager: Could not find root node in the save game file {savedGameFile}");
-            }
+            else { Logger.LogError($"Could not find root node in the save game file {savedGameFile}"); }
             xmlReader.Close();
         }
         catch (Exception exception)
         {
-            Log.Warning(
-                $"Equipment Manager: Could not process save game file {savedGameFile}{Environment.NewLine}{exception.Message}");
+            Logger.LogWarning(
+                $"Could not process save game file {savedGameFile}{Environment.NewLine}{exception.Message}", exception);
         }
     }
 
-    [NotNull]
-    private static PawnSkillLimit ReadSkillLimitData([NotNull] XmlReader xmlReader)
+    private static PawnSkillLimit ReadSkillLimitData(XmlReader xmlReader)
     {
         var skillDefName = string.Empty;
         float? minValue = null;
@@ -856,8 +794,7 @@ internal class ImportLoadoutsDialog : Window
         return new PawnSkillLimit(skillDefName, minValue, maxValue);
     }
 
-    [NotNull]
-    private static SkillWeight ReadSkillWeightData([NotNull] XmlReader xmlReader)
+    private static SkillWeight ReadSkillWeightData(XmlReader xmlReader)
     {
         var skillDefName = string.Empty;
         var weight = 0f;
@@ -880,8 +817,7 @@ internal class ImportLoadoutsDialog : Window
         return new SkillWeight(skillDefName, weight);
     }
 
-    [NotNull]
-    private static StatLimit ReadStatLimitData([NotNull] XmlReader xmlReader)
+    private static StatLimit ReadStatLimitData(XmlReader xmlReader)
     {
         var statDefName = string.Empty;
         float? minValue = null;
@@ -909,8 +845,7 @@ internal class ImportLoadoutsDialog : Window
         return new StatLimit(statDefName, minValue, maxValue);
     }
 
-    [NotNull]
-    private static StatWeight ReadStatWeightData([NotNull] XmlReader xmlReader)
+    private static StatWeight ReadStatWeightData(XmlReader xmlReader)
     {
         var statDefName = string.Empty;
         var isProtected = false;
@@ -938,7 +873,7 @@ internal class ImportLoadoutsDialog : Window
         return new StatWeight(statDefName, weight, isProtected);
     }
 
-    private void ReadToolRuleData([NotNull] XmlReader xmlReader)
+    private void ReadToolRuleData(XmlReader xmlReader)
     {
         if (!xmlReader.ReadToFollowing("li") || !xmlReader.Read()) { return; }
         var id = 0;
@@ -1011,15 +946,15 @@ internal class ImportLoadoutsDialog : Window
                     ranged = bool.Parse(xmlReader.ReadElementContentAsString());
                     break;
                 default:
-                    Log.Warning($"Equipment Manager: Unknown ToolRule property '{xmlReader.Name}'");
+                    Logger.LogWarning($"Unknown ToolRule property '{xmlReader.Name}'");
                     break;
             }
         }
-        _toolRules.Add(new ToolRule(id, label, isProtected, statWeights, statLimits,
-            whitelistedItemsDefNames, blacklistedItemsDefNames, equipMode, ranged));
+        _toolRules.Add(new ToolRule(id, label, isProtected, statWeights, statLimits, whitelistedItemsDefNames,
+            blacklistedItemsDefNames, equipMode, ranged));
     }
 
-    private void ReadToolRulesData(string savedGameFile, [NotNull] XmlReader xmlReader)
+    private void ReadToolRulesData(string savedGameFile, XmlReader xmlReader)
     {
         if (xmlReader.ReadToFollowing("ToolRules"))
         {
@@ -1030,18 +965,14 @@ internal class ImportLoadoutsDialog : Window
             }
             else
             {
-                Log.Error(
-                    $"Equipment Manager: Could not find any 'li' nodes inside the 'ToolRules' node in the save game file {savedGameFile}");
+                Logger.LogError(
+                    $"Could not find any 'li' nodes inside the 'ToolRules' node in the save game file {savedGameFile}");
             }
         }
-        else
-        {
-            Log.Error(
-                $"Equipment Manager: Could not find 'ToolRules' node in the save game file {savedGameFile}");
-        }
+        else { Logger.LogError($"Could not find 'ToolRules' node in the save game file {savedGameFile}"); }
     }
 
-    private void ReadWorkTypeRuleData([NotNull] XmlReader xmlReader)
+    private void ReadWorkTypeRuleData(XmlReader xmlReader)
     {
         if (!xmlReader.ReadToFollowing("li") || !xmlReader.Read()) { return; }
         var workTypeDefName = string.Empty;
@@ -1069,34 +1000,34 @@ internal class ImportLoadoutsDialog : Window
                     xmlReader.ReadEndElement();
                     break;
                 default:
-                    Log.Warning(
-                        $"Equipment Manager: Unknown WorkTypeRule property '{xmlReader.Name}'");
+                    Logger.LogWarning($"Unknown WorkTypeRule property '{xmlReader.Name}'");
                     break;
             }
         }
-        _workTypeRules.Add(new WorkTypeRule(workTypeDefName, statWeights));
+        var rule = new WorkTypeThingRule(workTypeDefName);
+        foreach (var sw in statWeights)
+        {
+            var statDef = sw.StatDef;
+            if (statDef != null) { rule.SetStatWeight(statDef, sw.Weight, sw.Protected); }
+        }
+        _workTypeRules.Add(rule);
     }
 
-    private void ReadWorkTypeRulesData(string savedGameFile, [NotNull] XmlReader xmlReader)
+    private void ReadWorkTypeRulesData(string savedGameFile, XmlReader xmlReader)
     {
         if (xmlReader.ReadToFollowing("WorkTypeRules"))
         {
             var node = xmlReader.ReadSubtree();
             if (node.ReadToDescendant("li"))
             {
-                do { ReadWorkTypeRuleData(node.ReadSubtree()); } while
-                    (node.ReadToNextSibling("li"));
+                do { ReadWorkTypeRuleData(node.ReadSubtree()); } while (node.ReadToNextSibling("li"));
             }
             else
             {
-                Log.Error(
-                    $"Equipment Manager: Could not find any 'li' nodes inside the 'WorkTypeRules' node in the save game file {savedGameFile}");
+                Logger.LogError(
+                    $"Could not find any 'li' nodes inside the 'WorkTypeRules' node in the save game file {savedGameFile}");
             }
         }
-        else
-        {
-            Log.Error(
-                $"Equipment Manager: Could not find 'WorkTypeRules' node in the save game file {savedGameFile}");
-        }
+        else { Logger.LogError($"Could not find 'WorkTypeRules' node in the save game file {savedGameFile}"); }
     }
 }

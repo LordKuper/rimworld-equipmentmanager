@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using EquipmentManager.CustomWidgets;
-using JetBrains.Annotations;
 using LordKuper.Common;
+using LordKuper.Common.Helpers;
 using LordKuper.Common.UI;
 using UnityEngine;
 using Verse;
@@ -15,9 +15,9 @@ internal partial class ManageWeaponRulesDialog
 {
     private readonly List<Thing> _currentlyAvailableTools = [];
     private readonly List<ThingDef> _globallyAvailableTools = [];
-    private ToolRule _selectedToolRule;
+    private ToolRule? _selectedToolRule;
 
-    private ToolRule SelectedToolRule
+    private ToolRule? SelectedToolRule
     {
         get => _selectedToolRule;
         set
@@ -40,25 +40,22 @@ internal partial class ManageWeaponRulesDialog
                 new FloatMenuOption(rule.Label, () => SelectedToolRule = rule)).ToList()));
         }
         if (Widgets.ButtonText(
-                new Rect(rect.x + buttonWidth + UiHelpers.ButtonGap, rect.y, buttonWidth,
-                    UiHelpers.ButtonHeight), Resources.Strings.WeaponRules.AddRule))
-        {
-            SelectedToolRule = EquipmentManager.AddToolRule();
-        }
+                new Rect(rect.x + buttonWidth + UiHelpers.ButtonGap, rect.y, buttonWidth, UiHelpers.ButtonHeight),
+                Resources.Strings.WeaponRules.AddRule)) { SelectedToolRule = EquipmentManager.AddToolRule(); }
         if (Widgets.ButtonText(
-                new Rect(rect.x + (buttonWidth + UiHelpers.ButtonGap) * 2, rect.y, buttonWidth,
-                    UiHelpers.ButtonHeight), Resources.Strings.WeaponRules.CopyRule))
+                new Rect(rect.x + (buttonWidth + UiHelpers.ButtonGap) * 2, rect.y, buttonWidth, UiHelpers.ButtonHeight),
+                Resources.Strings.WeaponRules.CopyRule))
         {
             Find.WindowStack.Add(new FloatMenu(EquipmentManager.GetToolRules().Select(rule =>
-                new FloatMenuOption(rule.Label,
-                    () => SelectedToolRule = EquipmentManager.CopyToolRule(rule))).ToList()));
+                    new FloatMenuOption(rule.Label, () => SelectedToolRule = EquipmentManager.CopyToolRule(rule)))
+                .ToList()));
         }
         if (Widgets.ButtonText(
-                new Rect(rect.x + (buttonWidth + UiHelpers.ButtonGap) * 3, rect.y, buttonWidth,
-                    UiHelpers.ButtonHeight), Resources.Strings.WeaponRules.DeleteRule))
+                new Rect(rect.x + (buttonWidth + UiHelpers.ButtonGap) * 3, rect.y, buttonWidth, UiHelpers.ButtonHeight),
+                Resources.Strings.WeaponRules.DeleteRule))
         {
-            Find.WindowStack.Add(new FloatMenu(EquipmentManager.GetToolRules()
-                .Where(rule => !rule.Protected).Select(rule => new FloatMenuOption(rule.Label, () =>
+            Find.WindowStack.Add(new FloatMenu(EquipmentManager.GetToolRules().Where(rule => !rule.Protected)
+                .Select(rule => new FloatMenuOption(rule.Label, () =>
                 {
                     EquipmentManager.DeleteToolRule(rule);
                     if (rule == SelectedToolRule) { SelectedToolRule = null; }
@@ -78,55 +75,47 @@ internal partial class ManageWeaponRulesDialog
         Text.Anchor = anchor;
         var itemPropertiesRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
             rect.yMax - (labelRect.yMax + UiHelpers.ElementGap));
-        var columnWidth =
-            (itemPropertiesRect.width -
-                UiHelpers.ElementGap * (UiHelpers.BoolSettingsColumnCount - 1)) /
+        var columnWidth = (itemPropertiesRect.width - UiHelpers.ElementGap * (UiHelpers.BoolSettingsColumnCount - 1)) /
             UiHelpers.BoolSettingsColumnCount;
         for (var i = 1; i < UiHelpers.BoolSettingsColumnCount; i++)
         {
             UiHelpers.DoGapLineVertical(new Rect(
-                itemPropertiesRect.x + i * (columnWidth + UiHelpers.ElementGap) -
-                UiHelpers.ElementGap, itemPropertiesRect.y, UiHelpers.ElementGap,
-                itemPropertiesRect.height));
+                itemPropertiesRect.x + i * (columnWidth + UiHelpers.ElementGap) - UiHelpers.ElementGap,
+                itemPropertiesRect.y, UiHelpers.ElementGap, itemPropertiesRect.height));
         }
-        DoRuleSetting(UiHelpers.GetBoolSettingRect(itemPropertiesRect, 0, columnWidth),
-            () => SelectedToolRule.Ranged, value =>
+        DoRuleSetting(UiHelpers.GetBoolSettingRect(itemPropertiesRect, 0, columnWidth), () => SelectedToolRule!.Ranged,
+            value =>
             {
-                SelectedToolRule.Ranged = value;
+                SelectedToolRule!.Ranged = value;
                 UpdateAvailableItems_Tools();
-            }, Resources.Strings.WeaponRules.Tools.Ranged,
-            Resources.Strings.WeaponRules.Tools.RangedTooltip);
+            }, Resources.Strings.WeaponRules.Tools.Ranged, Resources.Strings.WeaponRules.Tools.RangedTooltip);
     }
 
     private void DoTab_Tools(Rect rect)
     {
         const int ruleSettingsCount = 0;
         const int itemPropertiesCount = 1;
-        GetWeaponRuleTabRects(rect, ruleSettingsCount, itemPropertiesCount, out var buttonRowRect,
-            out var labelRect, out var equipModeRect, out _, out var itemPropertiesRect,
-            out var availableItemsRect, out var exclusiveItemsRect, out var statsRect);
+        GetWeaponRuleTabRects(rect, ruleSettingsCount, itemPropertiesCount, out var buttonRowRect, out var labelRect,
+            out var equipModeRect, out _, out var itemPropertiesRect, out var availableItemsRect,
+            out var exclusiveItemsRect, out var statsRect);
         DoButtonRow_Tools(buttonRowRect);
-        UiHelpers.DoGapLineHorizontal(new Rect(rect.x, buttonRowRect.yMax, rect.width,
-            UiHelpers.ElementGap));
+        UiHelpers.DoGapLineHorizontal(new Rect(rect.x, buttonRowRect.yMax, rect.width, UiHelpers.ElementGap));
         if (SelectedToolRule == null)
         {
-            Labels.DoLabel(labelRect, Resources.Strings.WeaponRules.NoRuleSelected,
-                TextAnchor.MiddleLeft);
+            Labels.DoLabel(labelRect, Resources.Strings.WeaponRules.NoRuleSelected, TextAnchor.MiddleLeft);
         }
         else
         {
-            Fields.DoLabeledTextInput(labelRect, 0, null, Resources.Strings.WeaponRules.RuleLabel,
-                null, ref SelectedToolRule.Label, UiHelpers.ValidNameRegex, 30, null, out _);
-            UiHelpers.DoGapLineVertical(new Rect(rect.center.x - UiHelpers.ElementGap / 2f,
-                labelRect.y, UiHelpers.ElementGap, labelRect.height));
+            Fields.DoLabeledTextInput(labelRect, 0, null, Resources.Strings.WeaponRules.RuleLabel, null,
+                ref SelectedToolRule.Label, UiHelpers.ValidNameRegex, 30, null, out _);
+            UiHelpers.DoGapLineVertical(new Rect(rect.center.x - UiHelpers.ElementGap / 2f, labelRect.y,
+                UiHelpers.ElementGap, labelRect.height));
             DoToolRuleEquipMode(equipModeRect, () => SelectedToolRule.EquipMode,
                 mode => SelectedToolRule.EquipMode = mode);
-            UiHelpers.DoGapLineHorizontal(new Rect(rect.x, labelRect.yMax, rect.width,
-                UiHelpers.ElementGap));
+            UiHelpers.DoGapLineHorizontal(new Rect(rect.x, labelRect.yMax, rect.width, UiHelpers.ElementGap));
             DoItemProperties_Tools(itemPropertiesRect);
-            UiHelpers.DoGapLineHorizontal(new Rect(rect.x, itemPropertiesRect.yMax, rect.width,
-                UiHelpers.ElementGap));
-            DoRuleStats(statsRect, EquipmentManagerStatDefs.ToolStatDefs,
+            UiHelpers.DoGapLineHorizontal(new Rect(rect.x, itemPropertiesRect.yMax, rect.width, UiHelpers.ElementGap));
+            DoRuleStats(statsRect, StatHelper.GetStatsByCategory(StatCategory.Tool).ToList(),
                 SelectedToolRule.GetStatWeights(), def =>
                 {
                     SelectedToolRule.SetStatWeight(def, 0f, false);
@@ -144,10 +133,9 @@ internal partial class ManageWeaponRulesDialog
                     SelectedToolRule.DeleteStatLimit(statDefName);
                     UpdateAvailableItems_Tools();
                 });
-            UiHelpers.DoGapLineHorizontal(new Rect(rect.x, statsRect.yMax, rect.width,
-                UiHelpers.ElementGap));
-            DoExclusiveItems(exclusiveItemsRect, ToolRule.AllRelevantThings,
-                SelectedToolRule.GetWhitelistedItems(), def =>
+            UiHelpers.DoGapLineHorizontal(new Rect(rect.x, statsRect.yMax, rect.width, UiHelpers.ElementGap));
+            DoExclusiveItems(exclusiveItemsRect, ToolRule.AllRelevantThings, SelectedToolRule.GetWhitelistedItems(),
+                def =>
                 {
                     SelectedToolRule.DeleteWhitelistedItem(def.defName);
                     UpdateAvailableItems_Tools();
@@ -164,8 +152,7 @@ internal partial class ManageWeaponRulesDialog
                     SelectedToolRule.AddBlacklistedItem(def);
                     UpdateAvailableItems_Tools();
                 }, def => GetToolDefTooltip(def, SelectedToolRule));
-            UiHelpers.DoGapLineHorizontal(new Rect(rect.x, exclusiveItemsRect.yMax, rect.width,
-                UiHelpers.ElementGap));
+            UiHelpers.DoGapLineHorizontal(new Rect(rect.x, exclusiveItemsRect.yMax, rect.width, UiHelpers.ElementGap));
             DoAvailableItems(availableItemsRect, _globallyAvailableTools, def =>
             {
                 SelectedToolRule.AddBlacklistedItem(def);
@@ -178,8 +165,8 @@ internal partial class ManageWeaponRulesDialog
         }
     }
 
-    private static void DoToolRuleEquipMode(Rect rect,
-        [NotNull] Func<ItemRule.ToolEquipMode> getter, Action<ItemRule.ToolEquipMode> setter)
+    private static void DoToolRuleEquipMode(Rect rect, Func<ItemRule.ToolEquipMode> getter,
+        Action<ItemRule.ToolEquipMode> setter)
     {
         var font = Text.Font;
         var anchor = Text.Anchor;
@@ -190,26 +177,23 @@ internal partial class ManageWeaponRulesDialog
         Text.Font = GameFont.Small;
         var inputRect = new Rect(labelRect.xMax + UiHelpers.ElementGap, rect.y,
             rect.width - labelRect.width - UiHelpers.ElementGap, rect.height);
-        if (Widgets.ButtonText(inputRect,
-                Resources.Strings.WeaponRules.GetToolEquipModeLabel(getter())))
+        if (Widgets.ButtonText(inputRect, Resources.Strings.WeaponRules.GetToolEquipModeLabel(getter())))
         {
             Find.WindowStack.Add(new FloatMenu(Enum.GetValues(typeof(ItemRule.ToolEquipMode))
                 .OfType<ItemRule.ToolEquipMode>().Select(mode =>
-                    new FloatMenuOption(Resources.Strings.WeaponRules.GetToolEquipModeLabel(mode),
-                        () => setter(mode))).ToList()));
+                    new FloatMenuOption(Resources.Strings.WeaponRules.GetToolEquipModeLabel(mode), () => setter(mode)))
+                .ToList()));
         }
         Text.Font = font;
         Text.Anchor = anchor;
     }
 
-    [NotNull]
-    private string GetToolDefTooltip([NotNull] ThingDef def, [NotNull] ItemRule rule)
+    private string GetToolDefTooltip(ThingDef def, ItemRule rule)
     {
         var stringBuilder = new StringBuilder();
         _ = stringBuilder.AppendLine(def.LabelCap);
-        var stats = rule.GetStatWeights().Where(sw => sw.StatDef != null).Select(sw => sw.StatDef)
-            .Union(rule.GetStatLimits().Where(sl => sl.StatDef != null).Select(sl => sl.StatDef))
-            .ToHashSet();
+        var stats = rule.GetStatWeights().Where(sw => sw.StatDef != null).Select(sw => sw.StatDef!)
+            .Union(rule.GetStatLimits().Where(sl => sl.StatDef != null).Select(sl => sl.StatDef!)).ToHashSet();
         if (!stats.Any()) { return stringBuilder.ToString(); }
         var cache = EquipmentManager.GetToolDefCache(def, RimWorldTime.GetMapTime(Find.CurrentMap));
         _ = stringBuilder.AppendLine();
@@ -221,14 +205,12 @@ internal partial class ManageWeaponRulesDialog
         return stringBuilder.ToString();
     }
 
-    [NotNull]
-    private string GetToolTooltip([NotNull] Thing thing, [NotNull] ItemRule rule)
+    private string GetToolTooltip(Thing thing, ItemRule rule)
     {
         var stringBuilder = new StringBuilder();
         _ = stringBuilder.AppendLine(thing.LabelCapNoCount);
-        var stats = rule.GetStatWeights().Where(sw => sw.StatDef != null).Select(sw => sw.StatDef)
-            .Union(rule.GetStatLimits().Where(sl => sl.StatDef != null).Select(sl => sl.StatDef))
-            .ToHashSet();
+        var stats = rule.GetStatWeights().Where(sw => sw.StatDef != null).Select(sw => sw.StatDef!)
+            .Union(rule.GetStatLimits().Where(sl => sl.StatDef != null).Select(sl => sl.StatDef!)).ToHashSet();
         if (!stats.Any()) { return stringBuilder.ToString(); }
         var cache = EquipmentManager.GetToolCache(thing, RimWorldTime.GetMapTime(Find.CurrentMap));
         _ = stringBuilder.AppendLine();
@@ -254,10 +236,8 @@ internal partial class ManageWeaponRulesDialog
         var map = Find.CurrentMap;
         SelectedToolRule.UpdateGloballyAvailableItems();
         _globallyAvailableTools.AddRange(SelectedToolRule.GetGloballyAvailableItemsSorted(
-            WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder.ToList(),
-            RimWorldTime.GetMapTime(map)));
+            WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder.ToList(), RimWorldTime.GetMapTime(map)));
         _currentlyAvailableTools.AddRange(SelectedToolRule.GetCurrentlyAvailableItemsSorted(map,
-            WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder.ToList(),
-            RimWorldTime.GetMapTime(map)));
+            WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder.ToList(), RimWorldTime.GetMapTime(map)));
     }
 }

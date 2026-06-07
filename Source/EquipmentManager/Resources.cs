@@ -1,5 +1,4 @@
-﻿using JetBrains.Annotations;
-using UnityEngine;
+﻿using UnityEngine;
 using Verse;
 
 namespace EquipmentManager;
@@ -12,11 +11,8 @@ internal static class Resources
 
         internal static class Loadouts
         {
-            internal static readonly string AddLoadout =
-                $"EquipmentManager.Loadouts.{nameof(AddLoadout)}".Translate();
-
-            internal static readonly string AutoSelect =
-                $"EquipmentManager.Loadouts.{nameof(AutoSelect)}".Translate();
+            internal static readonly string AddLoadout = $"EquipmentManager.Loadouts.{nameof(AddLoadout)}".Translate();
+            internal static readonly string AutoSelect = $"EquipmentManager.Loadouts.{nameof(AutoSelect)}".Translate();
 
             internal static readonly string AvailablePawns =
                 $"EquipmentManager.Loadouts.{nameof(AvailablePawns)}".Translate();
@@ -27,6 +23,12 @@ internal static class Resources
             internal static readonly string CopyLoadout =
                 $"EquipmentManager.Loadouts.{nameof(CopyLoadout)}".Translate();
 
+            internal static readonly string CopyToClipboard =
+                $"EquipmentManager.Loadouts.{nameof(CopyToClipboard)}".Translate();
+
+            internal static readonly string CopyToClipboardTooltip =
+                $"EquipmentManager.Loadouts.{nameof(CopyToClipboardTooltip)}".Translate();
+
             internal static readonly string DeleteLoadout =
                 $"EquipmentManager.Loadouts.{nameof(DeleteLoadout)}".Translate();
 
@@ -36,8 +38,7 @@ internal static class Resources
             internal static readonly string DropUnassignedWeaponsTooltip =
                 $"EquipmentManager.Loadouts.{nameof(DropUnassignedWeaponsTooltip)}".Translate();
 
-            internal static readonly string ImportData =
-                $"EquipmentManager.Loadouts.{nameof(ImportData)}".Translate();
+            internal static readonly string ImportData = $"EquipmentManager.Loadouts.{nameof(ImportData)}".Translate();
 
             internal static readonly string ImportLoadouts =
                 $"EquipmentManager.Loadouts.{nameof(ImportLoadouts)}".Translate();
@@ -51,14 +52,7 @@ internal static class Resources
             internal static readonly string LoadoutSettings =
                 $"EquipmentManager.Loadouts.{nameof(LoadoutSettings)}".Translate();
 
-            internal static readonly string Log =
-                $"EquipmentManager.Loadouts.{nameof(Log)}".Translate();
-
-            internal static readonly string CopyToClipboard =
-                $"EquipmentManager.Loadouts.{nameof(CopyToClipboard)}".Translate();
-
-            internal static readonly string CopyToClipboardTooltip =
-                $"EquipmentManager.Loadouts.{nameof(CopyToClipboardTooltip)}".Translate();
+            internal static readonly string Log = $"EquipmentManager.Loadouts.{nameof(Log)}".Translate();
 
             internal static readonly string ManageLoadouts =
                 $"EquipmentManager.Loadouts.{nameof(ManageLoadouts)}".Translate();
@@ -93,8 +87,7 @@ internal static class Resources
             internal static readonly string PawnStatWeights =
                 $"EquipmentManager.Loadouts.{nameof(PawnStatWeights)}".Translate();
 
-            internal static readonly string PawnTraits =
-                $"EquipmentManager.Loadouts.{nameof(PawnTraits)}".Translate();
+            internal static readonly string PawnTraits = $"EquipmentManager.Loadouts.{nameof(PawnTraits)}".Translate();
 
             internal static readonly string PawnWorkCapacities =
                 $"EquipmentManager.Loadouts.{nameof(PawnWorkCapacities)}".Translate();
@@ -111,8 +104,7 @@ internal static class Resources
             internal static readonly string RangedSidearmRulesLabel =
                 $"EquipmentManager.Loadouts.{nameof(RangedSidearmRulesLabel)}".Translate();
 
-            internal static readonly string Rules =
-                $"EquipmentManager.Loadouts.{nameof(Rules)}".Translate();
+            internal static readonly string Rules = $"EquipmentManager.Loadouts.{nameof(Rules)}".Translate();
 
             internal static readonly string SavedGamesListHeader =
                 $"EquipmentManager.Loadouts.{nameof(SavedGamesListHeader)}".Translate();
@@ -120,15 +112,11 @@ internal static class Resources
             internal static readonly string SelectLoadout =
                 $"EquipmentManager.Loadouts.{nameof(SelectLoadout)}".Translate();
 
-            internal static readonly string ToolsLabel =
-                $"EquipmentManager.Loadouts.{nameof(ToolsLabel)}".Translate();
+            internal static readonly string ToolsLabel = $"EquipmentManager.Loadouts.{nameof(ToolsLabel)}".Translate();
 
-            [NotNull]
-            internal static string GetPrimaryWeaponTypeLabel(
-                Loadout.PrimaryWeaponType primaryWeaponType)
+            internal static string GetPrimaryWeaponTypeLabel(Loadout.PrimaryWeaponType primaryWeaponType)
             {
-                return $"EquipmentManager.Loadouts.PrimaryWeaponTypes.{primaryWeaponType}"
-                    .Translate();
+                return $"EquipmentManager.Loadouts.PrimaryWeaponTypes.{primaryWeaponType}".Translate();
             }
 
             internal static class Default
@@ -156,25 +144,9 @@ internal static class Resources
             }
         }
 
-        internal static class Stats
-        {
-            [NotNull]
-            internal static string GetStatDescription(string defName)
-            {
-                return $"EquipmentManager.Stats.{defName}.Description".Translate();
-            }
-
-            [NotNull]
-            internal static string GetStatLabel(string defName)
-            {
-                return $"EquipmentManager.Stats.{defName}.Label".Translate();
-            }
-        }
-
         internal static class WeaponRules
         {
-            internal static readonly string AddRule =
-                $"EquipmentManager.WeaponRules.{nameof(AddRule)}".Translate();
+            internal static readonly string AddRule = $"EquipmentManager.WeaponRules.{nameof(AddRule)}".Translate();
 
             internal static readonly string BlacklistedItems =
                 $"EquipmentManager.WeaponRules.{nameof(BlacklistedItems)}".Translate();
@@ -182,15 +154,13 @@ internal static class Resources
             internal static readonly string BlacklistedItemsTooltip =
                 $"EquipmentManager.WeaponRules.{nameof(BlacklistedItemsTooltip)}".Translate();
 
-            internal static readonly string CopyRule =
-                $"EquipmentManager.WeaponRules.{nameof(CopyRule)}".Translate();
+            internal static readonly string CopyRule = $"EquipmentManager.WeaponRules.{nameof(CopyRule)}".Translate();
 
             internal static readonly string CurrentlyAvailableItems =
                 $"EquipmentManager.WeaponRules.{nameof(CurrentlyAvailableItems)}".Translate();
 
             internal static readonly string CurrentlyAvailableItemsTooltip =
-                $"EquipmentManager.WeaponRules.{nameof(CurrentlyAvailableItemsTooltip)}"
-                    .Translate();
+                $"EquipmentManager.WeaponRules.{nameof(CurrentlyAvailableItemsTooltip)}".Translate();
 
             internal static readonly string DeleteRule =
                 $"EquipmentManager.WeaponRules.{nameof(DeleteRule)}".Translate();
@@ -207,14 +177,12 @@ internal static class Resources
             internal static readonly string NoRuleSelected =
                 $"EquipmentManager.WeaponRules.{nameof(NoRuleSelected)}".Translate();
 
-            internal static readonly string Refresh =
-                $"EquipmentManager.WeaponRules.{nameof(Refresh)}".Translate();
+            internal static readonly string Refresh = $"EquipmentManager.WeaponRules.{nameof(Refresh)}".Translate();
 
             internal static readonly string RuleEquipModeLabel =
                 $"EquipmentManager.WeaponRules.{nameof(RuleEquipModeLabel)}".Translate();
 
-            internal static readonly string RuleLabel =
-                $"EquipmentManager.WeaponRules.{nameof(RuleLabel)}".Translate();
+            internal static readonly string RuleLabel = $"EquipmentManager.WeaponRules.{nameof(RuleLabel)}".Translate();
 
             internal static readonly string RuleSettings =
                 $"EquipmentManager.WeaponRules.{nameof(RuleSettings)}".Translate();
@@ -234,13 +202,11 @@ internal static class Resources
             internal static readonly string WhitelistedItemsTooltip =
                 $"EquipmentManager.WeaponRules.{nameof(WhitelistedItemsTooltip)}".Translate();
 
-            [NotNull]
             internal static string GetToolEquipModeLabel(ItemRule.ToolEquipMode equipMode)
             {
                 return $"EquipmentManager.WeaponRules.ToolEquipModes.{equipMode}".Translate();
             }
 
-            [NotNull]
             internal static string GetWeaponEquipModeLabel(ItemRule.WeaponEquipMode equipMode)
             {
                 return $"EquipmentManager.WeaponRules.WeaponEquipModes.{equipMode}".Translate();
@@ -252,33 +218,27 @@ internal static class Resources
                     $"EquipmentManager.WeaponRules.MeleeWeapons.{nameof(Rottable)}".Translate();
 
                 internal static readonly string RottableTooltip =
-                    $"EquipmentManager.WeaponRules.MeleeWeapons.{nameof(RottableTooltip)}"
-                        .Translate();
+                    $"EquipmentManager.WeaponRules.MeleeWeapons.{nameof(RottableTooltip)}".Translate();
 
                 internal static readonly string Title =
                     $"EquipmentManager.WeaponRules.MeleeWeapons.{nameof(Title)}".Translate();
 
                 internal static readonly string UsableWithShields =
-                    $"EquipmentManager.WeaponRules.MeleeWeapons.{nameof(UsableWithShields)}"
-                        .Translate();
+                    $"EquipmentManager.WeaponRules.MeleeWeapons.{nameof(UsableWithShields)}".Translate();
 
                 internal static readonly string UsableWithShieldsTooltip =
-                    $"EquipmentManager.WeaponRules.MeleeWeapons.{nameof(UsableWithShieldsTooltip)}"
-                        .Translate();
+                    $"EquipmentManager.WeaponRules.MeleeWeapons.{nameof(UsableWithShieldsTooltip)}".Translate();
 
                 internal static class Default
                 {
                     internal static readonly string Bluntest =
-                        $"EquipmentManager.WeaponRules.MeleeWeapons.Default.{nameof(Bluntest)}"
-                            .Translate();
+                        $"EquipmentManager.WeaponRules.MeleeWeapons.Default.{nameof(Bluntest)}".Translate();
 
                     internal static readonly string HighestDps =
-                        $"EquipmentManager.WeaponRules.MeleeWeapons.Default.{nameof(HighestDps)}"
-                            .Translate();
+                        $"EquipmentManager.WeaponRules.MeleeWeapons.Default.{nameof(HighestDps)}".Translate();
 
                     internal static readonly string Sharpest =
-                        $"EquipmentManager.WeaponRules.MeleeWeapons.Default.{nameof(Sharpest)}"
-                            .Translate();
+                        $"EquipmentManager.WeaponRules.MeleeWeapons.Default.{nameof(Sharpest)}".Translate();
                 }
             }
 
@@ -288,43 +248,37 @@ internal static class Resources
                     $"EquipmentManager.WeaponRules.RangedWeapons.{nameof(AmmoCount)}".Translate();
 
                 internal static readonly string AmmoCountTooltip =
-                    $"EquipmentManager.WeaponRules.RangedWeapons.{nameof(AmmoCountTooltip)}"
-                        .Translate();
+                    $"EquipmentManager.WeaponRules.RangedWeapons.{nameof(AmmoCountTooltip)}".Translate();
 
                 internal static readonly string Explosive =
                     $"EquipmentManager.WeaponRules.RangedWeapons.{nameof(Explosive)}".Translate();
 
                 internal static readonly string ExplosiveTooltip =
-                    $"EquipmentManager.WeaponRules.RangedWeapons.{nameof(ExplosiveTooltip)}"
-                        .Translate();
+                    $"EquipmentManager.WeaponRules.RangedWeapons.{nameof(ExplosiveTooltip)}".Translate();
 
                 internal static readonly string ManualCast =
                     $"EquipmentManager.WeaponRules.RangedWeapons.{nameof(ManualCast)}".Translate();
 
                 internal static readonly string ManualCastTooltip =
-                    $"EquipmentManager.WeaponRules.RangedWeapons.{nameof(ManualCastTooltip)}"
-                        .Translate();
+                    $"EquipmentManager.WeaponRules.RangedWeapons.{nameof(ManualCastTooltip)}".Translate();
 
                 internal static readonly string Title =
                     $"EquipmentManager.WeaponRules.RangedWeapons.{nameof(Title)}".Translate();
 
                 internal static class Default
                 {
-                    internal static readonly string HighestDpsa =
-                        $"EquipmentManager.WeaponRules.RangedWeapons.Default.{nameof(HighestDpsa)}"
-                            .Translate();
-
                     internal static readonly string HighRof =
-                        $"EquipmentManager.WeaponRules.RangedWeapons.Default.{nameof(HighRof)}"
-                            .Translate();
+                        $"EquipmentManager.WeaponRules.RangedWeapons.Default.{nameof(HighRof)}".Translate();
+
+                    internal static readonly string HighestDpsa =
+                        $"EquipmentManager.WeaponRules.RangedWeapons.Default.{nameof(HighestDpsa)}".Translate();
 
                     internal static readonly string LongRangeHeavyHitter =
                         $"EquipmentManager.WeaponRules.RangedWeapons.Default.{nameof(LongRangeHeavyHitter)}"
                             .Translate();
 
                     internal static readonly string LowWarmupTime =
-                        $"EquipmentManager.WeaponRules.RangedWeapons.Default.{nameof(LowWarmupTime)}"
-                            .Translate();
+                        $"EquipmentManager.WeaponRules.RangedWeapons.Default.{nameof(LowWarmupTime)}".Translate();
                 }
             }
 
@@ -342,12 +296,10 @@ internal static class Resources
                 internal static class Default
                 {
                     internal static readonly string AllWorkTypes =
-                        $"EquipmentManager.WeaponRules.Tools.Default.{nameof(AllWorkTypes)}"
-                            .Translate();
+                        $"EquipmentManager.WeaponRules.Tools.Default.{nameof(AllWorkTypes)}".Translate();
 
                     internal static readonly string AssignedWorkTypes =
-                        $"EquipmentManager.WeaponRules.Tools.Default.{nameof(AssignedWorkTypes)}"
-                            .Translate();
+                        $"EquipmentManager.WeaponRules.Tools.Default.{nameof(AssignedWorkTypes)}".Translate();
                 }
             }
 
@@ -362,13 +314,8 @@ internal static class Resources
     [StaticConstructorOnStartup]
     internal static class Textures
     {
-        internal static readonly Texture2D Delete =
-            ContentFinder<Texture2D>.Get("equipment-manager-delete");
-
-        internal static readonly Texture2D PassionMajor =
-            ContentFinder<Texture2D>.Get("UI/Icons/PassionMajor");
-
-        internal static readonly Texture2D PassionMinor =
-            ContentFinder<Texture2D>.Get("UI/Icons/PassionMinor");
+        internal static readonly Texture2D Delete = ContentFinder<Texture2D>.Get("equipment-manager-delete");
+        internal static readonly Texture2D PassionMajor = ContentFinder<Texture2D>.Get("UI/Icons/PassionMajor");
+        internal static readonly Texture2D PassionMinor = ContentFinder<Texture2D>.Get("UI/Icons/PassionMinor");
     }
 }

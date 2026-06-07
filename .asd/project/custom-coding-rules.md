@@ -11,9 +11,10 @@ Inherited from the `LordKuper.Common` parent library and adapted to EquipmentMan
 
 ## Nullability
 
-- **Target standard: `<Nullable>enable</Nullable>` for all projects.** The test project (`EquipmentManager.Tests.csproj`) already has it. The production project (`EquipmentManager.csproj`) does NOT yet — flipping it surfaces ~148 nullable warnings that fail the build under `TreatWarningsAsErrors`, so the production migration is tracked as a dedicated sprint, not done ad hoc.
-- Until then, production code uses JetBrains `[CanBeNull]`/`[NotNull]` annotations for nullability intent. New/rewritten production code MUST stay annotation-consistent and MUST NOT introduce `T?` reference-type syntax (it errors without the nullable context).
-- Once the production migration sprint lands, prefer C# nullable reference types over JetBrains annotations; the two MUST NOT contradict each other. Do NOT disable the nullable context anywhere.
+- **Standard: `<Nullable>enable</Nullable>` for all projects.** Both `EquipmentManager.csproj` and `EquipmentManager.Tests.csproj` have it enabled (production migration completed in sprint 001-full-audit-alignment).
+- Use C# nullable reference types (`T?` + guards) for nullability intent. JetBrains nullability attributes (`[CanBeNull]`/`[NotNull]`/`[ItemNotNull]`) MUST NOT be used — they were removed in the migration. Non-nullability JetBrains attributes (`[UsedImplicitly]`, `[Pure]`) are still allowed.
+- Scribe-serialized collection fields are declared nullable (`List<…>? = []` / `Dictionary<…>? = new()`) and restored with `??=` in `Initialize()`, because `Scribe_Collections.Look` writes `null` back on empty load. Scalar reference fields set by `Scribe`/reflection use `= null!`. CE reflection-delegate fields stay nullable `T?` with guards.
+- Do NOT disable the nullable context anywhere. Do NOT mask nullable warnings with `#pragma warning disable`.
 
 ## Zero warnings
 
@@ -44,7 +45,16 @@ Inherited from the `LordKuper.Common` parent library and adapted to EquipmentMan
 
 ## Testing (NUnit + FluentAssertions)
 
-- Test framework is **NUnit 4.x** (`[Test]`, `[TestCase]`, `[TestFixture]`, `[SetUp]`/`[TearDown]`, `[SetUpFixture]`/`[OneTimeSetUp]`); runner is `NUnit3TestAdapter`; host is `Microsoft.NET.Test.Sdk`. Assertions are **FluentAssertions 7.x** (`.Should()`) — do NOT use NUnit `Assert.*` / `Assert.That`. FluentAssertions is pinned to 7.x (Apache-2.0); never float to 8.x (commercial license).
+- Test framework is **NUnit 4.x** (`[Test]`, `[TestCase]`, `[TestFixture]`, `[SetUp]`/`[TearDown]`, `[SetUpFixture]`/`[OneTimeSetUp]`); runner is `NUnit3TestAdapter`; host is `Microsoft.NET.Test.Sdk`. FluentAssertions is pinned to 7.x (Apache-2.0); never float to 8.x (commercial license).
+- **All assertions MUST use FluentAssertions (`.Should()`) wherever possible.** Do NOT use NUnit `Assert.*` / `Assert.That` / `ClassicAssert.*` for value, state, or reference checks. Map every common shape to its FluentAssertions form:
+  - equality/identity → `actual.Should().Be(expected)` / `.BeSameAs(...)` / `.NotBeNull()`
+  - booleans → `flag.Should().BeTrue()/BeFalse()`
+  - collections → `coll.Should().BeEmpty()/HaveCount(n)/Contain(x)/BeEquivalentTo(...)/NotContain(...)`
+  - exceptions → `act.Should().Throw<T>()` / `.NotThrow()` (wrap the call in an `Action`/`Func`), NOT `Assert.Throws`
+  - numeric tolerance → `value.Should().BeApproximately(expected, precision)`
+  - reference null-state → `obj.Should().BeNull()/NotBeNull()`
+  - The only non-FluentAssertions test constructs allowed are NUnit structural attributes (`[Test]`, `[TestCase]`, `[SetUp]`, `[Ignore("reason")]`, etc.) and genuine non-assertion control flow. `Assert.Fail`/`Assert.Pass`/`Assert.Inconclusive` are NOT assertions of behavior — prefer a real `.Should()` assertion; use `[Ignore]` for legitimately un-runnable tests rather than an empty/`Assert.Pass` body.
+  - "Wherever possible" carve-out: only when a check genuinely has no FluentAssertions equivalent (extremely rare) may a non-FA construct be used, with an inline comment stating why.
 - Use global `<Using Include="NUnit.Framework" />` and `<Using Include="FluentAssertions" />` rather than per-file `using` directives.
 - **Static state isolation** — tests mutating global/cached/static state MUST save/restore via per-test `[SetUp]` (snapshot) / `[TearDown]` (restore) on a shared base class (`StateIsolationTestBase`). Use per-test `[SetUp]`/`[TearDown]` (not per-class `[OneTimeSetUp]`) so each test gets true isolation. NUnit runs non-parallel by default; mark static-touching classes `[NonParallelizable]` and never add `[assembly: Parallelizable]`.
 - RimWorld-typed test types require the RimWorld `AppDomain.AssemblyResolve` handler registered before any such type loads — it lives in the namespace-less (global) `[SetUpFixture]` `RimWorldAssemblyResolverFixture`. Do not duplicate or bypass it.

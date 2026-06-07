@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using HarmonyLib;
-using JetBrains.Annotations;
 using LordKuper.Common;
 using LordKuper.Common.CustomStats;
 using LordKuper.Common.Helpers;
@@ -10,16 +9,17 @@ using Verse;
 
 namespace EquipmentManager;
 
-internal class MeleeWeaponCache([NotNull] Thing thing) : ItemCache
+internal class MeleeWeaponCache(Thing thing) : ThingCache(thing, 24f)
 {
-    private AccessTools.FieldRef<Tool, float> _armorPenetrationBluntDelegate;
-    private AccessTools.FieldRef<Tool, float> _armorPenetrationSharpDelegate;
+    // CE reflection-delegate fields: legitimately null when Combat Extended is absent.
+    // Kept nullable with existing null-guards per ADR-0003.
+    private AccessTools.FieldRef<Tool, float>? _armorPenetrationBluntDelegate;
+    private AccessTools.FieldRef<Tool, float>? _armorPenetrationSharpDelegate;
     private bool _initialized;
-    private Type _toolType;
-
+    private Type? _toolType;
     private float ArmorPenetration { get; set; }
 
-    private AccessTools.FieldRef<Tool, float> ArmorPenetrationBluntDelegate
+    private AccessTools.FieldRef<Tool, float>? ArmorPenetrationBluntDelegate
     {
         get
         {
@@ -28,7 +28,7 @@ internal class MeleeWeaponCache([NotNull] Thing thing) : ItemCache
         }
     }
 
-    private AccessTools.FieldRef<Tool, float> ArmorPenetrationSharpDelegate
+    private AccessTools.FieldRef<Tool, float>? ArmorPenetrationSharpDelegate
     {
         get
         {
@@ -37,9 +37,7 @@ internal class MeleeWeaponCache([NotNull] Thing thing) : ItemCache
         }
     }
 
-    private Thing Thing { get; } = thing ?? throw new ArgumentNullException(nameof(thing));
-
-    private Type ToolType
+    private Type? ToolType
     {
         get
         {
@@ -48,20 +46,18 @@ internal class MeleeWeaponCache([NotNull] Thing thing) : ItemCache
         }
     }
 
-    private float GetCustomStatValue([NotNull] StatDef statDef)
+    private float GetCustomStatValue(StatDef statDef)
     {
         try
         {
-            if (Enum.TryParse(MeleeWeaponStats.GetStatName(statDef.defName),
-                    out MeleeWeaponStat meleeWeaponStat))
+            if (Enum.TryParse(MeleeWeaponStats.GetStatName(statDef.defName), out MeleeWeaponStat meleeWeaponStat))
             {
                 switch (meleeWeaponStat)
                 {
                     case MeleeWeaponStat.ArmorPenetration:
                         return ArmorPenetration;
                     case MeleeWeaponStat.DpsSharp:
-                        var sharpVerbProperties =
-                            VerbUtility.GetAllVerbProperties(Thing.def.Verbs, Thing.def.tools);
+                        var sharpVerbProperties = VerbUtility.GetAllVerbProperties(Thing.def.Verbs, Thing.def.tools);
                         if (sharpVerbProperties == null) { return 0f; }
                         var sharpVerbs = sharpVerbProperties.Where(vp =>
                             (vp.verbProps?.IsMeleeAttack ?? false) && "Sharp".Equals(
@@ -69,18 +65,14 @@ internal class MeleeWeaponCache([NotNull] Thing thing) : ItemCache
                                 StringComparison.OrdinalIgnoreCase)).ToList();
                         if (!sharpVerbs.Any()) { return 0f; }
                         var sharpDamage = sharpVerbs.AverageWeighted(
-                            vp => vp.verbProps.AdjustedMeleeSelectionWeight(vp.tool, null, Thing,
-                                null, false),
-                            vp => vp.verbProps.AdjustedMeleeDamageAmount(vp.tool, null, Thing,
-                                null));
+                            vp => vp.verbProps.AdjustedMeleeSelectionWeight(vp.tool, null, Thing, null, false),
+                            vp => vp.verbProps.AdjustedMeleeDamageAmount(vp.tool, null, Thing, null));
                         var sharpCooldown = sharpVerbs.AverageWeighted(
-                            vp => vp.verbProps.AdjustedMeleeSelectionWeight(vp.tool, null, Thing,
-                                null, false),
+                            vp => vp.verbProps.AdjustedMeleeSelectionWeight(vp.tool, null, Thing, null, false),
                             vp => vp.verbProps.AdjustedCooldown(vp.tool, null, Thing));
                         return sharpCooldown == 0f ? 0f : sharpDamage / sharpCooldown;
                     case MeleeWeaponStat.DpsBlunt:
-                        var bluntVerbProperties =
-                            VerbUtility.GetAllVerbProperties(Thing.def.Verbs, Thing.def.tools);
+                        var bluntVerbProperties = VerbUtility.GetAllVerbProperties(Thing.def.Verbs, Thing.def.tools);
                         if (bluntVerbProperties == null) { return 0f; }
                         var bluntVerbs = bluntVerbProperties.Where(vp =>
                             (vp.verbProps?.IsMeleeAttack ?? false) && "Blunt".Equals(
@@ -88,13 +80,10 @@ internal class MeleeWeaponCache([NotNull] Thing thing) : ItemCache
                                 StringComparison.OrdinalIgnoreCase)).ToList();
                         if (!bluntVerbs.Any()) { return 0f; }
                         var bluntDamage = bluntVerbs.AverageWeighted(
-                            vp => vp.verbProps.AdjustedMeleeSelectionWeight(vp.tool, null, Thing,
-                                null, false),
-                            vp => vp.verbProps.AdjustedMeleeDamageAmount(vp.tool, null, Thing,
-                                null));
+                            vp => vp.verbProps.AdjustedMeleeSelectionWeight(vp.tool, null, Thing, null, false),
+                            vp => vp.verbProps.AdjustedMeleeDamageAmount(vp.tool, null, Thing, null));
                         var bluntCooldown = bluntVerbs.AverageWeighted(
-                            vp => vp.verbProps.AdjustedMeleeSelectionWeight(vp.tool, null, Thing,
-                                null, false),
+                            vp => vp.verbProps.AdjustedMeleeSelectionWeight(vp.tool, null, Thing, null, false),
                             vp => vp.verbProps.AdjustedCooldown(vp.tool, null, Thing));
                         return bluntCooldown == 0f ? 0f : bluntDamage / bluntCooldown;
                     case MeleeWeaponStat.TechLevel:
@@ -103,19 +92,19 @@ internal class MeleeWeaponCache([NotNull] Thing thing) : ItemCache
                         throw new ArgumentOutOfRangeException(nameof(statDef));
                 }
             }
-            Log.Error(
-                $"Equipment Manager: Tried to evaluate unknown custom melee stat ({statDef.defName})");
+            Logger.LogError($"Tried to evaluate unknown custom melee stat ({statDef.defName})");
             return 0f;
         }
         catch (Exception e)
         {
-            Log.Error(
-                $"Equipment Manager: An error occured while evaluating custom melee stat '{statDef.defName}' of '{Thing.def.defName}':\n{e.Message}\n{e.StackTrace}");
+            Logger.LogError(
+                $"An error occured while evaluating custom melee stat '{statDef.defName}' of '{Thing.def.defName}':\n{e.Message}\n{e.StackTrace}",
+                e);
             return 0f;
         }
     }
 
-    public float GetStatValue([NotNull] StatDef statDef)
+    public float GetStatValue(StatDef statDef)
     {
         if (!StatValues.TryGetValue(statDef, out var value))
         {
@@ -127,7 +116,7 @@ internal class MeleeWeaponCache([NotNull] Thing thing) : ItemCache
         return value;
     }
 
-    public float GetStatValueDeviation([NotNull] StatDef statDef)
+    public float GetStatValueDeviation(StatDef statDef)
     {
         return statDef == null ? throw new ArgumentNullException(nameof(statDef)) :
             MeleeWeaponStats.IsCustomStat(statDef.defName) ? GetCustomStatValue(statDef) :
@@ -140,23 +129,16 @@ internal class MeleeWeaponCache([NotNull] Thing thing) : ItemCache
         _initialized = true;
         if (!CombatExtendedHelper.CombatExtended) { return; }
         _toolType = AccessTools.TypeByName("CombatExtended.ToolCE");
-        if (_toolType == null)
-        {
-            Log.Error("Equipment Manager: Could not find 'CombatExtended.ToolCE'");
-        }
-        _armorPenetrationSharpDelegate =
-            AccessTools.FieldRefAccess<float>(ToolType, "armorPenetrationSharp");
+        if (_toolType == null) { Logger.LogError("Could not find 'CombatExtended.ToolCE'"); }
+        _armorPenetrationSharpDelegate = AccessTools.FieldRefAccess<float>(ToolType, "armorPenetrationSharp");
         if (_armorPenetrationSharpDelegate == null)
         {
-            Log.Error(
-                "Equipment Manager: Could not find 'CombatExtended.ToolCE.armorPenetrationSharp'");
+            Logger.LogError("Could not find 'CombatExtended.ToolCE.armorPenetrationSharp'");
         }
-        _armorPenetrationBluntDelegate =
-            AccessTools.FieldRefAccess<float>(ToolType, "armorPenetrationBlunt");
+        _armorPenetrationBluntDelegate = AccessTools.FieldRefAccess<float>(ToolType, "armorPenetrationBlunt");
         if (_armorPenetrationBluntDelegate == null)
         {
-            Log.Error(
-                "Equipment Manager: Could not find 'CombatExtended.ToolCE.armorPenetrationBlunt'");
+            Logger.LogError("Could not find 'CombatExtended.ToolCE.armorPenetrationBlunt'");
         }
     }
 
@@ -170,8 +152,8 @@ internal class MeleeWeaponCache([NotNull] Thing thing) : ItemCache
                 var tools = Thing.def.tools.Where(tool => tool.power > 0f).ToList();
                 if (!tools.Any())
                 {
-                    Log.Error(
-                        $"Equipment Manager: Could not find any melee tools of '{Thing.LabelCapNoCount}' ({Thing.def?.defName})");
+                    Logger.LogError(
+                        $"Could not find any melee tools of '{Thing.LabelCapNoCount}' ({Thing.def?.defName})");
                 }
                 else
                 {
@@ -180,14 +162,13 @@ internal class MeleeWeaponCache([NotNull] Thing thing) : ItemCache
                     {
                         if (tool.GetType() != ToolType)
                         {
-                            Log.Warning(
-                                $"Equipment Manager: {Thing.LabelCapNoCount}'s tool '{tool.label}' is not CombatExtended-compatible");
+                            Logger.LogWarning(
+                                $"{Thing.LabelCapNoCount}'s tool '{tool.label}' is not CombatExtended-compatible");
                             ArmorPenetration += tool.armorPenetration;
                         }
                         else
                         {
-                            if (ArmorPenetrationSharpDelegate != null &&
-                                ArmorPenetrationBluntDelegate != null)
+                            if (ArmorPenetrationSharpDelegate != null && ArmorPenetrationBluntDelegate != null)
                             {
                                 ArmorPenetration += ArmorPenetrationSharpDelegate(tool) +
                                     ArmorPenetrationBluntDelegate(tool);
@@ -202,8 +183,9 @@ internal class MeleeWeaponCache([NotNull] Thing thing) : ItemCache
         }
         catch (Exception exception)
         {
-            Log.Error(
-                $"Equipment Manager: Could not update cache of '{Thing.LabelCapNoCount}' ({Thing.def?.defName}): {exception.Message}");
+            Logger.LogError(
+                $"Could not update cache of '{Thing.LabelCapNoCount}' ({Thing.def?.defName}): {exception.Message}",
+                exception);
         }
         return true;
     }

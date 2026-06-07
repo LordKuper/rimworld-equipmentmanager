@@ -6,10 +6,15 @@ namespace EquipmentManager;
 internal class PawnCapacityWeight : IExposable
 {
     public const float WeightCap = 2f;
-    private bool _isInitialized;
-    private PawnCapacityDef _pawnCapacityDef;
-    private string _pawnCapacityDefName;
     public float Weight;
+    private bool _isInitialized;
+
+    // _pawnCapacityDef is resolved lazily from _pawnCapacityDefName; may be null if def is missing.
+    private PawnCapacityDef? _pawnCapacityDef;
+
+    // _pawnCapacityDefName is populated by Scribe on load (IExposable lifecycle); null until
+    // Scribe populates it or the parametrised constructor sets it.
+    private string? _pawnCapacityDefName;
 
     [UsedImplicitly]
     public PawnCapacityWeight() { }
@@ -25,7 +30,7 @@ internal class PawnCapacityWeight : IExposable
         Weight = weight;
     }
 
-    public PawnCapacityDef PawnCapacityDef
+    public PawnCapacityDef? PawnCapacityDef
     {
         get
         {
@@ -34,7 +39,7 @@ internal class PawnCapacityWeight : IExposable
         }
     }
 
-    public string PawnCapacityDefName => _pawnCapacityDefName;
+    public string PawnCapacityDefName => _pawnCapacityDefName ?? string.Empty;
 
     public void ExposeData()
     {
@@ -46,6 +51,7 @@ internal class PawnCapacityWeight : IExposable
     {
         if (_isInitialized) { return; }
         _isInitialized = true;
+        if (_pawnCapacityDefName == null) { return; }
         _pawnCapacityDef = DefDatabase<PawnCapacityDef>.GetNamedSilentFail(_pawnCapacityDefName);
     }
 }

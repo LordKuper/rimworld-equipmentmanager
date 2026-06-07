@@ -12,8 +12,11 @@ custom:
 
   # JetBrains ReSharper CLI (jetbrains.resharper.globaltools, command `jb`).
   # Run jb-cleanup before build; run jb-inspect after lint and verify the sarif has no error/warning.
-  jb-cleanup: "jb cleanupcode Source\\EquipmentManager.slnx"
-  jb-inspect: "jb inspectcode Source\\EquipmentManager.slnx -o=\".\\TestResults\\jb-inspect.sarif\" --build"
+  # --toolset-path is required to bypass MSB4236 (.slnx format requires .NET 10 SDK MSBuild).
+  # For jb-inspect: run `dotnet build Source/EquipmentManager.slnx -c Release` first, then run
+  # jb-inspect with --no-build so binaries already exist (known-good invocation).
+  jb-cleanup: "jb cleanupcode Source\\EquipmentManager.slnx --toolset-path=\"C:\\Program Files\\dotnet\\sdk\\10.0.300\\MSBuild.dll\""
+  jb-inspect: "jb inspectcode Source\\EquipmentManager.slnx -o=\".\\TestResults\\jb-inspect.sarif\" --no-build --toolset-path=\"C:\\Program Files\\dotnet\\sdk\\10.0.300\\MSBuild.dll\""
 
   # design.md tooling (set by /asd-init per OS — Windows).
   # Convention: linter is always invoked as `designmd-lint`. On Windows, run

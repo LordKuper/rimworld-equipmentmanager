@@ -97,31 +97,36 @@ internal class Loadout : IExposable
         }
     ];
 
-    private int _id;
-    private bool _initialized;
-    private List<int> _meleeSidearmRules = [];
-    private List<PassionLimit> _passionLimits = [];
-    private List<PawnCapacityLimit> _pawnCapacityLimits = [];
-    private List<PawnCapacityWeight> _pawnCapacityWeights = [];
-    private Dictionary<string, bool> _pawnTraits = new();
-    private Dictionary<string, bool> _pawnWorkCapacities = new();
-    private PrimaryWeaponType _primaryRuleType = PrimaryWeaponType.None;
-    private List<int> _rangedSidearmRules = [];
-    private List<PawnSkillLimit> _skillLimits = [];
-    private List<SkillWeight> _skillWeights = [];
-    private List<StatLimit> _statLimits = [];
-    private List<StatWeight> _statWeights = [];
-    private int _scoreContextTick = -1;
-    private List<Pawn> _scoreContextPawns;
-    private readonly Dictionary<StatDef, FloatRange> _scoreStatRanges = new();
-    private readonly Dictionary<SkillDef, FloatRange> _scoreSkillRanges = new();
     private readonly Dictionary<PawnCapacityDef, FloatRange> _scoreCapacityRanges = new();
+    private readonly Dictionary<SkillDef, FloatRange> _scoreSkillRanges = new();
+    private readonly Dictionary<StatDef, FloatRange> _scoreStatRanges = new();
     public bool DropUnassignedWeapons = true;
-    public string Label;
+
+    // Populated by Scribe on load (IExposable lifecycle); = null! asserts the field is always
+    // set before any read, consistent with the RimWorld load contract.
+    public string Label = null!;
     public int? PrimaryMeleeWeaponRuleId;
     public int? PrimaryRangedWeaponRuleId;
     public int Priority;
     public int? ToolRuleId;
+    private int _id;
+    private bool _initialized;
+    // Scribe_Collections.Look sets these to null when no saved data exists; ??= in Initialize()
+    // restores them to empty before any first access.
+    private List<int>? _meleeSidearmRules = [];
+    private List<PassionLimit>? _passionLimits = [];
+    private List<PawnCapacityLimit>? _pawnCapacityLimits = [];
+    private List<PawnCapacityWeight>? _pawnCapacityWeights = [];
+    private Dictionary<string, bool>? _pawnTraits = new();
+    private Dictionary<string, bool>? _pawnWorkCapacities = new();
+    private PrimaryWeaponType _primaryRuleType = PrimaryWeaponType.None;
+    private List<int>? _rangedSidearmRules = [];
+    private List<Pawn>? _scoreContextPawns = [];
+    private int _scoreContextTick = -1;
+    private List<PawnSkillLimit>? _skillLimits = [];
+    private List<SkillWeight>? _skillWeights = [];
+    private List<StatLimit>? _statLimits = [];
+    private List<StatWeight>? _statWeights = [];
 
     [UsedImplicitly]
     public Loadout() { }
@@ -134,10 +139,10 @@ internal class Loadout : IExposable
     public Loadout(int id, string label, int priority, PrimaryWeaponType primaryRuleType,
         int? primaryRangedWeaponRuleId, int? primaryMeleeWeaponRuleId, List<int> rangedSidearmRules,
         List<int> meleeSidearmRules, int? toolRuleId, Dictionary<string, bool> pawnTraits,
-        Dictionary<string, bool> pawnWorkCapacities, bool dropUnassignedWeapons,
-        List<PassionLimit> passionLimits, List<PawnCapacityLimit> pawnCapacityLimits,
-        List<PawnCapacityWeight> pawnCapacityWeights, List<PawnSkillLimit> skillLimits,
-        List<SkillWeight> skillWeights, List<StatLimit> statLimits, List<StatWeight> statWeights)
+        Dictionary<string, bool> pawnWorkCapacities, bool dropUnassignedWeapons, List<PassionLimit> passionLimits,
+        List<PawnCapacityLimit> pawnCapacityLimits, List<PawnCapacityWeight> pawnCapacityWeights,
+        List<PawnSkillLimit> skillLimits, List<SkillWeight> skillWeights, List<StatLimit> statLimits,
+        List<StatWeight> statWeights)
     {
         _id = id;
         Label = label;
@@ -167,7 +172,7 @@ internal class Loadout : IExposable
         get
         {
             Initialize();
-            return _meleeSidearmRules;
+            return _meleeSidearmRules!;
         }
     }
 
@@ -176,7 +181,7 @@ internal class Loadout : IExposable
         get
         {
             Initialize();
-            return _passionLimits;
+            return _passionLimits!;
         }
     }
 
@@ -185,7 +190,7 @@ internal class Loadout : IExposable
         get
         {
             Initialize();
-            return _pawnCapacityLimits;
+            return _pawnCapacityLimits!;
         }
     }
 
@@ -194,7 +199,7 @@ internal class Loadout : IExposable
         get
         {
             Initialize();
-            return _pawnCapacityWeights;
+            return _pawnCapacityWeights!;
         }
     }
 
@@ -203,7 +208,7 @@ internal class Loadout : IExposable
         get
         {
             Initialize();
-            return _pawnTraits;
+            return _pawnTraits!;
         }
     }
 
@@ -212,7 +217,7 @@ internal class Loadout : IExposable
         get
         {
             Initialize();
-            return _pawnWorkCapacities;
+            return _pawnWorkCapacities!;
         }
     }
 
@@ -245,7 +250,7 @@ internal class Loadout : IExposable
         get
         {
             Initialize();
-            return _rangedSidearmRules;
+            return _rangedSidearmRules!;
         }
     }
 
@@ -254,7 +259,7 @@ internal class Loadout : IExposable
         get
         {
             Initialize();
-            return _skillLimits;
+            return _skillLimits!;
         }
     }
 
@@ -263,7 +268,7 @@ internal class Loadout : IExposable
         get
         {
             Initialize();
-            return _skillWeights;
+            return _skillWeights!;
         }
     }
 
@@ -272,7 +277,7 @@ internal class Loadout : IExposable
         get
         {
             Initialize();
-            return _statLimits;
+            return _statLimits!;
         }
     }
 
@@ -281,14 +286,17 @@ internal class Loadout : IExposable
         get
         {
             Initialize();
-            return _statWeights;
+            return _statWeights!;
         }
     }
 
     public void ExposeData()
     {
         Scribe_Values.Look(ref _id, nameof(Id));
-        Scribe_Values.Look(ref Label, nameof(Label));
+        // Use a nullable temp so Scribe can write null on new-game; restore non-null after.
+        var label = Label;
+        Scribe_Values.Look(ref label, nameof(Label));
+        Label = label ?? Label;
         Scribe_Values.Look(ref Priority, nameof(Priority));
         Scribe_Values.Look(ref _primaryRuleType, nameof(PrimaryRuleType));
         Scribe_Values.Look(ref PrimaryRangedWeaponRuleId, nameof(PrimaryRangedWeaponRuleId));
@@ -301,54 +309,11 @@ internal class Loadout : IExposable
         Scribe_Values.Look(ref DropUnassignedWeapons, nameof(DropUnassignedWeapons));
         Scribe_Collections.Look(ref _passionLimits, nameof(PassionLimits), LookMode.Deep);
         Scribe_Collections.Look(ref _pawnCapacityLimits, nameof(PawnCapacityLimits), LookMode.Deep);
-        Scribe_Collections.Look(ref _pawnCapacityWeights, nameof(PawnCapacityWeights),
-            LookMode.Deep);
+        Scribe_Collections.Look(ref _pawnCapacityWeights, nameof(PawnCapacityWeights), LookMode.Deep);
         Scribe_Collections.Look(ref _skillLimits, nameof(SkillLimits), LookMode.Deep);
         Scribe_Collections.Look(ref _skillWeights, nameof(SkillWeights), LookMode.Deep);
         Scribe_Collections.Look(ref _statLimits, nameof(StatLimits), LookMode.Deep);
         Scribe_Collections.Look(ref _statWeights, nameof(StatWeights), LookMode.Deep);
-    }
-
-    [NotNull]
-    public IReadOnlyList<Pawn> GetAvailablePawnsOrdered()
-    {
-        Initialize();
-        return new List<Pawn>(PawnsFinder.AllMaps_FreeColonistsSpawned.Where(IsAvailable)
-            .OrderByDescending(GetScore));
-    }
-
-    public float GetScore(Pawn pawn)
-    {
-        Initialize();
-        EnsureScoreContext();
-        var score = 0f;
-        foreach (var statWeight in _statWeights.Where(sw => sw.StatDef != null))
-        {
-            if (statWeight.StatDef.Worker?.IsDisabledFor(pawn) ?? false) { continue; }
-            if (!_scoreStatRanges.TryGetValue(statWeight.StatDef, out var range)) { continue; }
-            var normalizedValue = MathHelper.NormalizeValue(
-                StatHelper.GetStatValue(pawn, statWeight.StatDef), range);
-            score += normalizedValue * statWeight.Weight;
-        }
-        foreach (var skillWeight in _skillWeights.Where(sw => sw.SkillDef != null))
-        {
-            if (!_scoreSkillRanges.TryGetValue(skillWeight.SkillDef, out var range)) { continue; }
-            var normalizedValue = MathHelper.NormalizeValue(
-                pawn.skills.GetSkill(skillWeight.SkillDef).Level, range);
-            score += normalizedValue * skillWeight.Weight;
-        }
-        foreach (var pawnCapacityWeight in _pawnCapacityWeights.Where(pcw =>
-                     pcw.PawnCapacityDef != null))
-        {
-            if (!_scoreCapacityRanges.TryGetValue(pawnCapacityWeight.PawnCapacityDef, out var range))
-            {
-                continue;
-            }
-            var normalizedValue = MathHelper.NormalizeValue(
-                pawn.health.capacities.GetLevel(pawnCapacityWeight.PawnCapacityDef), range);
-            score += normalizedValue * pawnCapacityWeight.Weight;
-        }
-        return score;
     }
 
     private void EnsureScoreContext()
@@ -358,55 +323,83 @@ internal class Loadout : IExposable
         _scoreContextTick = tick;
         _scoreContextPawns = PawnsFinder.AllMaps_FreeColonistsSpawned.ToList();
         _scoreStatRanges.Clear();
-        foreach (var statWeight in _statWeights.Where(sw => sw.StatDef != null))
+        // _statWeights/_skillWeights/_pawnCapacityWeights are guaranteed non-null here:
+        // EnsureScoreContext() is only called from GetScore(), which calls Initialize() first.
+        foreach (var statWeight in _statWeights!.Where(sw => sw.StatDef != null))
         {
-            var eligible = _scoreContextPawns
-                .Where(p => !(statWeight.StatDef.Worker?.IsDisabledFor(p) ?? false)).ToList();
+            var eligible = _scoreContextPawns.Where(p => !(statWeight.StatDef!.Worker?.IsDisabledFor(p) ?? false))
+                .ToList();
             if (!eligible.Any()) { continue; }
-            var values = eligible.Select(p => StatHelper.GetStatValue(p, statWeight.StatDef)).ToList();
-            _scoreStatRanges[statWeight.StatDef] = new FloatRange(values.Min(), values.Max());
+            var values = eligible.Select(p => StatHelper.GetStatValue(p, statWeight.StatDef!)).ToList();
+            _scoreStatRanges[statWeight.StatDef!] = new FloatRange(values.Min(), values.Max());
         }
         _scoreSkillRanges.Clear();
-        foreach (var skillWeight in _skillWeights.Where(sw => sw.SkillDef != null))
+        foreach (var skillWeight in _skillWeights!.Where(sw => sw.SkillDef != null))
         {
-            var values = _scoreContextPawns.Select(p => (float)p.skills.GetSkill(skillWeight.SkillDef).Level).ToList();
+            var values = _scoreContextPawns.Select(p => (float)p.skills.GetSkill(skillWeight.SkillDef!).Level).ToList();
             if (!values.Any()) { continue; }
-            _scoreSkillRanges[skillWeight.SkillDef] = new FloatRange(values.Min(), values.Max());
+            _scoreSkillRanges[skillWeight.SkillDef!] = new FloatRange(values.Min(), values.Max());
         }
         _scoreCapacityRanges.Clear();
-        foreach (var pawnCapacityWeight in _pawnCapacityWeights.Where(pcw =>
-                     pcw.PawnCapacityDef != null))
+        foreach (var pawnCapacityWeight in _pawnCapacityWeights!.Where(pcw => pcw.PawnCapacityDef != null))
         {
             var values = _scoreContextPawns
-                .Select(p => p.health.capacities.GetLevel(pawnCapacityWeight.PawnCapacityDef)).ToList();
+                .Select(p => p.health.capacities.GetLevel(pawnCapacityWeight.PawnCapacityDef!)).ToList();
             if (!values.Any()) { continue; }
-            _scoreCapacityRanges[pawnCapacityWeight.PawnCapacityDef] =
-                new FloatRange(values.Min(), values.Max());
+            _scoreCapacityRanges[pawnCapacityWeight.PawnCapacityDef!] = new FloatRange(values.Min(), values.Max());
         }
+    }
+
+    public IReadOnlyList<Pawn> GetAvailablePawnsOrdered()
+    {
+        Initialize();
+        return new List<Pawn>(PawnsFinder.AllMaps_FreeColonistsSpawned.Where(IsAvailable).OrderByDescending(GetScore));
+    }
+
+    public float GetScore(Pawn pawn)
+    {
+        Initialize();
+        EnsureScoreContext();
+        var score = 0f;
+        foreach (var statWeight in _statWeights!.Where(sw => sw.StatDef != null))
+        {
+            if (statWeight.StatDef!.Worker?.IsDisabledFor(pawn) ?? false) { continue; }
+            if (!_scoreStatRanges.TryGetValue(statWeight.StatDef!, out var range)) { continue; }
+            var normalizedValue = MathHelper.NormalizeValue(StatHelper.GetStatValue(pawn, statWeight.StatDef!), range);
+            score += normalizedValue * statWeight.Weight;
+        }
+        foreach (var skillWeight in _skillWeights!.Where(sw => sw.SkillDef != null))
+        {
+            if (!_scoreSkillRanges.TryGetValue(skillWeight.SkillDef!, out var range)) { continue; }
+            var normalizedValue = MathHelper.NormalizeValue(pawn.skills.GetSkill(skillWeight.SkillDef!).Level, range);
+            score += normalizedValue * skillWeight.Weight;
+        }
+        foreach (var pawnCapacityWeight in _pawnCapacityWeights!.Where(pcw => pcw.PawnCapacityDef != null))
+        {
+            if (!_scoreCapacityRanges.TryGetValue(pawnCapacityWeight.PawnCapacityDef!, out var range)) { continue; }
+            var normalizedValue = MathHelper.NormalizeValue(
+                pawn.health.capacities.GetLevel(pawnCapacityWeight.PawnCapacityDef!), range);
+            score += normalizedValue * pawnCapacityWeight.Weight;
+        }
+        return score;
     }
 
     private void Initialize()
     {
         if (_initialized) { return; }
         _initialized = true;
-        if (_meleeSidearmRules == null) { _meleeSidearmRules = []; }
-        if (_rangedSidearmRules == null) { _rangedSidearmRules = []; }
-        if (_pawnTraits == null) { _pawnTraits = new Dictionary<string, bool>(); }
-        if (_pawnWorkCapacities == null) { _pawnWorkCapacities = new Dictionary<string, bool>(); }
-        if (_passionLimits == null) { _passionLimits = []; }
-        if (_pawnCapacityLimits == null) { _pawnCapacityLimits = []; }
-        if (_pawnCapacityWeights == null) { _pawnCapacityWeights = []; }
-        if (_skillLimits == null) { _skillLimits = []; }
-        if (_skillWeights == null) { _skillWeights = []; }
-        if (_statLimits == null) { _statLimits = []; }
-        if (_statWeights == null) { _statWeights = []; }
+        _meleeSidearmRules ??= [];
+        _rangedSidearmRules ??= [];
+        _pawnTraits ??= new Dictionary<string, bool>();
+        _pawnWorkCapacities ??= new Dictionary<string, bool>();
+        _passionLimits ??= [];
+        _pawnCapacityLimits ??= [];
+        _pawnCapacityWeights ??= [];
+        _skillLimits ??= [];
+        _skillWeights ??= [];
+        _statLimits ??= [];
+        _statWeights ??= [];
         NormalizeLegacyCustomStatDefNames();
-    }
-
-    internal void NormalizeLegacyCustomStatDefNames()
-    {
-        _statLimits = _statLimits?.Select(LegacyCustomStatDefs.NormalizeStatLimit).ToList() ?? [];
-        _statWeights = _statWeights?.Select(LegacyCustomStatDefs.NormalizeStatWeight).ToList() ?? [];
     }
 
     public bool IsAvailable(Pawn pawn)
@@ -417,34 +410,26 @@ internal class Loadout : IExposable
             var role = pawn.Ideo.GetRole(pawn);
             if (role?.def?.roleEffects != null)
             {
-                if (PrimaryRuleType == PrimaryWeaponType.RangedWeapon &&
-                    PrimaryRangedWeaponRuleId != null &&
-                    role.def.roleEffects.Any(effect => effect is RoleEffect_NoRangedWeapons))
-                {
-                    return false;
-                }
-                if (PrimaryRuleType == PrimaryWeaponType.MeleeWeapon &&
-                    PrimaryMeleeWeaponRuleId != null &&
-                    role.def.roleEffects.Any(effect => effect is RoleEffect_NoMeleeWeapons))
-                {
-                    return false;
-                }
+                if (PrimaryRuleType == PrimaryWeaponType.RangedWeapon && PrimaryRangedWeaponRuleId != null &&
+                    role.def.roleEffects.Any(effect => effect is RoleEffect_NoRangedWeapons)) { return false; }
+                if (PrimaryRuleType == PrimaryWeaponType.MeleeWeapon && PrimaryMeleeWeaponRuleId != null &&
+                    role.def.roleEffects.Any(effect => effect is RoleEffect_NoMeleeWeapons)) { return false; }
             }
         }
-        foreach (var pawnTrait in _pawnTraits)
+        foreach (var pawnTrait in _pawnTraits!)
         {
             var trait = DefDatabase<TraitDef>.GetNamedSilentFail(pawnTrait.Key);
             if (trait == null) { continue; }
             if (pawn.story.traits.HasTrait(trait) != pawnTrait.Value) { return false; }
         }
-        foreach (var pawnCapacity in _pawnWorkCapacities)
+        foreach (var pawnCapacity in _pawnWorkCapacities!)
         {
             if (!Enum.TryParse<WorkTags>(pawnCapacity.Key, out var tag)) { continue; }
             if (pawn.WorkTagIsDisabled(tag) == pawnCapacity.Value) { return false; }
         }
-        foreach (var passionLimit in _passionLimits.Where(pl => pl.SkillDef != null))
+        foreach (var passionLimit in _passionLimits!.Where(pl => pl.SkillDef != null))
         {
-            var passion = pawn.skills.GetSkill(passionLimit.SkillDef).passion;
+            var passion = pawn.skills.GetSkill(passionLimit.SkillDef!).passion;
             switch (passionLimit.Value)
             {
                 case PassionValue.None:
@@ -461,29 +446,31 @@ internal class Loadout : IExposable
                     break;
             }
         }
-        foreach (var pawnCapacityLimit in _pawnCapacityLimits.Where(pcl =>
-                     pcl.PawnCapacityDef != null))
+        foreach (var pawnCapacityLimit in _pawnCapacityLimits!.Where(pcl => pcl.PawnCapacityDef != null))
         {
-            var capacity = pawn.health.capacities.GetLevel(pawnCapacityLimit.PawnCapacityDef);
+            var capacity = pawn.health.capacities.GetLevel(pawnCapacityLimit.PawnCapacityDef!);
             if ((pawnCapacityLimit.MinValue != null && capacity < pawnCapacityLimit.MinValue) ||
-                (pawnCapacityLimit.MaxValue != null && capacity > pawnCapacityLimit.MaxValue))
-            {
-                return false;
-            }
+                (pawnCapacityLimit.MaxValue != null && capacity > pawnCapacityLimit.MaxValue)) { return false; }
         }
-        foreach (var statLimit in _statLimits.Where(sl => sl.StatDef != null))
+        foreach (var statLimit in _statLimits!.Where(sl => sl.StatDef != null))
         {
-            if (statLimit.StatDef.Worker?.IsDisabledFor(pawn) ?? false) { return false; }
-            var statValue = StatHelper.GetStatValue(pawn, statLimit.StatDef);
+            if (statLimit.StatDef!.Worker?.IsDisabledFor(pawn) ?? false) { return false; }
+            var statValue = StatHelper.GetStatValue(pawn, statLimit.StatDef!);
             if ((statLimit.MinValue != null && statValue < statLimit.MinValue) ||
                 (statLimit.MaxValue != null && statValue > statLimit.MaxValue)) { return false; }
         }
-        foreach (var skillLimit in _skillLimits.Where(sl => sl.SkillDef != null))
+        foreach (var skillLimit in _skillLimits!.Where(sl => sl.SkillDef != null))
         {
-            var skillValue = pawn.skills.GetSkill(skillLimit.SkillDef).Level;
+            var skillValue = pawn.skills.GetSkill(skillLimit.SkillDef!).Level;
             if ((skillLimit.MinValue != null && skillValue < skillLimit.MinValue) ||
                 (skillLimit.MaxValue != null && skillValue > skillLimit.MaxValue)) { return false; }
         }
         return true;
+    }
+
+    internal void NormalizeLegacyCustomStatDefNames()
+    {
+        _statLimits = _statLimits?.Select(LegacyCustomStatDefs.NormalizeStatLimit).ToList() ?? [];
+        _statWeights = _statWeights?.Select(LegacyCustomStatDefs.NormalizeStatWeight).ToList() ?? [];
     }
 }

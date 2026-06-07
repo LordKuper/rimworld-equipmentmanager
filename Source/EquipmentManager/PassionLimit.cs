@@ -14,10 +14,15 @@ public enum PassionValue
 
 internal class PassionLimit : IExposable
 {
-    private bool _isInitialized;
-    private SkillDef _skillDef;
-    private string _skillDefName;
     public PassionValue Value = PassionValue.None;
+    private bool _isInitialized;
+
+    // _skillDef is resolved lazily from _skillDefName; may be null if the def is missing.
+    private SkillDef? _skillDef;
+
+    // _skillDefName is populated by Scribe on load (IExposable lifecycle); null until Scribe
+    // populates it or the parametrised constructor sets it.
+    private string? _skillDefName;
 
     [UsedImplicitly]
     public PassionLimit() { }
@@ -27,7 +32,7 @@ internal class PassionLimit : IExposable
         _skillDefName = skillDefName;
     }
 
-    public SkillDef SkillDef
+    public SkillDef? SkillDef
     {
         get
         {
@@ -36,7 +41,7 @@ internal class PassionLimit : IExposable
         }
     }
 
-    public string SkillDefName => _skillDefName;
+    public string SkillDefName => _skillDefName ?? string.Empty;
 
     public void ExposeData()
     {
@@ -48,7 +53,7 @@ internal class PassionLimit : IExposable
     {
         if (_isInitialized) { return; }
         _isInitialized = true;
+        if (_skillDefName == null) { return; }
         _skillDef = DefDatabase<SkillDef>.GetNamedSilentFail(_skillDefName);
-        if (SkillDef == null) { }
     }
 }

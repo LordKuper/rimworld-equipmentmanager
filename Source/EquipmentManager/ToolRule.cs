@@ -12,77 +12,64 @@ namespace EquipmentManager;
 
 internal class ToolRule : ItemRule
 {
-    private bool? _ranged;
+    // Reset to null by ResetCache(); lazily rebuilt on first access.
+    private static HashSet<ThingDef>? _allRelevantThings;
     public ToolEquipMode EquipMode = ToolEquipMode.OneForEveryAssignedWorkType;
+    private bool? _ranged;
     public ToolRule(int id, bool isProtected) : base(id, isProtected) { }
 
     [UsedImplicitly]
     public ToolRule() { }
 
-    public ToolRule(int id, string label, bool isProtected, List<StatWeight> statWeights,
-        List<StatLimit> statLimits, HashSet<string> whitelistedItemsDefNames,
-        HashSet<string> blacklistedItemsDefNames, ToolEquipMode equipMode, bool? ranged) : base(id,
-        label, isProtected, statWeights, statLimits, whitelistedItemsDefNames,
+    public ToolRule(int id, string label, bool isProtected, List<StatWeight> statWeights, List<StatLimit> statLimits,
+        HashSet<string> whitelistedItemsDefNames, HashSet<string> blacklistedItemsDefNames, ToolEquipMode equipMode,
+        bool? ranged) : base(id, label, isProtected, statWeights, statLimits, whitelistedItemsDefNames,
         blacklistedItemsDefNames)
     {
         EquipMode = equipMode;
         _ranged = ranged;
     }
 
-    private static HashSet<ThingDef> _allRelevantThings;
-
-    [NotNull]
     public static HashSet<ThingDef> AllRelevantThings
     {
         get
         {
             if (_allRelevantThings == null || _allRelevantThings.Count == 0)
             {
-                var relevantStats = EquipmentManager.GetWorkTypeRules()
-                    .SelectMany(rule => rule.RequiredStats).ToHashSet();
-                _allRelevantThings = new HashSet<ThingDef>(DefDatabase<ThingDef>.AllDefs.Where(
-                    def => def.IsWeapon && !def.destroyOnDrop && (def.statBases ?? [])
-                        .Union(def.equippedStatOffsets ?? [])
-                        .Any(sm => relevantStats.Contains(sm.stat))));
+                var relevantStats =
+                    (WorkTypeStatMap.AutoSwitchStatsMap?.Values.SelectMany(s => s) ?? Enumerable.Empty<StatDef>())
+                    .ToHashSet();
+                _allRelevantThings = new HashSet<ThingDef>(DefDatabase<ThingDef>.AllDefs.Where(def =>
+                    def.IsWeapon && !def.destroyOnDrop && (def.statBases ?? []).Union(def.equippedStatOffsets ?? [])
+                    .Any(sm => relevantStats.Contains(sm.stat))));
             }
             return _allRelevantThings;
         }
     }
 
-    public static void ResetCache()
+    public static IEnumerable<string> DefaultBlacklist => [];
+
+    public static IEnumerable<ToolRule> DefaultRules
     {
-        _allRelevantThings = null;
-        ResetEquipmentManagerCache();
-    }
-
-    [NotNull] public static IEnumerable<string> DefaultBlacklist => [];
-
-    [NotNull]
-    public static IEnumerable<ToolRule> DefaultRules =>
-    [
-        new(0, true)
+        get
         {
-            Label = Resources.Strings.WeaponRules.Tools.Default.AssignedWorkTypes,
-            EquipMode = ToolEquipMode.OneForEveryAssignedWorkType,
-            StatWeights = [..DefaultStatWeights],
-            BlacklistedItemsDefNames = [..DefaultBlacklist]
-        },
-        new(1, true)
-        {
-            Label = Resources.Strings.WeaponRules.Tools.Default.AllWorkTypes,
-            EquipMode = ToolEquipMode.OneForEveryWorkType,
-            StatWeights = [..DefaultStatWeights],
-            BlacklistedItemsDefNames = [..DefaultBlacklist]
+            var rule0 = new ToolRule(0, true)
+            {
+                Label = Resources.Strings.WeaponRules.Tools.Default.AssignedWorkTypes,
+                EquipMode = ToolEquipMode.OneForEveryAssignedWorkType,
+                BlacklistedItemsDefNames = [.. DefaultBlacklist]
+            };
+            rule0.StatWeights = [.. rule0.GetDefaultStatWeights()];
+            var rule1 = new ToolRule(1, true)
+            {
+                Label = Resources.Strings.WeaponRules.Tools.Default.AllWorkTypes,
+                EquipMode = ToolEquipMode.OneForEveryWorkType,
+                BlacklistedItemsDefNames = [.. DefaultBlacklist]
+            };
+            rule1.StatWeights = [.. rule1.GetDefaultStatWeights()];
+            return [rule0, rule1];
         }
-    ];
-
-    [NotNull]
-    public new static IEnumerable<StatWeight> DefaultStatWeights =>
-        new[]
-        {
-            new StatWeight(ToolStats.GetStatDefName(ToolStat.WorkType), 2.0f, true),
-            new StatWeight("MoveSpeed", 1.0f, false)
-        }.Union(ItemRule.DefaultStatWeights);
+    }
 
     public bool? Ranged
     {
@@ -97,96 +84,107 @@ internal class ToolRule : ItemRule
         Scribe_Values.Look(ref _ranged, nameof(Ranged));
     }
 
-    [NotNull]
-    public IEnumerable<Thing> GetCurrentlyAvailableItems([CanBeNull] Map map,
-        IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimWorldTime time)
+    public IEnumerable<Thing> GetCurrentlyAvailableItems(Map? map, IReadOnlyCollection<WorkTypeDef> workTypeDefs,
+        RimWorldTime time)
     {
         Initialize();
         return (map?.listerThings?.ThingsInGroup(ThingRequestGroup.Weapon) ?? [])
             .Where(thing => IsAvailable(thing, workTypeDefs, time)).ToList();
     }
 
-    [NotNull]
-    public IEnumerable<Thing> GetCurrentlyAvailableItemsSorted(Map map,
-        [NotNull] IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimWorldTime time)
+    public IEnumerable<Thing> GetCurrentlyAvailableItemsSorted(Map map, IReadOnlyCollection<WorkTypeDef> workTypeDefs,
+        RimWorldTime time)
     {
         return !workTypeDefs.Any()
-            ? throw new ArgumentException("At least one work type must be passed",
-                nameof(workTypeDefs))
+            ? throw new ArgumentException("At least one work type must be passed", nameof(workTypeDefs))
             : GetCurrentlyAvailableItems(map, workTypeDefs, time)
                 .OrderByDescending(thing => GetThingScore(thing, workTypeDefs, time));
     }
 
-    [NotNull]
-    private IEnumerable<ThingDef> GetGloballyAvailableItems(
-        IReadOnlyCollection<WorkTypeDef> workTypeDefs)
+    protected internal override IEnumerable<StatWeight> GetDefaultStatWeights()
+    {
+        return new[]
+        {
+            new StatWeight(ToolStats.GetStatDefName(ToolStat.WorkType), 2.0f, true),
+            new StatWeight("MoveSpeed", 1.0f, false)
+        }.Union(base.GetDefaultStatWeights());
+    }
+
+    private IEnumerable<ThingDef> GetGloballyAvailableItems(IReadOnlyCollection<WorkTypeDef> workTypeDefs)
     {
         Initialize();
-        var relevantStats = EquipmentManager.GetWorkTypeRules()
-            .Where(wtr => workTypeDefs.Any(wtd => wtd.defName == wtr.WorkTypeDefName))
-            .SelectMany(rule => rule.RequiredStats).ToHashSet();
-        return GloballyAvailableItems.Where(def => (def.statBases ?? [])
+        var autoSwitchMap = WorkTypeStatMap.AutoSwitchStatsMap;
+        var relevantStats = workTypeDefs.SelectMany(wtd =>
+            autoSwitchMap != null && autoSwitchMap.TryGetValue(wtd, out var stats)
+                ? stats
+                : Enumerable.Empty<StatDef>()).ToHashSet();
+        return GloballyAvailableItems!.Where(def => (def.statBases ?? [])
             .Union(def.equippedStatOffsets ?? []).Any(sm => relevantStats.Contains(sm.stat)));
     }
 
-    [NotNull]
-    public IEnumerable<ThingDef> GetGloballyAvailableItemsSorted(
-        IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimWorldTime time)
+    public IEnumerable<ThingDef> GetGloballyAvailableItemsSorted(IReadOnlyCollection<WorkTypeDef> workTypeDefs,
+        RimWorldTime time)
     {
         return GetGloballyAvailableItems(workTypeDefs)
             .OrderByDescending(def => GetThingDefScore(def, workTypeDefs, time));
     }
 
-    private static float GetStatValue([NotNull] Thing thing, [NotNull] StatDef statDef,
-        IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimWorldTime time)
+    private static float GetStatValue(Thing thing, StatDef statDef, IReadOnlyCollection<WorkTypeDef> workTypeDefs,
+        RimWorldTime time)
     {
         return thing == null ? throw new ArgumentNullException(nameof(thing)) :
             statDef == null ? throw new ArgumentNullException(nameof(statDef)) :
             EquipmentManager.GetToolCache(thing, time).GetStatValue(statDef, workTypeDefs);
     }
 
-    private float GetThingDefScore([NotNull] ThingDef def,
-        IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimWorldTime time)
+    private float GetThingDefScore(ThingDef def, IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimWorldTime time)
     {
         if (def == null) { throw new ArgumentNullException(nameof(def)); }
+        Initialize();
         var cache = EquipmentManager.GetToolDefCache(def, time);
-        return StatWeights.Where(statWeight => statWeight.StatDef != null).Sum(statWeight =>
-            EquipmentManager.NormalizeStatValue(statWeight.StatDef,
-                cache.GetStatValueDeviation(statWeight.StatDef, workTypeDefs)) * statWeight.Weight);
+        // StatDef is non-null here: filtered by Where(statWeight => statWeight.StatDef != null).
+        return StatWeights!.Where(statWeight => statWeight.StatDef != null).Sum(statWeight =>
+            StatRanges.NormalizeStatValue(statWeight.StatDef!,
+                cache.GetStatValueDeviation(statWeight.StatDef!, workTypeDefs)) * statWeight.Weight);
     }
 
-    public float GetThingScore([NotNull] Thing thing, IReadOnlyCollection<WorkTypeDef> workTypeDefs,
-        RimWorldTime time)
+    public float GetThingScore(Thing thing, IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimWorldTime time)
     {
         if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
+        Initialize();
         var cache = EquipmentManager.GetToolCache(thing, time);
-        var score = StatWeights.Where(sw => sw.StatDef != null).Sum(statWeight =>
-            EquipmentManager.NormalizeStatValue(statWeight.StatDef,
-                cache.GetStatValueDeviation(statWeight.StatDef, workTypeDefs)) * statWeight.Weight);
-        if (thing.def.useHitPoints)
-        {
-            score *= HitPointsCurve.Evaluate((float)thing.HitPoints / thing.MaxHitPoints);
-        }
+        // StatDef is non-null here: filtered by Where(sw => sw.StatDef != null).
+        var score = StatWeights!.Where(sw => sw.StatDef != null).Sum(statWeight =>
+            StatRanges.NormalizeStatValue(statWeight.StatDef!,
+                cache.GetStatValueDeviation(statWeight.StatDef!, workTypeDefs)) * statWeight.Weight);
+        if (thing.def.useHitPoints) { score *= HitPointsCurve.Evaluate((float)thing.HitPoints / thing.MaxHitPoints); }
         return score;
     }
 
-    public bool IsAvailable(Thing thing, IReadOnlyCollection<WorkTypeDef> workTypeDefs,
-        RimWorldTime time)
+    public bool IsAvailable(Thing thing, IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimWorldTime time)
     {
         Initialize();
         var comp = thing.TryGetComp<CompForbiddable>();
-        return (comp == null || !comp.Forbidden) && (GetWhitelistedItems().Contains(thing.def) ||
+        return comp is not { Forbidden: true } && (GetWhitelistedItems().Contains(thing.def) ||
             (GetGloballyAvailableItems(workTypeDefs).Contains(thing.def) &&
                 SatisfiesLimits(thing, workTypeDefs, time)));
     }
 
-    private bool SatisfiesLimits([NotNull] Thing thing,
-        IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimWorldTime time)
+    public static void ResetCache()
+    {
+        _allRelevantThings = null;
+        ResetEquipmentManagerCache();
+    }
+
+    private bool SatisfiesLimits(Thing thing, IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimWorldTime time)
     {
         if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
-        foreach (var statLimit in StatLimits.Where(limit => limit.StatDef != null))
+        // StatDef is non-null here: filtered by Where(limit => limit.StatDef != null).
+        // StatLimits is guaranteed non-null: SatisfiesLimits is only called from IsAvailable(),
+        // which calls Initialize() first.
+        foreach (var statLimit in StatLimits!.Where(limit => limit.StatDef != null))
         {
-            var value = GetStatValue(thing, statLimit.StatDef, workTypeDefs, time);
+            var value = GetStatValue(thing, statLimit.StatDef!, workTypeDefs, time);
             if ((statLimit.MinValue != null && value < statLimit.MinValue) ||
                 (statLimit.MaxValue != null && value > statLimit.MaxValue)) { return false; }
         }
@@ -196,27 +194,11 @@ internal class ToolRule : ItemRule
     public void UpdateGloballyAvailableItems()
     {
         Initialize();
-        GloballyAvailableItems.Clear();
-        foreach (var def in AllRelevantThings) { _ = GloballyAvailableItems.Add(def); }
-        if (Ranged != null)
-        {
-            _ = GloballyAvailableItems.RemoveWhere(def => def.IsRangedWeapon != Ranged);
-        }
-        _ = GloballyAvailableItems.RemoveWhere(def => GetBlacklistedItems().Contains(def));
-        foreach (var def in GetWhitelistedItems()) { _ = GloballyAvailableItems.Add(def); }
+        GloballyAvailableItems!.Clear();
+        foreach (var def in AllRelevantThings) { _ = GloballyAvailableItems!.Add(def); }
+        if (Ranged != null) { _ = GloballyAvailableItems!.RemoveWhere(def => def.IsRangedWeapon != Ranged); }
+        _ = GloballyAvailableItems!.RemoveWhere(def => GetBlacklistedItems().Contains(def));
+        foreach (var def in GetWhitelistedItems()) { _ = GloballyAvailableItems!.Add(def); }
     }
 
-    public void UpdateStatRanges([NotNull] Thing thing,
-        [NotNull] IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimWorldTime time)
-    {
-        if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
-        if (workTypeDefs == null) { throw new ArgumentNullException(nameof(workTypeDefs)); }
-        var cache = EquipmentManager.GetToolCache(thing, time);
-        var stats = StatWeights.Where(sw => sw.StatDef != null).Select(sw => sw.StatDef)
-            .Union(StatLimits.Where(sl => sl.StatDef != null).Select(sl => sl.StatDef));
-        foreach (var stat in stats)
-        {
-            EquipmentManager.UpdateStatRange(stat, cache.GetStatValueDeviation(stat, workTypeDefs));
-        }
-    }
 }

@@ -13,8 +13,7 @@ public class EquipmentManagerMod : Mod
 
     public EquipmentManagerMod(ModContentPack content) : base(content)
     {
-        Log.Message(
-            $"Equipment Manager: Initializing (v.{Assembly.GetExecutingAssembly().GetName().Version})...");
+        Logger.LogMessage($"Initializing (v.{Assembly.GetExecutingAssembly().GetName().Version})...");
         var harmony = new Harmony(ModId);
         harmony.PatchAll(Assembly.GetExecutingAssembly());
         DetectVanillaFactionsExpandedCore();
@@ -24,11 +23,8 @@ public class EquipmentManagerMod : Mod
     private static void DetectCombatExtended()
     {
         if (!LoadedModManager.RunningModsListForReading.Any(m =>
-                "CETeam.CombatExtended".Equals(m.PackageId, StringComparison.OrdinalIgnoreCase)))
-        {
-            return;
-        }
-        Log.Message("Equipment Manager: CombatExtended detected.");
+                "CETeam.CombatExtended".Equals(m.PackageId, StringComparison.OrdinalIgnoreCase))) { return; }
+        Logger.LogMessage("CombatExtended detected.");
         CombatExtendedHelper.CombatExtended = true;
         CombatExtendedHelper.Initialize();
     }
@@ -36,12 +32,13 @@ public class EquipmentManagerMod : Mod
     private static void DetectVanillaFactionsExpandedCore()
     {
         if (!LoadedModManager.RunningModsListForReading.Any(m =>
-                "OskarPotocki.VanillaFactionsExpanded.Core".Equals(m.PackageId,
-                    StringComparison.OrdinalIgnoreCase))) { return; }
-        Log.Message("Equipment Manager: VanillaFactionsExpanded.Core detected.");
+                "OskarPotocki.VanillaFactionsExpanded.Core".Equals(m.PackageId, StringComparison.OrdinalIgnoreCase)))
+        {
+            return;
+        }
+        Logger.LogMessage("VanillaFactionsExpanded.Core detected.");
         MeleeWeaponRule.UsableWithShieldsMethod =
             AccessTools.MethodDelegate<MeleeWeaponRule.UsableWithShieldsDelegate>(
-                AccessTools.Method(AccessTools.TypeByName("VEF.Apparels.ShieldUtility"),
-                    "UsableWithShields"));
+                AccessTools.Method(AccessTools.TypeByName("VEF.Apparels.ShieldUtility"), "UsableWithShields"));
     }
 }

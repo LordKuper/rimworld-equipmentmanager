@@ -6,7 +6,10 @@ internal class PawnLoadout : IExposable
 {
     public bool Automatic;
     public int? LoadoutId;
-    public Pawn Pawn;
+
+    // Populated by Scribe_References.Look on load (IExposable lifecycle); null when the pawn
+    // was destroyed since the last save. Callers must guard against null.
+    public Pawn? Pawn;
 
     public void ExposeData()
     {

@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="ASD workflow">
+  <meta name="doc-type" content="ADR">
+  <meta name="subsystem" content="sprint">
+  <meta name="sprint-id" content="001-full-audit-alignment">
+  <meta name="status" content="proposed">
+  <meta name="updated" content="2026-06-07">
+  <meta name="responsibility" content="architecture decisions for sprint 001-full-audit-alignment">
+  <meta name="provenance" content="original">
+  <meta name="source" content="">
+  <title>ADRs · Sprint 001 — full audit alignment</title>
+  <style>
+    :root {
+      --fg: #1a1c1e; --bg: #fff; --muted: #5b6770; --accent: #0066cc;
+      --code-bg: #f4f6f8; --border: #d0d7de; --max: 1040px;
+      --card-bg: #fafbfc;
+      --ok: #1f883d; --warn: #b35900; --danger: #cf222e; --info: #0969da; --neutral: #5b6770;
+      --chip-must-bg: #ffebe9; --chip-must-fg: #cf222e;
+      --chip-should-bg: #fff5e1; --chip-should-fg: #9a6700;
+      --chip-may-bg: #ddf4ff; --chip-may-fg: #0969da;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --fg: #e6e6e6; --bg: #0e1116; --muted: #9aa4ad; --code-bg: #161b22; --border: #30363d;
+        --card-bg: #161b22;
+        --chip-must-bg: #3b1416; --chip-must-fg: #ff7b72;
+        --chip-should-bg: #2d2410; --chip-should-fg: #e3b341;
+        --chip-may-bg: #0d2538; --chip-may-fg: #58a6ff;
+      }
+    }
+    html, body { margin: 0; padding: 0; }
+    * { box-sizing: border-box; }
+    body { font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--fg); background: var(--bg); }
+    .layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: 100vh; }
+    .content { min-width: 0; }
+    header, main, footer { max-width: var(--max); margin: 0 auto; padding: 16px 24px; }
+    header { border-bottom: 1px solid var(--border); }
+    header h1 { margin: 4px 0 8px; font-size: 1.9rem; }
+    .badges span { display: inline-block; padding: 2px 8px; margin-right: 6px; font-size: 0.75rem; border: 1px solid var(--border); border-radius: 4px; color: var(--muted); background: var(--bg); }
+    .badges .provenance-reverse-engineered, .badges .provenance-migrated { color: var(--warn); border-color: var(--warn); }
+    .badges .status-draft       { color: var(--neutral); border-color: var(--neutral); }
+    .badges .status-in-review   { color: var(--warn);    border-color: var(--warn); }
+    .badges .status-approved    { color: var(--ok);      border-color: var(--ok); }
+    .badges .status-locked      { color: var(--info);    border-color: var(--info); }
+    .badges .status-proposed    { color: var(--warn);    border-color: var(--warn); }
+    .badges .status-accepted    { color: var(--ok);      border-color: var(--ok); }
+    .stats { margin-top: 6px; font-size: 0.85rem; color: var(--muted); }
+    .stats .chip { display: inline-block; padding: 1px 8px; margin-right: 6px; border-radius: 10px; background: var(--code-bg); border: 1px solid var(--border); }
+    nav.toc { position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto; padding: 18px 14px; border-right: 1px solid var(--border); background: var(--card-bg); font-size: 0.9rem; }
+    nav.toc .toc-title { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 8px; padding-left: 6px; }
+    nav.toc ol { list-style: none; margin: 0; padding: 0; counter-reset: tocn; }
+    nav.toc li { margin: 2px 0; counter-increment: tocn; }
+    nav.toc a { display: block; padding: 4px 8px; border-radius: 4px; color: var(--fg); text-decoration: none; border-left: 2px solid transparent; }
+    nav.toc a:hover { background: var(--code-bg); color: var(--accent); }
+    nav.toc a.active { background: var(--code-bg); color: var(--accent); border-left-color: var(--accent); font-weight: 600; }
+    nav.toc a::before { content: counter(tocn) ". "; color: var(--muted); font-variant-numeric: tabular-nums; }
+    @media (max-width: 880px) {
+      .layout { grid-template-columns: 1fr; }
+      nav.toc { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--border); }
+    }
+    h2, h3, h4 { line-height: 1.25; margin-top: 1.6em; }
+    h2 { border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+    a { color: var(--accent); }
+    code, pre { font-family: ui-monospace, "Cascadia Code", Menlo, monospace; }
+    code { background: var(--code-bg); padding: 1px 5px; border-radius: 3px; font-size: 0.9em; }
+    pre { background: var(--code-bg); padding: 12px; border-radius: 6px; overflow-x: auto; }
+    pre code { background: none; padding: 0; }
+    table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+    th, td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; vertical-align: top; }
+    th { background: var(--code-bg); }
+    tbody tr:nth-child(even) td { background: var(--card-bg); }
+    blockquote { border-left: 3px solid var(--accent); margin: 0; padding: 4px 14px; color: var(--muted); }
+    footer { color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--border); margin-top: 32px; }
+    .lede { font-size: 1.08rem; color: var(--fg); }
+    .chip { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 0.78rem; border: 1px solid var(--border); }
+    .chip.area { background: var(--code-bg); color: var(--muted); }
+    .adr { border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; margin: 18px 0; background: var(--card-bg); }
+    .adr > .meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 6px; }
+    .adr h2 { margin-top: 1.1em; border-bottom: none; font-size: 1.15rem; }
+    .adr h3 { margin-top: 1em; font-size: 1rem; color: var(--muted); }
+    .status-chip { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.78rem; border: 1px solid var(--border); }
+    .status-proposed   { color: var(--warn);    border-color: var(--warn);    background: var(--chip-should-bg); }
+    .status-accepted   { color: var(--ok);      border-color: var(--ok);      background: rgba(31,136,61,0.10); }
+    .status-superseded { color: var(--muted);   border-color: var(--muted);   background: var(--code-bg); text-decoration: line-through; }
+    .status-deprecated { color: var(--danger);  border-color: var(--danger);  background: var(--chip-must-bg); }
+    .consequences { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .consequences .pros, .consequences .cons { padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border); }
+    .consequences .pros { background: rgba(31,136,61,0.07); border-left: 3px solid var(--ok); }
+    .consequences .cons { background: rgba(207,34,46,0.06); border-left: 3px solid var(--danger); }
+    .consequences h3 { margin: 0 0 4px; }
+    .consequences ul { margin: 0; padding-left: 20px; }
+    @media (max-width: 720px) { .consequences { grid-template-columns: 1fr; } }
+    ul.alt-list li { margin: 4px 0; }
+    ul.alt-list li strong { color: var(--fg); }
+    @media print {
+      nav.toc { background: none; border: 1px solid var(--border); }
+      a { color: inherit; text-decoration: none; }
+      footer { page-break-before: always; }
+      tr, li { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav class="toc" aria-label="Table of contents">
+      <p class="toc-title">Contents</p>
+      <ol>
+        <li><a href="#adr-0001">ADR-0001 · Production nullable migration</a></li>
+        <li><a href="#adr-0002">ADR-0002 · Consume LordKuper.Common over local reimplementation</a></li>
+        <li><a href="#adr-0003">ADR-0003 · Dependency-integration pattern</a></li>
+        <li><a href="#adr-0004">ADR-0004 · Defect &amp; performance remediation policy</a></li>
+      </ol>
+    </nav>
+    <div class="content">
+      <header>
+        <div class="badges">
+          <span>ADR</span>
+          <span>sprint</span>
+          <span class="status-proposed">proposed</span>
+        </div>
+        <h1>ADRs · Sprint 001 — full audit alignment</h1>
+        <div class="stats">4 decisions · proposed · sprint · updated 2026-06-07</div>
+      </header>
+      <main>
+
+<p class="lede">Four alignment decisions for sprint <code>001-full-audit-alignment</code>, derived from the approved <a href="../audit.md">audit.md</a> (findings <code>C-*</code> / <code>RU-*</code> / <code>R-C*</code>) and the approved <a href="prd.html">PRD</a> (41 AC). These are not greenfield architecture; they record the remediation tradeoffs the audit surfaced. Decomposition is disabled, so subsystem is <code>N/A</code> throughout. ADR-0003 is reverse-engineered (it documents an as-built pattern); the other three are original sprint decisions.</p>
+
+<!-- ===================== ADR-0001 ===================== -->
+<article class="adr" id="adr-0001">
+  <div class="meta">
+    <span class="status-chip status-proposed">proposed</span>
+    <span class="chip area">subsystem: N/A</span>
+    <span class="chip">ADR-0001</span>
+  </div>
+  <h2 style="font-size:1.3rem;">ADR-0001 · Enable nullable reference types on the production project</h2>
+
+  <h2 id="context-0001">Context</h2>
+  <p>The production project <code>Source/EquipmentManager/EquipmentManager.csproj</code> targets <code>net48</code> with <code>LangVersion latest</code>, <code>WarningLevel 9999</code> and <code>TreatWarningsAsErrors</code>, but does <em>not</em> set a nullable context. Nullability intent is instead carried by <strong>224 JetBrains nullability attributes</strong> (205 <code>[NotNull]</code> + 19 <code>[CanBeNull]</code>) across 36 files, each file also carrying <code>using JetBrains.Annotations;</code>. The test project (<code>EquipmentManager.Tests.csproj</code>) already builds under <code>Nullable enable</code>, and the upstream <code>LordKuper.Common</code> library is already fully nullable. <code>Nullable enable</code> on the production project is the stated target standard (<code>custom-coding-rules.md</code>) and the headline deliverable of this sprint (AC-9…AC-14, finding C-1/C-2).</p>
+  <p>Flipping <code>-p:Nullable=enable</code> on a clean rebuild of the current code surfaces a <strong>measured</strong> 131 distinct sites / 300 occurrences across 32 files. The dominant code is <code>CS8618</code> (×132, uninitialized non-nullable field/property) — overwhelmingly <code>IExposable</code> save/load fields that <code>Scribe</code> populates by reflection during deserialization (no constructor runs), plus the static reflection-delegate fields in <code>CombatExtendedHelper.cs</code> and the weapon caches that are bound once via Harmony <code>AccessTools</code> and are legitimately null when Combat Extended is absent. Two nullability systems (JetBrains attributes + real NRT) must not coexist contradictorily.</p>
+  <p>Constraint: under <code>TreatWarningsAsErrors</code> the build must reach <strong>zero</strong> NRT diagnostics, so every site needs a real resolution rather than a tolerated warning. Forces in play: (a) mechanical breadth (32 files) versus the risk of masking genuine null-derefs with blanket <code>= null!</code>; (b) the RimWorld lifecycle reality that <code>Scribe</code>/reflection populate fields outside any constructor, which the compiler cannot see; (c) the soft-dependency reflection fields that are genuinely nullable.</p>
+
+  <h2 id="decision-0001">Decision</h2>
+  <p class="lede">Set <code>&lt;Nullable&gt;enable&lt;/Nullable&gt;</code> on the production csproj and resolve every surfaced NRT site with a real annotation or guard. No blanket <code>#nullable disable</code>, no <code>#pragma warning disable</code> to mask CS86xx/CS9264, and no mass <code>!</code> suppression. Remove all 224 JetBrains nullability attributes (replacing each with the matching <code>T</code> vs <code>T?</code> in the same edit) and drop <code>using JetBrains.Annotations;</code> from every file that no longer references a JetBrains attribute — retaining the using only where <code>[UsedImplicitly]</code> (×13, not a nullability attribute) still appears.</p>
+  <p>Resolution patterns, in priority order:</p>
+  <ul>
+    <li><strong>Genuinely-nullable references</strong> (dereferenced on any path, especially the hot path) → declare <code>T?</code> with a real null-guard. This is the default; prefer it over suppression.</li>
+    <li><strong>CE reflection-delegate / soft-dependency fields</strong> (<code>CombatExtendedHelper.cs</code> and the two weapon caches) → declare <code>T?</code> and keep the existing CE-absent null-guards. These are <strong>never</strong> converted to non-null and never assigned <code>= null!</code> (R-C3, AC-14).</li>
+    <li><strong><code>IExposable</code> fields populated by <code>Scribe</code> / reflection</strong> (the CS8618 majority) → the established RimWorld-lifecycle pattern: a non-nullable field initialized <code>= null!</code> where the value is always present after <code>ExposeData</code>/<code>FinalizeInit</code> and the field is contractually non-null at every read. This mirrors how <code>LordKuper.Common</code> already annotates its own <code>IExposable</code> types (e.g. <code>WorkTypeThingRule._statWeights = new()</code> for collections; reference fields it cannot construct use the same lifecycle convention). Collection fields prefer real initializers (<code>= new()</code>) over <code>= null!</code>; <code>= null!</code> is reserved for reference fields that genuinely have no construction-time value and are guaranteed populated by the load/init lifecycle.</li>
+    <li><strong>Immutable fields set once at construction</strong> → real non-null types via constructor assignment or <code>required</code> where applicable (e.g. the <code>CS9264</code> auto-prop at <code>ManageWeaponRulesDialog.cs:30</code>).</li>
+    <li><strong>Variance mismatches</strong> (<code>CS8619</code> <code>IEnumerable&lt;StatDef?&gt;</code> vs <code>IEnumerable&lt;StatDef&gt;</code>) → fix at the source of the sequence (filter nulls or correct the element type) rather than casting.</li>
+  </ul>
+  <p>Migrate file-by-file using the audit hotspot ordering. Keep <code>TreatWarningsAsErrors</code> on throughout so no site is silently deferred. This decision is <strong>sequenced after</strong> ADR-0002's reuse deletes (AC-1): the largest hotspot, <code>WorkTypeRule.cs</code> (36 distinct sites), and the wrapper files are deleted by ADR-0002 before this flip, so they are never annotated.</p>
+
+  <h2 id="consequences-0001">Consequences</h2>
+  <div class="consequences">
+    <div class="pros">
+      <h3>Positive</h3>
+      <ul>
+        <li>Nullability intent is enforced by the compiler, not by stale attributes that no tool checks at build time.</li>
+        <li>One nullability system across production, tests, and the upstream library — no contradictory dual annotations.</li>
+        <li>The flip surfaces real latent null-deref risks (C-5 <code>UpdateAmmo</code> map, C-7 <code>pawn.skills</code>/<code>pawn.health</code>) as CS8602/CS8604, which are then fixed as part of the same pass rather than lying dormant.</li>
+        <li>224 attributes + 36 redundant usings removed → less ceremony per file.</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h3>Negative</h3>
+      <ul>
+        <li>Broad, mechanical edit across 32 files; risk of masking a genuine null-deref by reaching for <code>= null!</code> where a guard was needed (mitigated by the priority order above + the new characterization tests, ADR-0004 / AC-25…AC-29).</li>
+        <li><code>= null!</code> on <code>IExposable</code> fields is a compiler-trust assertion the runtime does not verify; if the load lifecycle ever fails to populate one, the NRE moves from a clear annotation to a runtime surprise. Accepted because <code>Scribe</code> always populates these and the alternative (nullable + guard on every read) adds noise to dozens of hot-path reads.</li>
+        <li>The stack.html statement that the production project is "not yet nullable, scheduled as first sprint" becomes false the moment this lands and must be reconciled in design-promote (DM-1 / AC-36).</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2 id="alternatives-0001">Alternatives considered</h2>
+  <ul class="alt-list">
+    <li><strong>Per-file <code>#nullable enable</code> opt-in (incremental)</strong> — rejected: leaves the project in a mixed state indefinitely, contradicts the single-target-standard goal, and the measured cost is bounded enough to do in one sprint.</li>
+    <li><strong>Keep JetBrains attributes alongside real NRT</strong> — rejected: two systems that can disagree; <code>custom-coding-rules.md</code> mandates real NRT and the attributes are unchecked at build time.</li>
+    <li><strong>Blanket <code>= null!</code> / <code>#pragma warning disable</code> to clear errors fast</strong> — rejected: defeats the purpose (the compiler stops catching real nulls); explicitly forbidden by AC-11.</li>
+    <li><strong>Annotate everything first, then delete reused files</strong> — rejected: wastes effort annotating <code>WorkTypeRule.cs</code> (36 sites) and the wrappers that ADR-0002 deletes; the sequencing in AC-1 forbids it.</li>
+  </ul>
+
+  <h2 id="related-0001">Related</h2>
+  <ul>
+    <li><a href="#adr-0002">ADR-0002</a>: reuse deletes run first and shrink this migration's surface (AC-1).</li>
+    <li><a href="#adr-0003">ADR-0003</a>: defines the CE reflection fields that stay nullable (R-C3 / AC-14).</li>
+    <li>Driving AC: AC-9, AC-10, AC-11, AC-12, AC-13, AC-14. Audit: C-1, C-2 (and C-5, C-7 surfaced/resolved by the flip).</li>
+  </ul>
+</article>
+
+<!-- ===================== ADR-0002 ===================== -->
+<article class="adr" id="adr-0002">
+  <div class="meta">
+    <span class="status-chip status-proposed">proposed</span>
+    <span class="chip area">subsystem: N/A</span>
+    <span class="chip">ADR-0002</span>
+  </div>
+  <h2 style="font-size:1.3rem;">ADR-0002 · Consume LordKuper.Common over local reimplementation (consolidation)</h2>
+
+  <h2 id="context-0002">Context</h2>
+  <p>The reuse audit (RU-1…RU-8) found that several EquipmentManager types are near-verbatim reimplementations of utilities the upstream <code>LordKuper.Common</code> library now ships. This violates the concept anti-pillar "not a reimplementation of shared utilities" and <code>custom-common-rules.md</code> ("do not fork or reimplement what it already provides"). Crucially, the Common equivalents already contain fixes for EM defects, and deleting the EM copies removes code that would otherwise need the nullable migration. The overlaps were verified against the Common source at <code>..\..\rimworld-common</code> (treated as untrusted first-party data):</p>
+  <ul>
+    <li><strong>RU-1:</strong> <code>WorkTypeRule</code> (290 lines) ≈ <code>Common.WorkTypeThingRule</code> + <code>WorkTypeStatMap</code> — same public surface, same <code>AllRelevantThings</code> predicate, same <code>DefaultWorkTypeStats</code> literal (RU-5). The audit recorded a <strong>save-format break</strong>: EM serializes <code>List&lt;StatWeight&gt;</code> under key <code>"StatWeights"</code>; <code>WorkTypeThingRule</code> serializes <code>Dictionary&lt;string, StatWeight&gt;</code> under <code>nameof(StatWeights)</code> with <code>LookMode.Value</code> (confirmed in <code>WorkTypeThingRule.cs:146-159</code>).</li>
+    <li><strong>RU-2:</strong> <code>EquipmentManagerGameComponent_StatRanges</code> (<code>_statRanges</code> + <code>NormalizeStatValue</code> + <code>UpdateStatRange</code>) ≈ <code>Common.StatRanges</code>. Both held the identical first-sample seeding defect (C-4). The blocker (Common's <code>StatRanges</code> was <code>internal</code>) is <strong>resolved</strong>: rimworld-common commit <code>17199b6</code> made it <code>public static</code>, fixed C-4, added <code>Clear()</code>, and shipped 11 green tests (verified in upstream source: <code>StatRanges.cs:24 public static class</code>, <code>:38 Clear()</code>, <code>:64 NormalizeStatValue</code>).</li>
+    <li><strong>RU-3:</strong> <code>ItemCache</code> ≈ <code>Common.ThingCache</code> (the <code>StatValues</code> dictionary + timed clear). Confirmed <code>ThingCache.cs:13 public class</code>.</li>
+    <li><strong>RU-4:</strong> <code>EquipmentManagerStatDefs</code> is a pure pass-through over <code>Common.Helpers.StatHelper.GetStatsByCategory</code>.</li>
+    <li><strong>RU-6:</strong> <code>UiHelpers.GetWindowSize</code> duplicates <code>Common.UI.Windows.GetWindowSize</code> (confirmed <code>Windows.cs:22</code>).</li>
+    <li><strong>RU-7:</strong> the hand-rolled work-type editor tab overlaps <code>Common.UI.Widgets.WorkTypeThingRuleWidget</code> (takes <code>WorkTypeThingRule</code>, so gated on RU-1).</li>
+  </ul>
+  <p>Backward-compat policy is <code>backward_compat=none</code>, and RU-1's breaking save-format change was explicitly <strong>approved</strong> (audit decision 2026-06-07): no save-migration shim; old saves silently drop persisted WorkType rules and users rebuild via defaults. RU-2 was also approved, accepting that stat ranges become process-global ephemeral (no longer save-persisted).</p>
+
+  <h2 id="decision-0002">Decision</h2>
+  <p class="lede">Delete the EM code that duplicates Common's public surface and consume Common instead. Specifically: delete <code>WorkTypeRule</code> and consume <code>WorkTypeThingRule</code>/<code>WorkTypeStatMap</code> with <strong>no</strong> Scribe save-migration shim (RU-1 / RU-5 / RU-7); delete <code>EquipmentManagerGameComponent_StatRanges</code>, the <code>_statRanges</code> dict, <code>ExposeData_StatRanges</code>, and <code>LegacyCustomStatDefs.NormalizeStatRanges</code>, and consume the now-public, defect-fixed <code>Common.StatRanges</code> (RU-2); re-base the weapon/tool caches on <code>Common.ThingCache</code> and delete <code>ItemCache</code> (RU-3); delete <code>EquipmentManagerStatDefs</code> and inline <code>StatHelper.GetStatsByCategory(StatCategory.X)</code> at its five call-sites (RU-4); delete <code>UiHelpers.GetWindowSize</code> and call <code>Common.UI.Windows.GetWindowSize</code> (RU-6); adopt <code>WorkTypeThingRuleWidget</code> bundled with RU-1, or defer it with rationale (RU-7).</p>
+  <p><strong>Sequencing (load-bearing, AC-1):</strong> all of the above land and build green <em>before</em> the ADR-0001 nullable flip, so deleted code is never annotated. <code>WorkTypeRule.cs</code> alone removes the 36-site nullable hotspot.</p>
+  <p><strong>Auto-resolutions:</strong> RU-1 deletes the four redundant double-guards (C-9) and the duplicated <code>DefaultWorkTypeStats</code> literal (RU-5); RU-2 brings the upstream C-4 fix. The <code>DefProvider</code> testability seam (RU-8) comes along for free once the duplicated types move to Common, easing the test workstream (C-18…C-21).</p>
+  <p><strong>Kept local — explicitly NOT migrated</strong> (verified to have no Common equivalent or to be legitimate EM-side adaptation; AC-33):</p>
+  <table>
+    <thead><tr><th>Type</th><th>Why kept</th></tr></thead>
+    <tbody>
+      <tr><td><code>SkillWeight</code>, <code>PawnCapacityWeight</code></td><td>Single-float <em>weights</em>; Common offers <em>limits</em> (min/max ranges) which EM already consumes in <code>Loadout</code>. Different concept, no Common analog.</td></tr>
+      <tr><td><code>PassionLimit</code></td><td>A <code>PassionValue</code> enum gate; no Common equivalent.</td></tr>
+      <tr><td><code>RangedWeaponCache</code> / <code>MeleeWeaponCache</code> / <code>ToolCache</code> scoring</td><td>EM-specific CE-aware verb/range banding + ammo + work-type stat logic; Common has no weapon-scoring cache. (Caches re-base on <code>ThingCache</code> per RU-3 but the scoring stays EM-local.)</td></tr>
+      <tr><td><code>CombatExtendedHelper</code></td><td>EM-specific optional-dep reflective binding (see ADR-0003). Common has no CE compatibility layer.</td></tr>
+      <tr><td><code>LegacyCustomStatDefs</code> (remainder, after <code>NormalizeStatRanges</code> is removed)</td><td>EM-side normalization of legacy <code>EM_</code> stat names onto Common's current <code>CustomStats</code> naming — adaptation <em>of</em> Common, not reimplementation (C-23 PASS).</td></tr>
+      <tr><td><code>Logger</code> wrapper</td><td>Thin wrapper injecting <code>EquipmentManagerMod.ModId</code> into <code>Common.Logger</code> — the <em>intended</em> consumption pattern (Common's <code>Logger</code> takes a <code>modId</code> param so each downstream mod wraps it). Keep; it makes C-16 the correct fix.</td></tr>
+      <tr><td><code>UiHelpers</code> remainder (<code>CycleSettingValue</code>, <code>GetSettingCheckboxState</code>, <code>ValidNameRegex</code>, gap/label helpers)</td><td>EM-specific; only <code>GetWindowSize</code> is a duplicate. A fuller <code>UiHelpers</code>→<code>Common.UI</code> migration is a separate behavior-sensitive UI pass, out of scope.</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="consequences-0002">Consequences</h2>
+  <div class="consequences">
+    <div class="pros">
+      <h3>Positive</h3>
+      <ul>
+        <li>Restores the "not a reimplementation of shared utilities" anti-pillar; one source of truth for work-type rules, stat ranges, the thing cache, stat-category lookups, and window sizing.</li>
+        <li>Shrinks the nullable-migration surface before the flip (≈36 distinct sites from <code>WorkTypeRule</code> alone, plus the wrapper files).</li>
+        <li>Inherits the upstream C-4 fix (RU-2) and erases C-9 / RU-5 by deletion rather than by patching.</li>
+        <li>Brings the <code>DefProvider</code> test seam into EM's stat/rule paths, unblocking the test workstream.</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h3>Negative</h3>
+      <ul>
+        <li><strong>Breaking save-format change (RU-1):</strong> existing saves silently lose customized work-type rules; no migration shim. Accepted under <code>backward_compat=none</code>; users rebuild from defaults.</li>
+        <li><strong>Stat ranges become process-global ephemeral (RU-2):</strong> no longer save-persisted; rebuilt each process via <code>InitializeStatRanges</code>. A first-tick scoring pass may run against a not-yet-fully-seeded range until samples accumulate — behaviorally equivalent to a fresh load, accepted.</li>
+        <li><strong>Possible scoring drift</strong> if EM's flat <code>2f</code> default work-type stat weight differs from Common's per-stat weighted <code>DefaultWorkTypeStats</code>; this changes assignment decisions. Characterized by tests before/after (ADR-0004, AC-26).</li>
+        <li>Tighter coupling to the Common version: RU-2 requires the Common build at or past commit <code>17199b6</code>. EM already builds against the rebuilt 1.6 dll (2026-06-07).</li>
+        <li>RU-7 (widget adoption) carries UI pixel-parity risk; may be deferred (AC-7).</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2 id="alternatives-0002">Alternatives considered</h2>
+  <ul class="alt-list">
+    <li><strong>Add a Scribe load-migration shim for RU-1</strong> (read the legacy list form, populate the dict) — rejected: <code>backward_compat=none</code> makes it unnecessary churn; the approved decision is to drop old persisted rules.</li>
+    <li><strong>Keep EM's <code>StatRanges</code> copy and fix C-4 locally</strong> — rejected: the upstream fix already shipped and was verified; keeping a local copy re-introduces the very duplication this ADR removes and risks the two copies drifting again.</li>
+    <li><strong>Defer RU-1 and take only the non-breaking wins (RU-3/RU-4/RU-6)</strong> — rejected: RU-1 was approved, and deferring it leaves the largest nullable hotspot in place and the anti-pillar partly violated.</li>
+    <li><strong>Migrate <code>UiHelpers</code> wholesale to <code>Common.UI</code></strong> — rejected for this sprint: behavior-sensitive layout refactor with pixel-parity risk; only the exact <code>GetWindowSize</code> duplicate is removed.</li>
+    <li><strong>Delete the kept-local weight/limit/passion types in favor of Common limits</strong> — rejected: they are a different concept (weights/enum gate vs min-max limits); not duplicates (AC-33).</li>
+  </ul>
+
+  <h2 id="related-0002">Related</h2>
+  <ul>
+    <li><a href="#adr-0001">ADR-0001</a>: this ADR's deletes run first and shrink the nullable surface (AC-1).</li>
+    <li><a href="#adr-0003">ADR-0003</a>: confirms Common stays a compile-only, non-forked reference through the consolidation.</li>
+    <li><a href="#adr-0004">ADR-0004</a>: the scoring-drift risk (RU-1/RU-2) is gated by the characterization-test policy.</li>
+    <li>Driving AC: AC-1…AC-8 (plus AC-16 C-4 via RU-2, AC-17 C-9 via RU-1, AC-33 kept-local). Audit: RU-1…RU-8, C-4, C-9, R-C9.</li>
+  </ul>
+</article>
+
+<!-- ===================== ADR-0003 ===================== -->
+<article class="adr" id="adr-0003">
+  <div class="meta">
+    <span class="status-chip status-proposed">proposed</span>
+    <span class="chip area">subsystem: N/A</span>
+    <span class="chip">ADR-0003</span>
+    <span class="chip">provenance: reverse-engineered</span>
+  </div>
+  <h2 style="font-size:1.3rem;">ADR-0003 · Dependency-integration pattern (hard typed refs vs reflective soft-dep binding)</h2>
+  <p style="font-size:0.85rem;color:var(--muted);margin-top:-4px;">Provenance: reverse-engineered from existing code (<code>Source/EquipmentManager/CombatExtendedHelper.cs</code>, <code>EquipmentManager.csproj</code>, <code>About/About.xml</code>, the weapon caches). Source: the as-built integration in the EquipmentManager codebase.</p>
+
+  <h2 id="context-0003">Context</h2>
+  <p>EquipmentManager integrates with four external pieces of code with different coupling needs, and the codebase already implements a consistent (but undocumented) pattern for each. The decisions-log flagged a candidate ADR for this; this ADR reverse-engineers the as-built contract so future contributors do not break it. The dependencies:</p>
+  <ul>
+    <li><strong>Lib.Harmony 2.4.2</strong> — patching framework. One patch (<code>DefGeneratorPatch</code> postfix inserting the <code>EM_Loadout</code> pawn column) plus <code>AccessTools</code> used as the reflection toolkit for the CE binding.</li>
+    <li><strong>LordKuper.Common 1.6</strong> — hard upstream library, but version-scoped: a runtime <code>modDependency</code> only on game v1.6 (<code>About.xml</code> <code>modDependenciesByVersion</code>); older game versions of the mod do not depend on it.</li>
+    <li><strong>SimpleSidearms 1.6</strong> — hard <code>modDependency</code> across versions; consumed via concrete types (<code>CompSidearmMemory</code>, <code>StatCalculator</code>, <code>WeaponAssingment</code>, <code>Enums</code>, <code>SidearmsDefOf</code>).</li>
+    <li><strong>Combat Extended</strong> — soft, optional integration: <code>loadAfter</code> only, no <code>modDependency</code>, and the mod must run correctly whether or not CE is present.</li>
+  </ul>
+  <p>The forces: hard deps want compile-time type safety and IDE support; the soft dep cannot have a compile reference (CE may be absent at runtime) yet must be used when present; and none of these may be forked or vendored (upstream-contract invariant, C-23…C-25 all PASS).</p>
+
+  <h2 id="decision-0003">Decision</h2>
+  <p class="lede">Record the as-built pattern as the standing integration contract: <strong>hard dependencies are consumed through direct, compile-only typed references; the soft (optional) dependency is bound entirely by reflection with graceful degradation.</strong> No dependency is forked or vendored into the repo.</p>
+  <ul>
+    <li><strong>Hard deps (Common, SimpleSidearms, Harmony):</strong> referenced by <code>HintPath</code> with <code>&lt;Private&gt;False&lt;/Private&gt;</code> — compile against the assembly, but do not copy it to the build output (the host mod supplies it at runtime). Harmony additionally uses <code>ExcludeAssets=runtime</code> + <code>PrivateAssets=all</code> (compile-only NuGet). Common's hard-dependency status is version-scoped in <code>About.xml</code> (runtime <code>modDependency</code> for v1.6 only); SimpleSidearms is a hard <code>modDependency</code>. Reference resolution is path-overridable (<code>LORDKUPER_COMMON_DIR</code>, <code>RIMWORLD_DIR</code>, <code>SIMPLE_SIDEARMS_DIR</code>) with sensible defaults in <code>Directory.Build.props</code>.</li>
+    <li><strong>Soft dep (Combat Extended):</strong> <strong>no compile reference.</strong> Bound at runtime via Harmony <code>AccessTools.TypeByName</code> / <code>FieldRefAccess</code> / <code>MethodDelegate</code> in <code>CombatExtendedHelper</code> and the two weapon caches' <code>Initialize</code> methods. The reflective handles are resolved once; every lookup logs on failure and the caches degrade gracefully (all CE-derived values fall back to a no-CE path). <code>About.xml</code> declares CE in <code>loadAfter</code> only.</li>
+    <li><strong>Upstream names consumed verbatim:</strong> SimpleSidearms' own misspelled type <code>WeaponAssingment</code> is the real upstream type name and is consumed as-is — it must NOT be "corrected" (C-24, AC-31).</li>
+    <li><strong>Nullability coupling (links ADR-0001):</strong> the CE reflective handles are <em>legitimately null</em> when CE is absent, so under <code>Nullable enable</code> they stay <code>T?</code> with their existing guards and are never forced non-null (R-C3, AC-14).</li>
+  </ul>
+  <p>This ADR documents an existing pattern and prescribes no code change beyond keeping it intact; it is the architectural rationale future contributors must respect when adding or modifying an integration.</p>
+
+  <h2 id="consequences-0003">Consequences</h2>
+  <div class="consequences">
+    <div class="pros">
+      <h3>Positive</h3>
+      <ul>
+        <li>Hard deps get full compile-time type safety and refactoring support; soft dep imposes zero hard runtime requirement, so the mod loads with or without CE.</li>
+        <li><code>Private=False</code> avoids shipping duplicate assemblies and the load conflicts that would cause.</li>
+        <li>Clear, repeatable rule for the next integration: hard → typed ref; optional → reflection + degrade.</li>
+        <li>No forking; upstream contracts stay intact and updatable.</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h3>Negative</h3>
+      <ul>
+        <li>The CE binding is string-based and fragile: a CE rename of a type/field/method breaks it silently at the lookup. Mitigated by per-lookup failure logging and graceful degradation, but not by the compiler (R-C3).</li>
+        <li>Build requires the sibling Common checkout / the resolved reference paths to be present; a missing path fails the build fast (acceptable, documented in the tech-reference).</li>
+        <li>Version-scoped Common dependency means the contract is a 1.6-only expectation; the integration shape differs across supported game versions.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2 id="alternatives-0003">Alternatives considered</h2>
+  <ul class="alt-list">
+    <li><strong>Add a compile-time reference to Combat Extended</strong> — rejected: would make CE a hard requirement (the mod would fail to load without it) and there is no stable distributable CE reference assembly; reflection is the only way to keep CE optional.</li>
+    <li><strong>Vendor / fork Common or SimpleSidearms into the repo</strong> — rejected: violates the upstream-contract invariant and causes duplicate-assembly load conflicts; <code>Private=False</code> compile-only is the correct mechanism.</li>
+    <li><strong>"Fix" the <code>WeaponAssingment</code> spelling</strong> — rejected: it is SimpleSidearms' own public type name; renaming would not compile against the real assembly.</li>
+    <li><strong>Make Common a hard dependency on all game versions</strong> — rejected: contradicts the existing version-scoped <code>About.xml</code> contract; older versions never depended on Common.</li>
+  </ul>
+
+  <h2 id="related-0003">Related</h2>
+  <ul>
+    <li><a href="#adr-0001">ADR-0001</a>: CE reflective fields stay nullable under the migration (AC-14).</li>
+    <li><a href="#adr-0002">ADR-0002</a>: consolidation keeps Common a compile-only, non-forked reference (AC-30).</li>
+    <li>Driving AC: AC-30, AC-31, AC-32, AC-33. Audit: DM-5, C-23, C-24, C-25.</li>
+    <li>This ADR is promoted to <code>design/architecture/adr/</code> in design-promote (satisfies AC-40).</li>
+  </ul>
+</article>
+
+<!-- ===================== ADR-0004 ===================== -->
+<article class="adr" id="adr-0004">
+  <div class="meta">
+    <span class="status-chip status-proposed">proposed</span>
+    <span class="chip area">subsystem: N/A</span>
+    <span class="chip">ADR-0004</span>
+  </div>
+  <h2 style="font-size:1.3rem;">ADR-0004 · Defect &amp; performance remediation policy</h2>
+
+  <h2 id="context-0004">Context</h2>
+  <p>Most audit defects are mechanical fixes that belong in the plan, not in an ADR. Two carry a genuine cross-cutting decision and are recorded here so the implementation phase does not treat them as ordinary patches:</p>
+  <ul>
+    <li><strong>C-3 — tool-stat cache key contract.</strong> <code>ToolCache.GetStatValue(statDef, workTypeDefs)</code> caches by <code>statDef</code> only, but the WorkType custom-stat value <em>depends on <code>workTypeDefs</code></em> (via <code>GetWorkTypesScore</code>). Within one 24h cache window the first work-type set's score is memoized and returned for every subsequent different set, so <code>AssignToolsForWorkTypes</code> (one call per work type) gives all-but-the-first work type a stale score. The <code>StatValues</code> cache contract cannot represent a work-type-dependent value — fixing it changes the cache key contract, not just a line of code.</li>
+    <li><strong>Behavioral change from defect fixes (R-C2).</strong> Fixing C-3 and C-4 (the latter via ADR-0002's RU-2 migration) changes scoring outputs, which changes weapon/tool assignment decisions players observe. This is correct behavior, not a regression, but it must not land silently.</li>
+  </ul>
+  <p>The mechanical performance/defect items (C-12 incremental <code>assignedByOthers</code> set, C-13 defName-keyed rule lookup dictionary, C-5/C-6/C-7/C-8) carry no architectural decision and are left to the plan; C-5/C-7 are resolved by the ADR-0001 flip surfacing them as CS86xx.</p>
+
+  <h2 id="decision-0004">Decision</h2>
+  <p class="lede">Two cross-cutting rules for the remediation:</p>
+  <ol>
+    <li><strong>Cache-key correctness over caching:</strong> for work-type-dependent tool stats, either key the cache entry by the composite <code>(statDef, workTypeDefs)</code> or do not cache the WorkType-dependent stat at all. Caching a value whose inputs are not all in the key is forbidden — correctness wins over the cache hit (C-3, AC-15). Note the composite key is a <em>local</em> EM concern: <code>Common.ThingCache</code> (adopted in RU-3) does not provide work-type-aware keying, so this fix lives in EM's <code>ToolCache</code> logic on top of the re-based cache.</li>
+    <li><strong>Characterize before changing behavior:</strong> any fix that shifts scoring/assignment output (C-3, and C-4 via the RU-2 migration) must be accompanied by a characterization test on the affected math <em>before</em> the fix lands, and the behavioral change is called out in the PR. The first-sample <code>[v,v]</code> assertion (C-4) and the differing-work-type-set assertion (C-3) are required tests (AC-25, AC-29).</li>
+  </ol>
+  <p>The mechanical performance fixes (C-12, C-13) are mandated by their own AC (AC-19, AC-20) and need no decision here beyond "do them"; they are referenced for completeness, not re-decided.</p>
+
+  <h2 id="consequences-0004">Consequences</h2>
+  <div class="consequences">
+    <div class="pros">
+      <h3>Positive</h3>
+      <ul>
+        <li>Tool scores become per-work-type correct; the silent stale-score class of bug is closed at the cache-contract level, not patched per call-site.</li>
+        <li>Behavioral shifts are captured by tests and disclosed, so reviewers and the maintainer can distinguish "intended correctness change" from "regression".</li>
+        <li>Keeps the ADR corpus lean: only the two items with real decision content are recorded; mechanical fixes stay in the plan (Simplicity Default).</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h3>Negative</h3>
+      <ul>
+        <li>A composite cache key (or no-cache carve-out) for WorkType stats slightly raises tool-cache cost or key complexity versus the (incorrect) single-key cache. Accepted: correctness is non-negotiable and the work-type set is small.</li>
+        <li>Requiring a characterization test before each behavioral fix adds up-front test effort, and the post-fix assignment output will differ from prior saves' expectations (players may notice different picks). Accepted and disclosed.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2 id="alternatives-0004">Alternatives considered</h2>
+  <ul class="alt-list">
+    <li><strong>Fold C-3 into ADR-0002 (consolidation) or leave it purely plan-level</strong> — rejected: C-3 is an EM-local cache-contract decision that survives the RU-3 migration (Common's <code>ThingCache</code> has no work-type keying), so it deserves its own recorded contract rather than being buried in the consolidation or treated as a one-line patch.</li>
+    <li><strong>Manufacture separate ADRs for C-12 / C-13</strong> — rejected: they are mechanical optimizations with no tradeoff to decide (Simplicity Default forbids ADRs with no decision content); they remain plan tasks under AC-19/AC-20.</li>
+    <li><strong>Skip characterization tests and just ship the fixes</strong> — rejected: scoring changes are player-visible; without before/after tests a real regression would be indistinguishable from the intended correctness change (R-C2).</li>
+  </ul>
+
+  <h2 id="related-0004">Related</h2>
+  <ul>
+    <li><a href="#adr-0002">ADR-0002</a>: C-4 is fixed via the RU-2 migration there; this ADR governs the test discipline around the resulting behavioral change.</li>
+    <li>Driving AC: AC-15 (C-3), AC-16 (C-4 via RU-2), AC-25, AC-29; performance AC-19 (C-12), AC-20 (C-13). Audit: C-3, C-4, C-12, C-13, R-C2.</li>
+  </ul>
+</article>
+
+<section id="open-questions">
+  <h2>Open questions (non-blocking)</h2>
+  <ul>
+    <li><strong>RU-1 default-weight parity (OQ-1).</strong> The audit flagged a possible scoring divergence: EM applied a flat <code>2f</code> default weight for the hard-coded work-type stats, whereas <code>Common.WorkTypeStatMap.DefaultWorkTypeStats</code> carries explicit per-stat weights (Cooking 1–2, Doctor 2, etc.). After deleting <code>WorkTypeRule</code>, EM inherits Common's weighted defaults. Decision deferred to impl + the AC-26 characterization test: confirm whether the resulting assignment behavior is acceptable as-is (preferred, one source of truth) or whether an EM-side default override is warranted ("EquipmentManager wording wins" per <code>custom-common-rules.md</code>). Not blocking — the consolidation proceeds; the test phase decides if an override is needed.</li>
+    <li><strong>RU-7 widget adoption (OQ-2).</strong> Whether to adopt <code>Common.UI.Widgets.WorkTypeThingRuleWidget</code> this sprint (bundled with RU-1) or defer it (UI pixel-parity risk). AC-7 allows either; the plan/impl phase decides based on parity risk. Not blocking.</li>
+    <li><strong>C-10 assignment-helper extraction (OQ-3).</strong> The shared candidate-filter / commit-job helper is a new abstraction requiring Complication Approval (R-C5, AC-18). It is proposed, not mandated; the minimal form (extract only the duplicated area-restriction <code>Predicate&lt;Thing&gt;</code> factory) may not need a new layer. Deferred to plan/impl with the approval gate. Not an architecture decision for this ADR set.</li>
+  </ul>
+</section>
+
+      </main>
+      <footer>by asd-architect | 2026-06-07 | sprint 001-full-audit-alignment</footer>
+    </div>
+  </div>
+  <script>
+    (function () {
+      const links = Array.from(document.querySelectorAll('nav.toc a[href^="#"]'));
+      if (!links.length) return;
+      const map = new Map();
+      links.forEach(a => { const el = document.getElementById(a.getAttribute('href').slice(1)); if (el) map.set(el, a); });
+      const io = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            links.forEach(a => a.classList.remove('active'));
+            const a = map.get(e.target);
+            if (a) a.classList.add('active');
+          }
+        });
+      }, { rootMargin: '-30% 0px -65% 0px', threshold: 0 });
+      map.forEach((_a, el) => io.observe(el));
+    })();
+  </script>
+</body>
+</html>

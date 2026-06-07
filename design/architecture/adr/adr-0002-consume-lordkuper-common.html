@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<!--
+responsibility:
+  owns: single architecture decision (ADR-0002)
+  excludes: requirements, ux, code
+  delegates_to: prd.html (requirements), ux-spec.html (ux), code (implementation)
+provenance: original
+source: ""
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="ASD workflow">
+  <meta name="doc-type" content="ADR">
+  <meta name="subsystem" content="N/A">
+  <meta name="sprint-id" content="">
+  <meta name="status" content="accepted">
+  <meta name="updated" content="2026-06-07">
+  <meta name="responsibility" content="architecture decision ADR-0002 — consume LordKuper.Common over local reimplementation">
+  <meta name="provenance" content="original">
+  <meta name="source" content="">
+  <title>ADR-0002 · Consume LordKuper.Common over local reimplementation</title>
+  <style>
+    :root {
+      --fg: #1a1c1e; --bg: #fff; --muted: #5b6770; --accent: #0066cc;
+      --code-bg: #f4f6f8; --border: #d0d7de; --max: 1040px;
+      --card-bg: #fafbfc;
+      --ok: #1f883d; --warn: #b35900; --danger: #cf222e; --info: #0969da; --neutral: #5b6770;
+      --chip-must-bg: #ffebe9; --chip-must-fg: #cf222e;
+      --chip-should-bg: #fff5e1; --chip-should-fg: #9a6700;
+      --chip-may-bg: #ddf4ff; --chip-may-fg: #0969da;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --fg: #e6e6e6; --bg: #0e1116; --muted: #9aa4ad; --code-bg: #161b22; --border: #30363d;
+        --card-bg: #161b22;
+        --chip-must-bg: #3b1416; --chip-must-fg: #ff7b72;
+        --chip-should-bg: #2d2410; --chip-should-fg: #e3b341;
+        --chip-may-bg: #0d2538; --chip-may-fg: #58a6ff;
+      }
+    }
+    html, body { margin: 0; padding: 0; }
+    * { box-sizing: border-box; }
+    body { font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--fg); background: var(--bg); }
+    .layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: 100vh; }
+    .content { min-width: 0; }
+    header, main, footer { max-width: var(--max); margin: 0 auto; padding: 16px 24px; }
+    header { border-bottom: 1px solid var(--border); }
+    header h1 { margin: 4px 0 8px; font-size: 1.9rem; }
+    .badges span { display: inline-block; padding: 2px 8px; margin-right: 6px; font-size: 0.75rem; border: 1px solid var(--border); border-radius: 4px; color: var(--muted); background: var(--bg); }
+    .badges .provenance-reverse-engineered, .badges .provenance-migrated { color: var(--warn); border-color: var(--warn); }
+    .badges .status-draft       { color: var(--neutral); border-color: var(--neutral); }
+    .badges .status-in-review   { color: var(--warn);    border-color: var(--warn); }
+    .badges .status-approved    { color: var(--ok);      border-color: var(--ok); }
+    .badges .status-locked      { color: var(--info);    border-color: var(--info); }
+    .badges .status-proposed    { color: var(--warn);    border-color: var(--warn); }
+    .badges .status-accepted    { color: var(--ok);      border-color: var(--ok); }
+    .stats { margin-top: 6px; font-size: 0.85rem; color: var(--muted); }
+    .stats .chip { display: inline-block; padding: 1px 8px; margin-right: 6px; border-radius: 10px; background: var(--code-bg); border: 1px solid var(--border); }
+    nav.toc { position: sticky; top: 0; align-self: start; height: 100vh; overflow-y: auto; padding: 18px 14px; border-right: 1px solid var(--border); background: var(--card-bg); font-size: 0.9rem; }
+    nav.toc .toc-title { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 8px; padding-left: 6px; }
+    nav.toc ol { list-style: none; margin: 0; padding: 0; counter-reset: tocn; }
+    nav.toc li { margin: 2px 0; counter-increment: tocn; }
+    nav.toc a { display: block; padding: 4px 8px; border-radius: 4px; color: var(--fg); text-decoration: none; border-left: 2px solid transparent; }
+    nav.toc a:hover { background: var(--code-bg); color: var(--accent); }
+    nav.toc a.active { background: var(--code-bg); color: var(--accent); border-left-color: var(--accent); font-weight: 600; }
+    nav.toc a::before { content: counter(tocn) ". "; color: var(--muted); font-variant-numeric: tabular-nums; }
+    @media (max-width: 880px) {
+      .layout { grid-template-columns: 1fr; }
+      nav.toc { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--border); }
+    }
+    h2, h3, h4 { line-height: 1.25; margin-top: 1.6em; }
+    h2 { border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+    a { color: var(--accent); }
+    code, pre { font-family: ui-monospace, "Cascadia Code", Menlo, monospace; }
+    code { background: var(--code-bg); padding: 1px 5px; border-radius: 3px; font-size: 0.9em; }
+    pre { background: var(--code-bg); padding: 12px; border-radius: 6px; overflow-x: auto; }
+    pre code { background: none; padding: 0; }
+    table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+    th, td { border: 1px solid var(--border); padding: 6px 10px; text-align: left; vertical-align: top; }
+    th { background: var(--code-bg); }
+    tbody tr:nth-child(even) td { background: var(--card-bg); }
+    blockquote { border-left: 3px solid var(--accent); margin: 0; padding: 4px 14px; color: var(--muted); }
+    footer { color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--border); margin-top: 32px; }
+    .lede { font-size: 1.08rem; color: var(--fg); }
+    .chip { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 0.78rem; border: 1px solid var(--border); }
+    .chip.area { background: var(--code-bg); color: var(--muted); }
+    .adr { border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; margin: 18px 0; background: var(--card-bg); }
+    .adr > .meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 6px; }
+    .adr h2 { margin-top: 1.1em; border-bottom: none; font-size: 1.15rem; }
+    .adr h3 { margin-top: 1em; font-size: 1rem; color: var(--muted); }
+    .status-chip { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.78rem; border: 1px solid var(--border); }
+    .status-proposed   { color: var(--warn);    border-color: var(--warn);    background: var(--chip-should-bg); }
+    .status-accepted   { color: var(--ok);      border-color: var(--ok);      background: rgba(31,136,61,0.10); }
+    .status-superseded { color: var(--muted);   border-color: var(--muted);   background: var(--code-bg); text-decoration: line-through; }
+    .status-deprecated { color: var(--danger);  border-color: var(--danger);  background: var(--chip-must-bg); }
+    .consequences { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .consequences .pros, .consequences .cons { padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border); }
+    .consequences .pros { background: rgba(31,136,61,0.07); border-left: 3px solid var(--ok); }
+    .consequences .cons { background: rgba(207,34,46,0.06); border-left: 3px solid var(--danger); }
+    .consequences h3 { margin: 0 0 4px; }
+    .consequences ul { margin: 0; padding-left: 20px; }
+    @media (max-width: 720px) { .consequences { grid-template-columns: 1fr; } }
+    ul.alt-list li { margin: 4px 0; }
+    ul.alt-list li strong { color: var(--fg); }
+    @media print {
+      nav.toc { background: none; border: 1px solid var(--border); }
+      a { color: inherit; text-decoration: none; }
+      footer { page-break-before: always; }
+      tr, li { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <nav class="toc" aria-label="Table of contents">
+      <p class="toc-title">Contents</p>
+      <ol>
+        <li><a href="#context">Context</a></li>
+        <li><a href="#decision">Decision</a></li>
+        <li><a href="#consequences">Consequences</a></li>
+        <li><a href="#alternatives">Alternatives considered</a></li>
+        <li><a href="#related">Related</a></li>
+      </ol>
+    </nav>
+    <div class="content">
+      <header>
+        <div class="badges">
+          <span>ADR</span>
+          <span>N/A</span>
+          <span class="status-accepted">accepted</span>
+        </div>
+        <h1>ADR-0002 · Consume LordKuper.Common over local reimplementation</h1>
+        <div class="stats">accepted · subsystem N/A · updated 2026-06-07</div>
+      </header>
+      <main>
+
+<article class="adr" id="adr-0002">
+  <div class="meta">
+    <span class="status-chip status-accepted">accepted</span>
+    <span class="chip area">subsystem: N/A</span>
+    <span class="chip">ADR-0002</span>
+  </div>
+
+  <h2 id="context">Context</h2>
+  <p>The reuse audit (RU-1&hellip;RU-8) found that several EquipmentManager types are near-verbatim reimplementations of utilities the upstream <code>LordKuper.Common</code> library now ships. This violates the concept anti-pillar "not a reimplementation of shared utilities" and <code>custom-common-rules.md</code> ("do not fork or reimplement what it already provides"). Crucially, the Common equivalents already contain fixes for EM defects, and deleting the EM copies removes code that would otherwise need the nullable migration. The overlaps were verified against the Common source at <code>..\..\rimworld-common</code> (treated as untrusted first-party data):</p>
+  <ul>
+    <li><strong>RU-1:</strong> <code>WorkTypeRule</code> (290 lines) &asymp; <code>Common.WorkTypeThingRule</code> + <code>WorkTypeStatMap</code> &mdash; same public surface, same <code>AllRelevantThings</code> predicate, same <code>DefaultWorkTypeStats</code> literal (RU-5). The audit recorded a <strong>save-format break</strong>: EM serializes <code>List&lt;StatWeight&gt;</code> under key <code>"StatWeights"</code>; <code>WorkTypeThingRule</code> serializes <code>Dictionary&lt;string, StatWeight&gt;</code> under <code>nameof(StatWeights)</code> with <code>LookMode.Value</code> (confirmed in <code>WorkTypeThingRule.cs:146-159</code>).</li>
+    <li><strong>RU-2:</strong> <code>EquipmentManagerGameComponent_StatRanges</code> (<code>_statRanges</code> + <code>NormalizeStatValue</code> + <code>UpdateStatRange</code>) &asymp; <code>Common.StatRanges</code>. Both held the identical first-sample seeding defect (C-4). The blocker (Common's <code>StatRanges</code> was <code>internal</code>) is <strong>resolved</strong>: rimworld-common commit <code>17199b6</code> made it <code>public static</code>, fixed C-4, added <code>Clear()</code>, and shipped 11 green tests (verified in upstream source: <code>StatRanges.cs:24 public static class</code>, <code>:38 Clear()</code>, <code>:64 NormalizeStatValue</code>).</li>
+    <li><strong>RU-3:</strong> <code>ItemCache</code> &asymp; <code>Common.ThingCache</code> (the <code>StatValues</code> dictionary + timed clear). Confirmed <code>ThingCache.cs:13 public class</code>.</li>
+    <li><strong>RU-4:</strong> <code>EquipmentManagerStatDefs</code> is a pure pass-through over <code>Common.Helpers.StatHelper.GetStatsByCategory</code>.</li>
+    <li><strong>RU-6:</strong> <code>UiHelpers.GetWindowSize</code> duplicates <code>Common.UI.Windows.GetWindowSize</code> (confirmed <code>Windows.cs:22</code>).</li>
+    <li><strong>RU-7:</strong> the hand-rolled work-type editor tab overlaps <code>Common.UI.Widgets.WorkTypeThingRuleWidget</code> (takes <code>WorkTypeThingRule</code>, so gated on RU-1).</li>
+  </ul>
+  <p>Backward-compat policy is <code>backward_compat=none</code>, and RU-1's breaking save-format change was explicitly <strong>approved</strong> (audit decision 2026-06-07): no save-migration shim; old saves silently drop persisted WorkType rules and users rebuild via defaults. RU-2 was also approved, accepting that stat ranges become process-global ephemeral (no longer save-persisted).</p>
+
+  <h2 id="decision">Decision</h2>
+  <p class="lede">Delete the EM code that duplicates Common's public surface and consume Common instead. Specifically: delete <code>WorkTypeRule</code> and consume <code>WorkTypeThingRule</code>/<code>WorkTypeStatMap</code> with <strong>no</strong> Scribe save-migration shim (RU-1 / RU-5 / RU-7); delete <code>EquipmentManagerGameComponent_StatRanges</code>, the <code>_statRanges</code> dict, <code>ExposeData_StatRanges</code>, and <code>LegacyCustomStatDefs.NormalizeStatRanges</code>, and consume the now-public, defect-fixed <code>Common.StatRanges</code> (RU-2); re-base the weapon/tool caches on <code>Common.ThingCache</code> and delete <code>ItemCache</code> (RU-3); delete <code>EquipmentManagerStatDefs</code> and inline <code>StatHelper.GetStatsByCategory(StatCategory.X)</code> at its five call-sites (RU-4); delete <code>UiHelpers.GetWindowSize</code> and call <code>Common.UI.Windows.GetWindowSize</code> (RU-6); adopt <code>WorkTypeThingRuleWidget</code> bundled with RU-1, or defer it with rationale (RU-7).</p>
+  <p><strong>Sequencing (load-bearing, AC-1):</strong> all of the above land and build green <em>before</em> the ADR-0001 nullable flip, so deleted code is never annotated. <code>WorkTypeRule.cs</code> alone removes the 36-site nullable hotspot.</p>
+  <p><strong>Auto-resolutions:</strong> RU-1 deletes the four redundant double-guards (C-9) and the duplicated <code>DefaultWorkTypeStats</code> literal (RU-5); RU-2 brings the upstream C-4 fix. The <code>DefProvider</code> testability seam (RU-8) comes along for free once the duplicated types move to Common, easing the test workstream (C-18&hellip;C-21).</p>
+  <p><strong>Kept local &mdash; explicitly NOT migrated</strong> (verified to have no Common equivalent or to be legitimate EM-side adaptation; AC-33):</p>
+  <table>
+    <thead><tr><th>Type</th><th>Why kept</th></tr></thead>
+    <tbody>
+      <tr><td><code>SkillWeight</code>, <code>PawnCapacityWeight</code></td><td>Single-float <em>weights</em>; Common offers <em>limits</em> (min/max ranges) which EM already consumes in <code>Loadout</code>. Different concept, no Common analog.</td></tr>
+      <tr><td><code>PassionLimit</code></td><td>A <code>PassionValue</code> enum gate; no Common equivalent.</td></tr>
+      <tr><td><code>RangedWeaponCache</code> / <code>MeleeWeaponCache</code> / <code>ToolCache</code> scoring</td><td>EM-specific CE-aware verb/range banding + ammo + work-type stat logic; Common has no weapon-scoring cache. (Caches re-base on <code>ThingCache</code> per RU-3 but the scoring stays EM-local.)</td></tr>
+      <tr><td><code>CombatExtendedHelper</code></td><td>EM-specific optional-dep reflective binding (see ADR-0003). Common has no CE compatibility layer.</td></tr>
+      <tr><td><code>LegacyCustomStatDefs</code> (remainder, after <code>NormalizeStatRanges</code> is removed)</td><td>EM-side normalization of legacy <code>EM_</code> stat names onto Common's current <code>CustomStats</code> naming &mdash; adaptation <em>of</em> Common, not reimplementation (C-23 PASS).</td></tr>
+      <tr><td><code>Logger</code> wrapper</td><td>Thin wrapper injecting <code>EquipmentManagerMod.ModId</code> into <code>Common.Logger</code> &mdash; the <em>intended</em> consumption pattern (Common's <code>Logger</code> takes a <code>modId</code> param so each downstream mod wraps it). Keep; it makes C-16 the correct fix.</td></tr>
+      <tr><td><code>UiHelpers</code> remainder (<code>CycleSettingValue</code>, <code>GetSettingCheckboxState</code>, <code>ValidNameRegex</code>, gap/label helpers)</td><td>EM-specific; only <code>GetWindowSize</code> is a duplicate. A fuller <code>UiHelpers</code>&rarr;<code>Common.UI</code> migration is a separate behavior-sensitive UI pass, out of scope.</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="consequences">Consequences</h2>
+  <div class="consequences">
+    <div class="pros">
+      <h3>Positive</h3>
+      <ul>
+        <li>Restores the "not a reimplementation of shared utilities" anti-pillar; one source of truth for work-type rules, stat ranges, the thing cache, stat-category lookups, and window sizing.</li>
+        <li>Shrinks the nullable-migration surface before the flip (&asymp;36 distinct sites from <code>WorkTypeRule</code> alone, plus the wrapper files).</li>
+        <li>Inherits the upstream C-4 fix (RU-2) and erases C-9 / RU-5 by deletion rather than by patching.</li>
+        <li>Brings the <code>DefProvider</code> test seam into EM's stat/rule paths, unblocking the test workstream.</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h3>Negative</h3>
+      <ul>
+        <li><strong>Breaking save-format change (RU-1):</strong> existing saves silently lose customized work-type rules; no migration shim. Accepted under <code>backward_compat=none</code>; users rebuild from defaults.</li>
+        <li><strong>Stat ranges become process-global ephemeral (RU-2):</strong> no longer save-persisted; rebuilt each process via <code>InitializeStatRanges</code>. A first-tick scoring pass may run against a not-yet-fully-seeded range until samples accumulate &mdash; behaviorally equivalent to a fresh load, accepted.</li>
+        <li><strong>Possible scoring drift</strong> if EM's flat <code>2f</code> default work-type stat weight differs from Common's per-stat weighted <code>DefaultWorkTypeStats</code>; this changes assignment decisions. Characterized by tests before/after (ADR-0004, AC-26).</li>
+        <li>Tighter coupling to the Common version: RU-2 requires the Common build at or past commit <code>17199b6</code>. EM already builds against the rebuilt 1.6 dll (2026-06-07).</li>
+        <li>RU-7 (widget adoption) carries UI pixel-parity risk; may be deferred (AC-7).</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2 id="alternatives">Alternatives considered</h2>
+  <ul class="alt-list">
+    <li><strong>Add a Scribe load-migration shim for RU-1</strong> (read the legacy list form, populate the dict) &mdash; rejected: <code>backward_compat=none</code> makes it unnecessary churn; the approved decision is to drop old persisted rules.</li>
+    <li><strong>Keep EM's <code>StatRanges</code> copy and fix C-4 locally</strong> &mdash; rejected: the upstream fix already shipped and was verified; keeping a local copy re-introduces the very duplication this ADR removes and risks the two copies drifting again.</li>
+    <li><strong>Defer RU-1 and take only the non-breaking wins (RU-3/RU-4/RU-6)</strong> &mdash; rejected: RU-1 was approved, and deferring it leaves the largest nullable hotspot in place and the anti-pillar partly violated.</li>
+    <li><strong>Migrate <code>UiHelpers</code> wholesale to <code>Common.UI</code></strong> &mdash; rejected for this sprint: behavior-sensitive layout refactor with pixel-parity risk; only the exact <code>GetWindowSize</code> duplicate is removed.</li>
+    <li><strong>Delete the kept-local weight/limit/passion types in favor of Common limits</strong> &mdash; rejected: they are a different concept (weights/enum gate vs min-max limits); not duplicates (AC-33).</li>
+  </ul>
+
+  <h2 id="related">Related</h2>
+  <ul>
+    <li><a href="adr-0001-production-nullable-migration.html">ADR-0001</a>: this ADR's deletes run first and shrink the nullable surface (AC-1).</li>
+    <li><a href="adr-0003-dependency-integration-pattern.html">ADR-0003</a>: confirms Common stays a compile-only, non-forked reference through the consolidation.</li>
+    <li><a href="adr-0004-defect-performance-policy.html">ADR-0004</a>: the scoring-drift risk (RU-1/RU-2) is gated by the characterization-test policy.</li>
+    <li>Driving AC: AC-1&hellip;AC-8 (plus AC-16 C-4 via RU-2, AC-17 C-9 via RU-1, AC-33 kept-local). Audit: RU-1&hellip;RU-8, C-4, C-9, R-C9.</li>
+  </ul>
+</article>
+
+      </main>
+      <footer>by asd-architect | 2026-06-07 | sprint 001-full-audit-alignment</footer>
+    </div>
+  </div>
+</body>
+</html>

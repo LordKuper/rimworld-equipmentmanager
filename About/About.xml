@@ -38,5 +38,21 @@
 		<li>OskarPotocki.VanillaFactionsExpanded.Core</li>
 		<li>CETeam.CombatExtended</li>
 	</loadAfter>
-	<description>Automatic equipment management mod</description>
+	<description>Automatically assigns weapons, tools, and loadouts to your colonists based on configurable scoring rules.
+
+KEY FEATURES:
+- Loadouts: define named equipment sets combining primary weapons, sidearms, and tools. Auto-assign loadouts to colonists by trait, skill level, passion, work capacity, or stat thresholds.
+- Weapon rules: score ranged and melee weapons by configurable stat weights and limits. The mod equips each colonist with the best available weapon per rule.
+- Tool rules: assign work-type tools automatically (e.g. a mining pick for Miners, a chef's knife for Cooks). Supports "one tool per work type", "best available", and "all available" equip modes.
+- Work-type scoring: configure per-work-type stat weights that drive tool scoring.
+- Sidearm support: assign sidearms alongside primary weapons using the same rule system (requires Simple Sidearms).
+- Combat Extended: optional integration — ammo count targets respected when CE is loaded.
+
+REQUIRED MODS:
+- Harmony (brrainz.harmony)
+- Simple Sidearms (petetimessix.simplesidearms)
+- LordKuper.Common — required for RimWorld 1.6 (auto-resolved via modDependenciesByVersion)
+
+OPTIONAL MODS:
+- Combat Extended — detected at runtime; no hard dependency</description>
 </ModMetaData>

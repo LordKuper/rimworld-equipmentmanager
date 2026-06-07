@@ -3,12 +3,10 @@ using EquipmentManager.DefOfs;
 using HarmonyLib;
 using JetBrains.Annotations;
 using RimWorld;
-using Verse;
 
 namespace EquipmentManager.Patches;
 
-[HarmonyPatch(typeof(DefGenerator), nameof(DefGenerator.GenerateImpliedDefs_PreResolve)),
- UsedImplicitly]
+[HarmonyPatch(typeof(DefGenerator), nameof(DefGenerator.GenerateImpliedDefs_PreResolve)), UsedImplicitly]
 internal static class DefGeneratorPatch
 {
     [UsedImplicitly]
@@ -19,7 +17,7 @@ internal static class DefGeneratorPatch
             x.defName.Equals("Outfit", StringComparison.Ordinal));
         if (outfitIndex < 0)
         {
-            Log.Warning("Equipment Manager: Could not find 'Outfit' column in Assign table.");
+            Logger.LogWarning("Could not find 'Outfit' column in Assign table.");
             return;
         }
         PawnTableDefOf.Assign.columns.Insert(outfitIndex + 1, PawnColumnDefOf.EM_Loadout);

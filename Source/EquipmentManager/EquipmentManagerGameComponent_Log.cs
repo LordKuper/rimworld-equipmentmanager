@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using JetBrains.Annotations;
 
 namespace EquipmentManager;
 
@@ -13,9 +12,9 @@ internal partial class EquipmentManagerGameComponent
         return _log;
     }
 
-    public void LogMessage([CanBeNull] string message)
+    public void LogMessage(string? message)
     {
         if (_log.Count >= LogLimit) { _log.RemoveAt(0); }
-        if (!string.IsNullOrWhiteSpace(message)) { _log.Add(message); }
+        if (!string.IsNullOrWhiteSpace(message)) { _log.Add(message!); }
     }
 }

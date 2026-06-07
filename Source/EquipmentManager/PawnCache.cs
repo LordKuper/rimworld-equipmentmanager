@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using JetBrains.Annotations;
 using LordKuper.Common;
 using LordKuper.Common.Cache;
 using RimWorld;
@@ -9,13 +8,14 @@ namespace EquipmentManager;
 
 internal class PawnCache(Pawn pawn) : TimedCache(6f, true)
 {
-    private static EquipmentManagerGameComponent _equipmentManager;
+    private static EquipmentManagerGameComponent? _equipmentManager;
     public readonly Dictionary<Thing, int> AssignedAmmo = new();
     public readonly Dictionary<Thing, string> AssignedWeapons = new();
-    public Loadout AssignedLoadout;
+
+    // Null when the pawn is on auto-loadout (no manual assignment).
+    public Loadout? AssignedLoadout;
     public bool AutoLoadout;
     public bool ShouldUpdateEquipment;
-
     public Dictionary<Loadout, float> AvailableLoadouts { get; } = new();
 
     private static EquipmentManagerGameComponent EquipmentManager =>
@@ -23,7 +23,7 @@ internal class PawnCache(Pawn pawn) : TimedCache(6f, true)
 
     public Pawn Pawn { get; } = pawn;
 
-    public bool IsAvailable([NotNull] Loadout loadout)
+    public bool IsAvailable(Loadout loadout)
     {
         return AvailableLoadouts.ContainsKey(loadout);
     }
@@ -35,8 +35,7 @@ internal class PawnCache(Pawn pawn) : TimedCache(6f, true)
 
     public override bool Update(RimWorldTime time)
     {
-        var capable = !Pawn.Dead && !Pawn.Downed && !Pawn.InMentalState &&
-            !Pawn.InContainerEnclosed && !Pawn.Drafted &&
+        var capable = Pawn is { Dead: false, Downed: false, InMentalState: false, InContainerEnclosed: false, Drafted: false } &&
             !HealthAIUtility.ShouldSeekMedicalRest(Pawn);
         var pawnLoadout = EquipmentManager.GetPawnLoadout(Pawn);
         AutoLoadout = pawnLoadout.Automatic;
@@ -46,10 +45,7 @@ internal class PawnCache(Pawn pawn) : TimedCache(6f, true)
         AvailableLoadouts.Clear();
         foreach (var loadout in EquipmentManager.GetLoadouts())
         {
-            if (loadout.IsAvailable(Pawn))
-            {
-                AvailableLoadouts.Add(loadout, loadout.GetScore(Pawn));
-            }
+            if (loadout.IsAvailable(Pawn)) { AvailableLoadouts.Add(loadout, loadout.GetScore(Pawn)); }
         }
         return true;
     }

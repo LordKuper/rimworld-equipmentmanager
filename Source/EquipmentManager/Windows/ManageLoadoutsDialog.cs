@@ -3,6 +3,7 @@ using System.Linq;
 using EquipmentManager.CustomWidgets;
 using LordKuper.Common;
 using LordKuper.Common.Filters.Limits;
+using LordKuper.Common.Helpers;
 using LordKuper.Common.UI;
 using LordKuper.Common.UI.Widgets;
 using RimWorld;
@@ -15,11 +16,11 @@ namespace EquipmentManager.Windows;
 internal class ManageLoadoutsDialog : Window
 {
     private Vector2 _availablePawnsScrollPosition;
-    private EquipmentManagerGameComponent _equipmentManager;
+    private EquipmentManagerGameComponent? _equipmentManager;
     private Vector2 _scrollPosition;
     private float _scrollViewHeight;
 
-    public ManageLoadoutsDialog(Loadout selectedLoadout)
+    public ManageLoadoutsDialog(Loadout? selectedLoadout)
     {
         forcePause = true;
         doCloseX = true;
@@ -34,14 +35,12 @@ internal class ManageLoadoutsDialog : Window
     private EquipmentManagerGameComponent EquipmentManager =>
         _equipmentManager ??= Current.Game.GetComponent<EquipmentManagerGameComponent>();
 
-    public override Vector2 InitialSize =>
-        UiHelpers.GetWindowSize(new Vector2(850f, 650f), MaxSize);
-
+    public override Vector2 InitialSize => LordKuper.Common.UI.Windows.GetWindowSize(new Vector2(850f, 650f), MaxSize);
     private int LabeledButtonListColumnCount => InitialSize.x < MaxSize.x ? 2 : 3;
     private static Vector2 MaxSize => new(1200f, 1000f);
     private int PawnSettingsColumnCount => InitialSize.x < MaxSize.x ? 3 : 4;
 
-    private Loadout SelectedLoadout
+    private Loadout? SelectedLoadout
     {
         get;
         set
@@ -54,8 +53,8 @@ internal class ManageLoadoutsDialog : Window
 
     private void CheckSelectedLoadoutHasName()
     {
-        if (SelectedLoadout == null || !SelectedLoadout.Label.NullOrEmpty()) { return; }
-        SelectedLoadout.Label = $"{SelectedLoadout.Id}";
+        if (SelectedLoadout == null || !SelectedLoadout!.Label.NullOrEmpty()) { return; }
+        SelectedLoadout!.Label = $"{SelectedLoadout!.Id}";
     }
 
     private void DoAvailablePawns(Rect rect)
@@ -70,8 +69,8 @@ internal class ManageLoadoutsDialog : Window
         Text.Anchor = anchor;
         PawnBox.DoPawnBox(
             new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
-                rect.yMax - (labelRect.yMax + UiHelpers.ElementGap)),
-            ref _availablePawnsScrollPosition, SelectedLoadout.GetAvailablePawnsOrdered());
+                rect.yMax - (labelRect.yMax + UiHelpers.ElementGap)), ref _availablePawnsScrollPosition,
+            SelectedLoadout!.GetAvailablePawnsOrdered());
     }
 
     private void DoButtonRow(Rect rect)
@@ -85,22 +84,19 @@ internal class ManageLoadoutsDialog : Window
                 new FloatMenuOption(loadout.Label, () => SelectedLoadout = loadout)).ToList()));
         }
         if (Widgets.ButtonText(
-                new Rect(rect.x + buttonWidth + UiHelpers.ButtonGap, rect.y, buttonWidth,
-                    UiHelpers.ButtonHeight), Resources.Strings.Loadouts.AddLoadout))
-        {
-            SelectedLoadout = EquipmentManager.AddLoadout();
-        }
+                new Rect(rect.x + buttonWidth + UiHelpers.ButtonGap, rect.y, buttonWidth, UiHelpers.ButtonHeight),
+                Resources.Strings.Loadouts.AddLoadout)) { SelectedLoadout = EquipmentManager.AddLoadout(); }
         if (Widgets.ButtonText(
-                new Rect(rect.x + (buttonWidth + UiHelpers.ButtonGap) * 2, rect.y, buttonWidth,
-                    UiHelpers.ButtonHeight), Resources.Strings.Loadouts.CopyLoadout))
+                new Rect(rect.x + (buttonWidth + UiHelpers.ButtonGap) * 2, rect.y, buttonWidth, UiHelpers.ButtonHeight),
+                Resources.Strings.Loadouts.CopyLoadout))
         {
             Find.WindowStack.Add(new FloatMenu(EquipmentManager.GetLoadouts().Select(loadout =>
-                new FloatMenuOption(loadout.Label,
-                    () => SelectedLoadout = EquipmentManager.CopyLoadout(loadout))).ToList()));
+                    new FloatMenuOption(loadout.Label, () => SelectedLoadout = EquipmentManager.CopyLoadout(loadout)))
+                .ToList()));
         }
         if (Widgets.ButtonText(
-                new Rect(rect.x + (buttonWidth + UiHelpers.ButtonGap) * 3, rect.y, buttonWidth,
-                    UiHelpers.ButtonHeight), Resources.Strings.Loadouts.DeleteLoadout))
+                new Rect(rect.x + (buttonWidth + UiHelpers.ButtonGap) * 3, rect.y, buttonWidth, UiHelpers.ButtonHeight),
+                Resources.Strings.Loadouts.DeleteLoadout))
         {
             Find.WindowStack.Add(new FloatMenu(EquipmentManager.GetLoadouts().Select(loadout =>
                 new FloatMenuOption(loadout.Label, () =>
@@ -110,23 +106,14 @@ internal class ManageLoadoutsDialog : Window
                 })).ToList()));
         }
         if (Widgets.ButtonText(
-                new Rect(rect.x + (buttonWidth + UiHelpers.ButtonGap) * 4, rect.y, buttonWidth,
-                    UiHelpers.ButtonHeight), Resources.Strings.Loadouts.ManageWeaponRules))
-        {
-            Find.WindowStack.Add(new ManageWeaponRulesDialog());
-        }
+                new Rect(rect.x + (buttonWidth + UiHelpers.ButtonGap) * 4, rect.y, buttonWidth, UiHelpers.ButtonHeight),
+                Resources.Strings.Loadouts.ManageWeaponRules)) { Find.WindowStack.Add(new ManageWeaponRulesDialog()); }
         if (Widgets.ButtonText(
-                new Rect(rect.x + (buttonWidth + UiHelpers.ButtonGap) * 5, rect.y, buttonWidth,
-                    UiHelpers.ButtonHeight), Resources.Strings.Loadouts.ImportLoadouts))
-        {
-            Find.WindowStack.Add(new ImportLoadoutsDialog());
-        }
+                new Rect(rect.x + (buttonWidth + UiHelpers.ButtonGap) * 5, rect.y, buttonWidth, UiHelpers.ButtonHeight),
+                Resources.Strings.Loadouts.ImportLoadouts)) { Find.WindowStack.Add(new ImportLoadoutsDialog()); }
         if (Widgets.ButtonText(
-                new Rect(rect.x + (buttonWidth + UiHelpers.ButtonGap) * 6, rect.y, buttonWidth,
-                    UiHelpers.ButtonHeight), Resources.Strings.Loadouts.Log))
-        {
-            Find.WindowStack.Add(new LogDialog());
-        }
+                new Rect(rect.x + (buttonWidth + UiHelpers.ButtonGap) * 6, rect.y, buttonWidth, UiHelpers.ButtonHeight),
+                Resources.Strings.Loadouts.Log)) { Find.WindowStack.Add(new LogDialog()); }
     }
 
     private float DoLoadoutSettings(Rect rect)
@@ -140,28 +127,25 @@ internal class ManageLoadoutsDialog : Window
         Text.Font = font;
         Text.Anchor = anchor;
         var priorityRect = UiHelpers.DoLabeledRect(
-            new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
-                UiHelpers.ListRowHeight), Resources.Strings.Loadouts.PriorityLabel,
-            Resources.Strings.Loadouts.PriorityTooltip);
-        var priorityFloat = (float)SelectedLoadout.Priority;
-        Widgets.HorizontalSlider(priorityRect, ref priorityFloat, new FloatRange(0, 10),
-            $"{priorityFloat:N0}", 1f);
-        SelectedLoadout.Priority = (int)priorityFloat;
+            new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width, UiHelpers.ListRowHeight),
+            Resources.Strings.Loadouts.PriorityLabel, Resources.Strings.Loadouts.PriorityTooltip);
+        var priorityFloat = (float)SelectedLoadout!.Priority;
+        Widgets.HorizontalSlider(priorityRect, ref priorityFloat, new FloatRange(0, 10), $"{priorityFloat:N0}", 1f);
+        SelectedLoadout!.Priority = (int)priorityFloat;
         var settingsRect = new Rect(rect.x, priorityRect.yMax + UiHelpers.ElementGap, rect.width,
             UiHelpers.ListRowHeight);
-        var columnWidth =
-            (settingsRect.width - UiHelpers.ElementGap * (UiHelpers.BoolSettingsColumnCount - 1)) /
+        var columnWidth = (settingsRect.width - UiHelpers.ElementGap * (UiHelpers.BoolSettingsColumnCount - 1)) /
             UiHelpers.BoolSettingsColumnCount;
         for (var i = 1; i < UiHelpers.BoolSettingsColumnCount; i++)
         {
             UiHelpers.DoGapLineVertical(new Rect(
-                settingsRect.x + i * (columnWidth + UiHelpers.ElementGap) - UiHelpers.ElementGap,
-                settingsRect.y, UiHelpers.ElementGap, settingsRect.height));
+                settingsRect.x + i * (columnWidth + UiHelpers.ElementGap) - UiHelpers.ElementGap, settingsRect.y,
+                UiHelpers.ElementGap, settingsRect.height));
         }
         var dropUnassignedWeaponsRect = UiHelpers.GetBoolSettingRect(settingsRect, 0, columnWidth);
         var checkboxRect = new Rect(dropUnassignedWeaponsRect.x, dropUnassignedWeaponsRect.y,
             dropUnassignedWeaponsRect.height, dropUnassignedWeaponsRect.height);
-        Widgets.Checkbox(checkboxRect.x, checkboxRect.y, ref SelectedLoadout.DropUnassignedWeapons);
+        Widgets.Checkbox(checkboxRect.x, checkboxRect.y, ref SelectedLoadout!.DropUnassignedWeapons);
         var dropUnassignedWeaponsLabelRect = new Rect(checkboxRect.xMax + UiHelpers.ElementGap / 2f,
             dropUnassignedWeaponsRect.y,
             dropUnassignedWeaponsRect.width - checkboxRect.width - UiHelpers.ElementGap / 2f,
@@ -170,51 +154,45 @@ internal class ManageLoadoutsDialog : Window
             Resources.Strings.Loadouts.DropUnassignedWeaponsTooltip);
         anchor = Text.Anchor;
         Text.Anchor = TextAnchor.MiddleLeft;
-        Widgets.Label(dropUnassignedWeaponsLabelRect,
-            Resources.Strings.Loadouts.DropUnassignedWeapons);
+        Widgets.Label(dropUnassignedWeaponsLabelRect, Resources.Strings.Loadouts.DropUnassignedWeapons);
         Text.Anchor = anchor;
         return dropUnassignedWeaponsRect.yMax - rect.yMin;
     }
 
     private void DoMeleeSidearmRules(Rect rect)
     {
-        var rulesRect =
-            UiHelpers.DoLabeledRect(rect, Resources.Strings.Loadouts.MeleeSidearmRulesLabel);
-        for (var i = 0; i < SelectedLoadout.MeleeSidearmRules.Count; i++)
+        var rulesRect = UiHelpers.DoLabeledRect(rect, Resources.Strings.Loadouts.MeleeSidearmRulesLabel);
+        for (var i = 0; i < SelectedLoadout!.MeleeSidearmRules.Count; i++)
         {
-            var rule = SelectedLoadout.MeleeSidearmRules[i];
+            var rule = SelectedLoadout!.MeleeSidearmRules[i];
             var ruleRect = GetLabeledButtonListItemRect(rulesRect, i);
-            var deleteButtonRect =
-                new Rect(ruleRect.x, ruleRect.y, ruleRect.height, ruleRect.height).ContractedBy(4f);
+            var deleteButtonRect = new Rect(ruleRect.x, ruleRect.y, ruleRect.height, ruleRect.height).ContractedBy(4f);
             if (Widgets.ButtonImageFitted(deleteButtonRect, Resources.Textures.Delete))
             {
-                _ = SelectedLoadout.MeleeSidearmRules.Remove(rule);
+                _ = SelectedLoadout!.MeleeSidearmRules.Remove(rule);
                 break;
             }
-            var ruleButtonRect = new Rect(deleteButtonRect.xMax + UiHelpers.ElementGap / 2f,
-                ruleRect.y, ruleRect.width - deleteButtonRect.width - UiHelpers.ElementGap / 2f,
-                ruleRect.height);
-            if (Widgets.ButtonText(ruleButtonRect,
-                    EquipmentManager.GetMeleeWeaponRule(rule)?.Label ?? "-"))
+            var ruleButtonRect = new Rect(deleteButtonRect.xMax + UiHelpers.ElementGap / 2f, ruleRect.y,
+                ruleRect.width - deleteButtonRect.width - UiHelpers.ElementGap / 2f, ruleRect.height);
+            if (Widgets.ButtonText(ruleButtonRect, EquipmentManager.GetMeleeWeaponRule(rule)?.Label ?? "-"))
             {
                 Find.WindowStack.Add(new FloatMenu(EquipmentManager.GetMeleeWeaponRules()
-                    .Where(rwr => !SelectedLoadout.MeleeSidearmRules.Contains(rwr.Id)).Select(rwr =>
+                    .Where(rwr => !SelectedLoadout!.MeleeSidearmRules.Contains(rwr.Id)).Select(rwr =>
                         new FloatMenuOption(rwr.Label, () =>
                         {
-                            SelectedLoadout.MeleeSidearmRules.Add(rwr.Id);
-                            _ = SelectedLoadout.MeleeSidearmRules.Remove(rule);
+                            SelectedLoadout!.MeleeSidearmRules.Add(rwr.Id);
+                            _ = SelectedLoadout!.MeleeSidearmRules.Remove(rule);
                         })).ToList()));
             }
         }
         var newRule = EquipmentManager.GetMeleeWeaponRules()
-            .FirstOrDefault(rwr => !SelectedLoadout.MeleeSidearmRules.Contains(rwr.Id));
+            .FirstOrDefault(rwr => !SelectedLoadout!.MeleeSidearmRules.Contains(rwr.Id));
         if (newRule != null)
         {
-            var addButtonRect =
-                GetLabeledButtonListItemRect(rulesRect, SelectedLoadout.MeleeSidearmRules.Count);
+            var addButtonRect = GetLabeledButtonListItemRect(rulesRect, SelectedLoadout!.MeleeSidearmRules.Count);
             if (Widgets.ButtonText(addButtonRect, Resources.Strings.Add))
             {
-                SelectedLoadout.MeleeSidearmRules.Add(newRule.Id);
+                SelectedLoadout!.MeleeSidearmRules.Add(newRule.Id);
             }
         }
     }
@@ -225,8 +203,7 @@ internal class ManageLoadoutsDialog : Window
         var weightsRect = new Rect(rect.x, rect.y, columnWidth, 1f);
         var gapRect = new Rect(weightsRect.xMax, rect.y, UiHelpers.ElementGap, 1f);
         var limitsRect = new Rect(gapRect.xMax, rect.y, columnWidth, 1f);
-        gapRect.height = Math.Max(DoPawnCapacityWeights(weightsRect),
-            DoPawnCapacityLimits(limitsRect));
+        gapRect.height = Math.Max(DoPawnCapacityWeights(weightsRect), DoPawnCapacityLimits(limitsRect));
         UiHelpers.DoGapLineVertical(gapRect);
         return gapRect.height;
     }
@@ -247,48 +224,39 @@ internal class ManageLoadoutsDialog : Window
             Find.WindowStack.Add(new FloatMenu(DefDatabase<PawnCapacityDef>.AllDefs
                 .Where(def =>
                     def.showOnHumanlikes &&
-                    SelectedLoadout.PawnCapacityLimits.All(pcl =>
-                        pcl.PawnCapacityDefName != def.defName)).OrderBy(def => def.label)
-                .Select(def => new FloatMenuOption(def.LabelCap,
-                    () => SelectedLoadout.PawnCapacityLimits.Add(
-                        new PawnCapacityLimit(def.defName)))).ToList()));
+                    SelectedLoadout!.PawnCapacityLimits.All(pcl => pcl.PawnCapacityDefName != def.defName))
+                .OrderBy(def => def.label).Select(def => new FloatMenuOption(def.LabelCap,
+                    () => SelectedLoadout!.PawnCapacityLimits.Add(new PawnCapacityLimit(def.defName)))).ToList()));
         }
         var rowRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width, 1f);
-        for (var i = 0; i < SelectedLoadout.PawnCapacityLimits.Count; i++)
+        for (var i = 0; i < SelectedLoadout!.PawnCapacityLimits.Count; i++)
         {
-            var limit = SelectedLoadout.PawnCapacityLimits[i];
-            rowRect = new Rect(rect.x,
-                labelRect.yMax + UiHelpers.ElementGap + UiHelpers.ListRowHeight * i, rect.width,
+            var limit = SelectedLoadout!.PawnCapacityLimits[i];
+            rowRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap + UiHelpers.ListRowHeight * i, rect.width,
                 UiHelpers.ListRowHeight).ContractedBy(4f);
-            var deleteButtonRect = new Rect(rowRect.x, rowRect.y, rowRect.height, rowRect.height)
-                .ContractedBy(4f);
+            var deleteButtonRect = new Rect(rowRect.x, rowRect.y, rowRect.height, rowRect.height).ContractedBy(4f);
             if (Widgets.ButtonImageFitted(deleteButtonRect, Resources.Textures.Delete))
             {
-                _ = SelectedLoadout.PawnCapacityLimits.Remove(limit);
+                _ = SelectedLoadout!.PawnCapacityLimits.Remove(limit);
                 break;
             }
-            var statLabelRect = new Rect(deleteButtonRect.xMax + UiHelpers.ElementGap / 2f,
-                rowRect.y, rowRect.width / 2f - deleteButtonRect.width - UiHelpers.ElementGap / 2f,
-                rowRect.height);
+            var statLabelRect = new Rect(deleteButtonRect.xMax + UiHelpers.ElementGap / 2f, rowRect.y,
+                rowRect.width / 2f - deleteButtonRect.width - UiHelpers.ElementGap / 2f, rowRect.height);
             if (limit.PawnCapacityDef != null && !limit.PawnCapacityDef.description.NullOrEmpty())
             {
                 TooltipHandler.TipRegion(statLabelRect, limit.PawnCapacityDef.description);
             }
-            _ = Widgets.LabelFit(statLabelRect,
-                limit.PawnCapacityDef?.LabelCap ?? limit.PawnCapacityDefName);
+            _ = Widgets.LabelFit(statLabelRect, limit.PawnCapacityDef?.LabelCap ?? limit.PawnCapacityDefName);
             var statInputRect = new Rect(statLabelRect.xMax + UiHelpers.ElementGap, rowRect.y,
                 rowRect.xMax - statLabelRect.xMax - UiHelpers.ElementGap, rowRect.height);
             var limitInputWidth = (statInputRect.width - UiHelpers.ElementGap * 3) / 2f;
-            var minValueRect = new Rect(statInputRect.x, statInputRect.y, limitInputWidth,
-                statInputRect.height);
+            var minValueRect = new Rect(statInputRect.x, statInputRect.y, limitInputWidth, statInputRect.height);
             limit.MinValueBuffer = Widgets.TextField(minValueRect, limit.MinValueBuffer, 10);
-            var dashRect = new Rect(minValueRect.xMax, statInputRect.y, UiHelpers.ElementGap * 3,
-                statInputRect.height);
+            var dashRect = new Rect(minValueRect.xMax, statInputRect.y, UiHelpers.ElementGap * 3, statInputRect.height);
             Text.Anchor = TextAnchor.MiddleCenter;
             Widgets.Label(dashRect, "-");
             Text.Anchor = TextAnchor.UpperLeft;
-            var maxValueRect = new Rect(dashRect.xMax, statInputRect.y, limitInputWidth,
-                statInputRect.height);
+            var maxValueRect = new Rect(dashRect.xMax, statInputRect.y, limitInputWidth, statInputRect.height);
             limit.MaxValueBuffer = Widgets.TextField(maxValueRect, limit.MaxValueBuffer, 10);
         }
         Text.Font = font;
@@ -312,40 +280,34 @@ internal class ManageLoadoutsDialog : Window
             Find.WindowStack.Add(new FloatMenu(DefDatabase<PawnCapacityDef>.AllDefs
                 .Where(def =>
                     def.showOnHumanlikes &&
-                    SelectedLoadout.PawnCapacityWeights.All(pcw =>
-                        pcw.PawnCapacityDefName != def.defName)).OrderBy(def => def.label)
-                .Select(def => new FloatMenuOption(def.LabelCap,
-                    () => SelectedLoadout.PawnCapacityWeights.Add(
-                        new PawnCapacityWeight(def.defName)))).ToList()));
+                    SelectedLoadout!.PawnCapacityWeights.All(pcw => pcw.PawnCapacityDefName != def.defName))
+                .OrderBy(def => def.label).Select(def => new FloatMenuOption(def.LabelCap,
+                    () => SelectedLoadout!.PawnCapacityWeights.Add(new PawnCapacityWeight(def.defName)))).ToList()));
         }
         var rowRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width, 1f);
-        for (var i = 0; i < SelectedLoadout.PawnCapacityWeights.Count; i++)
+        for (var i = 0; i < SelectedLoadout!.PawnCapacityWeights.Count; i++)
         {
-            var weight = SelectedLoadout.PawnCapacityWeights[i];
-            rowRect = new Rect(rect.x,
-                labelRect.yMax + UiHelpers.ElementGap + UiHelpers.ListRowHeight * i, rect.width,
+            var weight = SelectedLoadout!.PawnCapacityWeights[i];
+            rowRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap + UiHelpers.ListRowHeight * i, rect.width,
                 UiHelpers.ListRowHeight).ContractedBy(4f);
-            var deleteButtonRect = new Rect(rowRect.x, rowRect.y, rowRect.height, rowRect.height)
-                .ContractedBy(4f);
+            var deleteButtonRect = new Rect(rowRect.x, rowRect.y, rowRect.height, rowRect.height).ContractedBy(4f);
             if (Widgets.ButtonImageFitted(deleteButtonRect, Resources.Textures.Delete))
             {
-                _ = SelectedLoadout.PawnCapacityWeights.Remove(weight);
+                _ = SelectedLoadout!.PawnCapacityWeights.Remove(weight);
                 break;
             }
-            var statLabelRect = new Rect(deleteButtonRect.xMax + UiHelpers.ElementGap / 2f,
-                rowRect.y, rowRect.width / 2f - deleteButtonRect.width - UiHelpers.ElementGap / 2f,
-                rowRect.height);
+            var statLabelRect = new Rect(deleteButtonRect.xMax + UiHelpers.ElementGap / 2f, rowRect.y,
+                rowRect.width / 2f - deleteButtonRect.width - UiHelpers.ElementGap / 2f, rowRect.height);
             if (weight.PawnCapacityDef != null && !weight.PawnCapacityDef.description.NullOrEmpty())
             {
                 TooltipHandler.TipRegion(statLabelRect, weight.PawnCapacityDef.description);
             }
-            _ = Widgets.LabelFit(statLabelRect,
-                weight.PawnCapacityDef?.LabelCap ?? weight.PawnCapacityDefName);
+            _ = Widgets.LabelFit(statLabelRect, weight.PawnCapacityDef?.LabelCap ?? weight.PawnCapacityDefName);
             var statInputRect = new Rect(statLabelRect.xMax + UiHelpers.ElementGap, rowRect.y,
                 rowRect.xMax - statLabelRect.xMax - UiHelpers.ElementGap, rowRect.height);
             Widgets.HorizontalSlider(statInputRect, ref weight.Weight,
-                new FloatRange(-1 * PawnCapacityWeight.WeightCap, PawnCapacityWeight.WeightCap),
-                $"{weight.Weight:N1}", 0.1f);
+                new FloatRange(-1 * PawnCapacityWeight.WeightCap, PawnCapacityWeight.WeightCap), $"{weight.Weight:N1}",
+                0.1f);
         }
         Text.Font = font;
         Text.Anchor = anchor;
@@ -360,24 +322,22 @@ internal class ManageLoadoutsDialog : Window
         Text.Anchor = TextAnchor.MiddleLeft;
         var labelRect = new Rect(rect.x, rect.y, rect.width, Text.LineHeight);
         Widgets.Label(labelRect, Resources.Strings.Loadouts.PawnPassions);
-        var settingsRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
-            UiHelpers.ListRowHeight);
+        var settingsRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width, UiHelpers.ListRowHeight);
         var index = 0;
         Text.Font = GameFont.Small;
         Text.Anchor = TextAnchor.MiddleLeft;
-        foreach (var passionLimit in SelectedLoadout.PassionLimits.Where(pl => pl.SkillDef != null))
+        foreach (var passionLimit in SelectedLoadout!.PassionLimits.Where(pl => pl.SkillDef != null))
         {
             var passionRect = GetPawnSettingRect(settingsRect, index);
-            var deleteButtonRect =
-                new Rect(passionRect.x, passionRect.y, passionRect.height, passionRect.height)
-                    .ContractedBy(4f);
+            var deleteButtonRect = new Rect(passionRect.x, passionRect.y, passionRect.height, passionRect.height)
+                .ContractedBy(4f);
             if (Widgets.ButtonImageFitted(deleteButtonRect, Resources.Textures.Delete))
             {
-                _ = SelectedLoadout.PassionLimits.Remove(passionLimit);
+                _ = SelectedLoadout!.PassionLimits.Remove(passionLimit);
                 break;
             }
-            var passionIconRect = new Rect(deleteButtonRect.xMax + UiHelpers.ElementGap / 2f,
-                passionRect.y, passionRect.height, passionRect.height).ContractedBy(4f);
+            var passionIconRect = new Rect(deleteButtonRect.xMax + UiHelpers.ElementGap / 2f, passionRect.y,
+                passionRect.height, passionRect.height).ContractedBy(4f);
             switch (passionLimit.Value)
             {
                 case PassionValue.None:
@@ -389,8 +349,7 @@ internal class ManageLoadoutsDialog : Window
                     }
                     break;
                 case PassionValue.Minor:
-                    GUI.DrawTexture(passionIconRect, Resources.Textures.PassionMinor,
-                        ScaleMode.ScaleToFit);
+                    GUI.DrawTexture(passionIconRect, Resources.Textures.PassionMinor, ScaleMode.ScaleToFit);
                     if (Widgets.ButtonInvisible(passionRect))
                     {
                         SoundDefOf.Checkbox_TurnedOn.PlayOneShotOnCamera();
@@ -398,8 +357,7 @@ internal class ManageLoadoutsDialog : Window
                     }
                     break;
                 case PassionValue.Major:
-                    GUI.DrawTexture(passionIconRect, Resources.Textures.PassionMajor,
-                        ScaleMode.ScaleToFit);
+                    GUI.DrawTexture(passionIconRect, Resources.Textures.PassionMajor, ScaleMode.ScaleToFit);
                     if (Widgets.ButtonInvisible(passionRect))
                     {
                         SoundDefOf.Checkbox_TurnedOn.PlayOneShotOnCamera();
@@ -409,14 +367,12 @@ internal class ManageLoadoutsDialog : Window
                 case PassionValue.Any:
                     GUI.DrawTexture(
                         new Rect(passionIconRect.x, passionIconRect.y + passionIconRect.height / 4f,
-                                passionIconRect.width * 3f / 4f, passionIconRect.height * 3f / 4f)
-                            .ContractedBy(2f), Resources.Textures.PassionMinor,
-                        ScaleMode.ScaleToFit);
+                            passionIconRect.width * 3f / 4f, passionIconRect.height * 3f / 4f).ContractedBy(2f),
+                        Resources.Textures.PassionMinor, ScaleMode.ScaleToFit);
                     GUI.DrawTexture(
                         new Rect(passionIconRect.x + passionIconRect.width / 4f, passionIconRect.y,
-                                passionIconRect.width * 3 / 4f, passionIconRect.height * 3 / 4f)
-                            .ContractedBy(2f), Resources.Textures.PassionMajor,
-                        ScaleMode.ScaleToFit);
+                            passionIconRect.width * 3 / 4f, passionIconRect.height * 3 / 4f).ContractedBy(2f),
+                        Resources.Textures.PassionMajor, ScaleMode.ScaleToFit);
                     if (Widgets.ButtonInvisible(passionRect))
                     {
                         SoundDefOf.Checkbox_TurnedOn.PlayOneShotOnCamera();
@@ -424,11 +380,9 @@ internal class ManageLoadoutsDialog : Window
                     }
                     break;
             }
-            var skillLabelRect = new Rect(passionIconRect.xMax + UiHelpers.ElementGap / 2f,
-                passionRect.y,
-                passionRect.width - passionIconRect.width - UiHelpers.ElementGap / 2f,
-                passionRect.height);
-            if (!passionLimit.SkillDef.description.NullOrEmpty())
+            var skillLabelRect = new Rect(passionIconRect.xMax + UiHelpers.ElementGap / 2f, passionRect.y,
+                passionRect.width - passionIconRect.width - UiHelpers.ElementGap / 2f, passionRect.height);
+            if (!passionLimit.SkillDef!.description.NullOrEmpty())
             {
                 TooltipHandler.TipRegion(skillLabelRect, passionLimit.SkillDef.description);
             }
@@ -439,31 +393,23 @@ internal class ManageLoadoutsDialog : Window
         if (Widgets.ButtonText(settingRect, Resources.Strings.Add))
         {
             Find.WindowStack.Add(new FloatMenu(DefDatabase<SkillDef>.AllDefsListForReading
-                .Where(def =>
-                    !SelectedLoadout.PassionLimits.Select(pl => pl.SkillDefName)
-                        .Contains(def.defName)).OrderBy(def => def.defName).Select(def =>
-                    new FloatMenuOption(
-                        def.skillLabel.NullOrEmpty()
-                            ? def.defName
-                            : def.skillLabel.CapitalizeFirst(),
-                        () => SelectedLoadout.PassionLimits.Add(new PassionLimit(def.defName))))
-                .ToList()));
+                .Where(def => !SelectedLoadout!.PassionLimits.Select(pl => pl.SkillDefName).Contains(def.defName))
+                .OrderBy(def => def.defName).Select(def =>
+                    new FloatMenuOption(def.skillLabel.NullOrEmpty() ? def.defName : def.skillLabel.CapitalizeFirst(),
+                        () => SelectedLoadout!.PassionLimits.Add(new PassionLimit(def.defName)))).ToList()));
         }
         Text.Font = font;
         Text.Anchor = anchor;
         return settingRect.yMax - rect.yMin;
     }
 
-    private static void DoPawnSetting(Rect rect, bool value, Action<bool> setter,
-        Action deleteAction, string label, string tooltip)
+    private static void DoPawnSetting(Rect rect, bool value, Action<bool> setter, Action deleteAction, string label,
+        string? tooltip)
     {
         var deleteButtonRect = new Rect(rect.x, rect.y, rect.height, rect.height).ContractedBy(4f);
-        if (Widgets.ButtonImageFitted(deleteButtonRect, Resources.Textures.Delete))
-        {
-            deleteAction();
-        }
-        var checkboxRect = new Rect(deleteButtonRect.xMax + UiHelpers.ElementGap / 2f, rect.y,
-            rect.height, rect.height).ContractedBy(4f);
+        if (Widgets.ButtonImageFitted(deleteButtonRect, Resources.Textures.Delete)) { deleteAction(); }
+        var checkboxRect = new Rect(deleteButtonRect.xMax + UiHelpers.ElementGap / 2f, rect.y, rect.height, rect.height)
+            .ContractedBy(4f);
         var checkboxValue = value;
         Checkboxes.DoCheckbox(checkboxRect, ref checkboxValue);
         if (checkboxValue != value) { setter(checkboxValue); }
@@ -490,32 +436,24 @@ internal class ManageLoadoutsDialog : Window
         if (Widgets.ButtonText(buttonRect, Resources.Strings.Add))
         {
             Find.WindowStack.Add(new FloatMenu(DefDatabase<SkillDef>.AllDefsListForReading
-                .Where(def => SelectedLoadout.SkillLimits.All(sl => sl.SkillDefName != def.defName))
-                .Select(def =>
-                    new FloatMenuOption(
-                        def.skillLabel.NullOrEmpty()
-                            ? def.defName
-                            : def.skillLabel.CapitalizeFirst(),
-                        () => SelectedLoadout.SkillLimits.Add(new PawnSkillLimit(def.defName))))
-                .ToList()));
+                .Where(def => SelectedLoadout!.SkillLimits.All(sl => sl.SkillDefName != def.defName)).Select(def =>
+                    new FloatMenuOption(def.skillLabel.NullOrEmpty() ? def.defName : def.skillLabel.CapitalizeFirst(),
+                        () => SelectedLoadout!.SkillLimits.Add(new PawnSkillLimit(def.defName)))).ToList()));
         }
         var rowRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width, 1f);
-        for (var i = 0; i < SelectedLoadout.SkillLimits.Count; i++)
+        for (var i = 0; i < SelectedLoadout!.SkillLimits.Count; i++)
         {
-            var limit = SelectedLoadout.SkillLimits[i];
-            rowRect = new Rect(rect.x,
-                labelRect.yMax + UiHelpers.ElementGap + UiHelpers.ListRowHeight * i, rect.width,
+            var limit = SelectedLoadout!.SkillLimits[i];
+            rowRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap + UiHelpers.ListRowHeight * i, rect.width,
                 UiHelpers.ListRowHeight).ContractedBy(4f);
-            var deleteButtonRect = new Rect(rowRect.x, rowRect.y, rowRect.height, rowRect.height)
-                .ContractedBy(4f);
+            var deleteButtonRect = new Rect(rowRect.x, rowRect.y, rowRect.height, rowRect.height).ContractedBy(4f);
             if (Widgets.ButtonImageFitted(deleteButtonRect, Resources.Textures.Delete))
             {
-                _ = SelectedLoadout.SkillLimits.Remove(limit);
+                _ = SelectedLoadout!.SkillLimits.Remove(limit);
                 break;
             }
-            var skillLabelRect = new Rect(deleteButtonRect.xMax + UiHelpers.ElementGap / 2f,
-                rowRect.y, rowRect.width / 2f - deleteButtonRect.width - UiHelpers.ElementGap / 2f,
-                rowRect.height);
+            var skillLabelRect = new Rect(deleteButtonRect.xMax + UiHelpers.ElementGap / 2f, rowRect.y,
+                rowRect.width / 2f - deleteButtonRect.width - UiHelpers.ElementGap / 2f, rowRect.height);
             if (limit.SkillDef != null && !limit.SkillDef.description.NullOrEmpty())
             {
                 TooltipHandler.TipRegion(skillLabelRect, limit.SkillDef?.description);
@@ -527,17 +465,62 @@ internal class ManageLoadoutsDialog : Window
             var skillInputRect = new Rect(skillLabelRect.xMax + UiHelpers.ElementGap, rowRect.y,
                 rowRect.xMax - skillLabelRect.xMax - UiHelpers.ElementGap, rowRect.height);
             var limitInputWidth = (skillInputRect.width - UiHelpers.ElementGap * 3) / 2f;
-            var minValueRect = new Rect(skillInputRect.x, skillInputRect.y, limitInputWidth,
-                skillInputRect.height);
+            var minValueRect = new Rect(skillInputRect.x, skillInputRect.y, limitInputWidth, skillInputRect.height);
             limit.MinValueBuffer = Widgets.TextField(minValueRect, limit.MinValueBuffer, 10);
             var dashRect = new Rect(minValueRect.xMax, skillInputRect.y, UiHelpers.ElementGap * 3,
                 skillInputRect.height);
             Text.Anchor = TextAnchor.MiddleCenter;
             Widgets.Label(dashRect, "-");
             Text.Anchor = TextAnchor.UpperLeft;
-            var maxValueRect = new Rect(dashRect.xMax, skillInputRect.y, limitInputWidth,
-                skillInputRect.height);
+            var maxValueRect = new Rect(dashRect.xMax, skillInputRect.y, limitInputWidth, skillInputRect.height);
             limit.MaxValueBuffer = Widgets.TextField(maxValueRect, limit.MaxValueBuffer, 10);
+        }
+        Text.Font = font;
+        Text.Anchor = anchor;
+        return rowRect.yMax - rect.yMin;
+    }
+
+    private float DoPawnSkillWeights(Rect rect)
+    {
+        var font = Text.Font;
+        var anchor = Text.Anchor;
+        Text.Font = GameFont.Medium;
+        Text.Anchor = TextAnchor.MiddleLeft;
+        var labelRect = new Rect(rect.x, rect.y, rect.width * 3f / 4f, Text.LineHeight);
+        Widgets.Label(labelRect, Resources.Strings.Loadouts.PawnSkillWeights);
+        Text.Font = GameFont.Small;
+        var buttonRect = new Rect(labelRect.xMax + UiHelpers.ElementGap, rect.y,
+            rect.width - labelRect.width - UiHelpers.ElementGap, labelRect.height);
+        if (Widgets.ButtonText(buttonRect, Resources.Strings.Add))
+        {
+            Find.WindowStack.Add(new FloatMenu(DefDatabase<SkillDef>.AllDefsListForReading
+                .Where(def => SelectedLoadout!.SkillWeights.All(sw => sw.SkillDefName != def.defName)).Select(def =>
+                    new FloatMenuOption(def.skillLabel.NullOrEmpty() ? def.defName : def.skillLabel.CapitalizeFirst(),
+                        () => SelectedLoadout!.SkillWeights.Add(new SkillWeight(def.defName)))).ToList()));
+        }
+        var rowRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width, 1f);
+        for (var i = 0; i < SelectedLoadout!.SkillWeights.Count; i++)
+        {
+            var weight = SelectedLoadout!.SkillWeights[i];
+            rowRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap + UiHelpers.ListRowHeight * i, rect.width,
+                UiHelpers.ListRowHeight).ContractedBy(4f);
+            var deleteButtonRect = new Rect(rowRect.x, rowRect.y, rowRect.height, rowRect.height).ContractedBy(4f);
+            if (Widgets.ButtonImageFitted(deleteButtonRect, Resources.Textures.Delete))
+            {
+                _ = SelectedLoadout!.SkillWeights.Remove(weight);
+                break;
+            }
+            var skillLabelRect = new Rect(deleteButtonRect.xMax + UiHelpers.ElementGap / 2f, rowRect.y,
+                rowRect.width / 2f - deleteButtonRect.width - UiHelpers.ElementGap / 2f, rowRect.height);
+            if (weight.SkillDef != null && !weight.SkillDef.description.NullOrEmpty())
+            {
+                TooltipHandler.TipRegion(skillLabelRect, weight.SkillDef?.description);
+            }
+            _ = Widgets.LabelFit(skillLabelRect, weight.SkillDef?.LabelCap ?? weight.SkillDefName);
+            var skillInputRect = new Rect(skillLabelRect.xMax + UiHelpers.ElementGap, rowRect.y,
+                rowRect.xMax - skillLabelRect.xMax - UiHelpers.ElementGap, rowRect.height);
+            Widgets.HorizontalSlider(skillInputRect, ref weight.Weight,
+                new FloatRange(-1 * SkillWeight.WeightCap, SkillWeight.WeightCap), $"{weight.Weight:N1}", 0.1f);
         }
         Text.Font = font;
         Text.Anchor = anchor;
@@ -555,63 +538,6 @@ internal class ManageLoadoutsDialog : Window
         return gapRect.height;
     }
 
-    private float DoPawnSkillWeights(Rect rect)
-    {
-        var font = Text.Font;
-        var anchor = Text.Anchor;
-        Text.Font = GameFont.Medium;
-        Text.Anchor = TextAnchor.MiddleLeft;
-        var labelRect = new Rect(rect.x, rect.y, rect.width * 3f / 4f, Text.LineHeight);
-        Widgets.Label(labelRect, Resources.Strings.Loadouts.PawnSkillWeights);
-        Text.Font = GameFont.Small;
-        var buttonRect = new Rect(labelRect.xMax + UiHelpers.ElementGap, rect.y,
-            rect.width - labelRect.width - UiHelpers.ElementGap, labelRect.height);
-        if (Widgets.ButtonText(buttonRect, Resources.Strings.Add))
-        {
-            Find.WindowStack.Add(new FloatMenu(DefDatabase<SkillDef>.AllDefsListForReading
-                .Where(def =>
-                    SelectedLoadout.SkillWeights.All(sw => sw.SkillDefName != def.defName))
-                .Select(def =>
-                    new FloatMenuOption(
-                        def.skillLabel.NullOrEmpty()
-                            ? def.defName
-                            : def.skillLabel.CapitalizeFirst(),
-                        () => SelectedLoadout.SkillWeights.Add(new SkillWeight(def.defName))))
-                .ToList()));
-        }
-        var rowRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width, 1f);
-        for (var i = 0; i < SelectedLoadout.SkillWeights.Count; i++)
-        {
-            var weight = SelectedLoadout.SkillWeights[i];
-            rowRect = new Rect(rect.x,
-                labelRect.yMax + UiHelpers.ElementGap + UiHelpers.ListRowHeight * i, rect.width,
-                UiHelpers.ListRowHeight).ContractedBy(4f);
-            var deleteButtonRect = new Rect(rowRect.x, rowRect.y, rowRect.height, rowRect.height)
-                .ContractedBy(4f);
-            if (Widgets.ButtonImageFitted(deleteButtonRect, Resources.Textures.Delete))
-            {
-                _ = SelectedLoadout.SkillWeights.Remove(weight);
-                break;
-            }
-            var skillLabelRect = new Rect(deleteButtonRect.xMax + UiHelpers.ElementGap / 2f,
-                rowRect.y, rowRect.width / 2f - deleteButtonRect.width - UiHelpers.ElementGap / 2f,
-                rowRect.height);
-            if (weight.SkillDef != null && !weight.SkillDef.description.NullOrEmpty())
-            {
-                TooltipHandler.TipRegion(skillLabelRect, weight.SkillDef?.description);
-            }
-            _ = Widgets.LabelFit(skillLabelRect, weight.SkillDef?.LabelCap ?? weight.SkillDefName);
-            var skillInputRect = new Rect(skillLabelRect.xMax + UiHelpers.ElementGap, rowRect.y,
-                rowRect.xMax - skillLabelRect.xMax - UiHelpers.ElementGap, rowRect.height);
-            Widgets.HorizontalSlider(skillInputRect, ref weight.Weight,
-                new FloatRange(-1 * SkillWeight.WeightCap, SkillWeight.WeightCap),
-                $"{weight.Weight:N1}", 0.1f);
-        }
-        Text.Font = font;
-        Text.Anchor = anchor;
-        return rowRect.yMax - rect.yMin;
-    }
-
     private float DoPawnStatLimits(Rect rect)
     {
         var font = Text.Font;
@@ -625,31 +551,25 @@ internal class ManageLoadoutsDialog : Window
             rect.width - labelRect.width - UiHelpers.ElementGap, labelRect.height);
         if (Widgets.ButtonText(buttonRect, Resources.Strings.Add))
         {
-            Find.WindowStack.Add(new FloatMenu(EquipmentManagerStatDefs.DefaultPawnStatDefs
-                .Where(def => SelectedLoadout.StatLimits.All(sl => sl.StatDefName != def.defName))
-                .Select(def =>
-                    new FloatMenuOption(
-                        $"{def.LabelCap} [{def.category?.LabelCap ?? "No category"}]",
-                        () => SelectedLoadout.StatLimits.Add(new StatLimit(def.defName))))
-                .ToList()));
+            Find.WindowStack.Add(new FloatMenu(StatHelper.GetStatsByCategory(StatCategory.Pawn)
+                .Where(def => SelectedLoadout!.StatLimits.All(sl => sl.StatDefName != def.defName)).Select(def =>
+                    new FloatMenuOption($"{def.LabelCap} [{def.category?.LabelCap ?? "No category"}]",
+                        () => SelectedLoadout!.StatLimits.Add(new StatLimit(def.defName)))).ToList()));
         }
         var rowRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width, 1f);
-        for (var i = 0; i < SelectedLoadout.StatLimits.Count; i++)
+        for (var i = 0; i < SelectedLoadout!.StatLimits.Count; i++)
         {
-            var limit = SelectedLoadout.StatLimits[i];
-            rowRect = new Rect(rect.x,
-                labelRect.yMax + UiHelpers.ElementGap + UiHelpers.ListRowHeight * i, rect.width,
+            var limit = SelectedLoadout!.StatLimits[i];
+            rowRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap + UiHelpers.ListRowHeight * i, rect.width,
                 UiHelpers.ListRowHeight).ContractedBy(4f);
-            var deleteButtonRect = new Rect(rowRect.x, rowRect.y, rowRect.height, rowRect.height)
-                .ContractedBy(4f);
+            var deleteButtonRect = new Rect(rowRect.x, rowRect.y, rowRect.height, rowRect.height).ContractedBy(4f);
             if (Widgets.ButtonImageFitted(deleteButtonRect, Resources.Textures.Delete))
             {
-                _ = SelectedLoadout.StatLimits.Remove(limit);
+                _ = SelectedLoadout!.StatLimits.Remove(limit);
                 break;
             }
-            var statLabelRect = new Rect(deleteButtonRect.xMax + UiHelpers.ElementGap / 2f,
-                rowRect.y, rowRect.width / 2f - deleteButtonRect.width - UiHelpers.ElementGap / 2f,
-                rowRect.height);
+            var statLabelRect = new Rect(deleteButtonRect.xMax + UiHelpers.ElementGap / 2f, rowRect.y,
+                rowRect.width / 2f - deleteButtonRect.width - UiHelpers.ElementGap / 2f, rowRect.height);
             if (limit.StatDef != null && !limit.StatDef.description.NullOrEmpty())
             {
                 TooltipHandler.TipRegion(statLabelRect, limit.StatDef?.description);
@@ -658,17 +578,64 @@ internal class ManageLoadoutsDialog : Window
             var statInputRect = new Rect(statLabelRect.xMax + UiHelpers.ElementGap, rowRect.y,
                 rowRect.xMax - statLabelRect.xMax - UiHelpers.ElementGap, rowRect.height);
             var limitInputWidth = (statInputRect.width - UiHelpers.ElementGap * 3) / 2f;
-            var minValueRect = new Rect(statInputRect.x, statInputRect.y, limitInputWidth,
-                statInputRect.height);
+            var minValueRect = new Rect(statInputRect.x, statInputRect.y, limitInputWidth, statInputRect.height);
             limit.MinValueBuffer = Widgets.TextField(minValueRect, limit.MinValueBuffer, 10);
-            var dashRect = new Rect(minValueRect.xMax, statInputRect.y, UiHelpers.ElementGap * 3,
-                statInputRect.height);
+            var dashRect = new Rect(minValueRect.xMax, statInputRect.y, UiHelpers.ElementGap * 3, statInputRect.height);
             Text.Anchor = TextAnchor.MiddleCenter;
             Widgets.Label(dashRect, "-");
             Text.Anchor = TextAnchor.UpperLeft;
-            var maxValueRect = new Rect(dashRect.xMax, statInputRect.y, limitInputWidth,
-                statInputRect.height);
+            var maxValueRect = new Rect(dashRect.xMax, statInputRect.y, limitInputWidth, statInputRect.height);
             limit.MaxValueBuffer = Widgets.TextField(maxValueRect, limit.MaxValueBuffer, 10);
+        }
+        Text.Font = font;
+        Text.Anchor = anchor;
+        return rowRect.yMax - rect.yMin;
+    }
+
+    private float DoPawnStatWeights(Rect rect)
+    {
+        var font = Text.Font;
+        var anchor = Text.Anchor;
+        Text.Font = GameFont.Medium;
+        Text.Anchor = TextAnchor.MiddleLeft;
+        var labelRect = new Rect(rect.x, rect.y, rect.width * 3f / 4f, Text.LineHeight);
+        Widgets.Label(labelRect, Resources.Strings.Loadouts.PawnStatWeights);
+        Text.Font = GameFont.Small;
+        var buttonRect = new Rect(labelRect.xMax + UiHelpers.ElementGap, rect.y,
+            rect.width - labelRect.width - UiHelpers.ElementGap, labelRect.height);
+        if (Widgets.ButtonText(buttonRect, Resources.Strings.Add))
+        {
+            Find.WindowStack.Add(new FloatMenu(StatHelper.GetStatsByCategory(StatCategory.Pawn)
+                .Where(def => SelectedLoadout!.StatWeights.All(sw => sw.StatDefName != def.defName)).Select(def =>
+                    new FloatMenuOption($"{def.LabelCap} [{def.category?.LabelCap ?? "No category"}]",
+                        () => SelectedLoadout!.StatWeights.Add(new StatWeight(def.defName, 0f, false)))).ToList()));
+        }
+        var rowRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width, 1f);
+        for (var i = 0; i < SelectedLoadout!.StatWeights.Count; i++)
+        {
+            var weight = SelectedLoadout!.StatWeights[i];
+            rowRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap + UiHelpers.ListRowHeight * i, rect.width,
+                UiHelpers.ListRowHeight).ContractedBy(4f);
+            var deleteButtonRect = new Rect(rowRect.x, rowRect.y, rowRect.height, rowRect.height).ContractedBy(4f);
+            if (!weight.Protected)
+            {
+                if (Widgets.ButtonImageFitted(deleteButtonRect, Resources.Textures.Delete))
+                {
+                    _ = SelectedLoadout!.StatWeights.Remove(weight);
+                    break;
+                }
+            }
+            var statLabelRect = new Rect(deleteButtonRect.xMax + UiHelpers.ElementGap / 2f, rowRect.y,
+                rowRect.width / 2f - deleteButtonRect.width - UiHelpers.ElementGap / 2f, rowRect.height);
+            if (weight.StatDef != null && !weight.StatDef.description.NullOrEmpty())
+            {
+                TooltipHandler.TipRegion(statLabelRect, weight.StatDef?.description);
+            }
+            _ = Widgets.LabelFit(statLabelRect, weight.StatDef?.LabelCap ?? weight.StatDefName);
+            var statInputRect = new Rect(statLabelRect.xMax + UiHelpers.ElementGap, rowRect.y,
+                rowRect.xMax - statLabelRect.xMax - UiHelpers.ElementGap, rowRect.height);
+            Widgets.HorizontalSlider(statInputRect, ref weight.Weight, new FloatRange(-2f, 2f), $"{weight.Weight:N1}",
+                0.1f);
         }
         Text.Font = font;
         Text.Anchor = anchor;
@@ -686,62 +653,6 @@ internal class ManageLoadoutsDialog : Window
         return gapRect.height;
     }
 
-    private float DoPawnStatWeights(Rect rect)
-    {
-        var font = Text.Font;
-        var anchor = Text.Anchor;
-        Text.Font = GameFont.Medium;
-        Text.Anchor = TextAnchor.MiddleLeft;
-        var labelRect = new Rect(rect.x, rect.y, rect.width * 3f / 4f, Text.LineHeight);
-        Widgets.Label(labelRect, Resources.Strings.Loadouts.PawnStatWeights);
-        Text.Font = GameFont.Small;
-        var buttonRect = new Rect(labelRect.xMax + UiHelpers.ElementGap, rect.y,
-            rect.width - labelRect.width - UiHelpers.ElementGap, labelRect.height);
-        if (Widgets.ButtonText(buttonRect, Resources.Strings.Add))
-        {
-            Find.WindowStack.Add(new FloatMenu(EquipmentManagerStatDefs.DefaultPawnStatDefs
-                .Where(def => SelectedLoadout.StatWeights.All(sw => sw.StatDefName != def.defName))
-                .Select(def =>
-                    new FloatMenuOption(
-                        $"{def.LabelCap} [{def.category?.LabelCap ?? "No category"}]",
-                        () => SelectedLoadout.StatWeights.Add(
-                            new StatWeight(def.defName, 0f, false)))).ToList()));
-        }
-        var rowRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width, 1f);
-        for (var i = 0; i < SelectedLoadout.StatWeights.Count; i++)
-        {
-            var weight = SelectedLoadout.StatWeights[i];
-            rowRect = new Rect(rect.x,
-                labelRect.yMax + UiHelpers.ElementGap + UiHelpers.ListRowHeight * i, rect.width,
-                UiHelpers.ListRowHeight).ContractedBy(4f);
-            var deleteButtonRect = new Rect(rowRect.x, rowRect.y, rowRect.height, rowRect.height)
-                .ContractedBy(4f);
-            if (!weight.Protected)
-            {
-                if (Widgets.ButtonImageFitted(deleteButtonRect, Resources.Textures.Delete))
-                {
-                    _ = SelectedLoadout.StatWeights.Remove(weight);
-                    break;
-                }
-            }
-            var statLabelRect = new Rect(deleteButtonRect.xMax + UiHelpers.ElementGap / 2f,
-                rowRect.y, rowRect.width / 2f - deleteButtonRect.width - UiHelpers.ElementGap / 2f,
-                rowRect.height);
-            if (weight.StatDef != null && !weight.StatDef.description.NullOrEmpty())
-            {
-                TooltipHandler.TipRegion(statLabelRect, weight.StatDef?.description);
-            }
-            _ = Widgets.LabelFit(statLabelRect, weight.StatDef?.LabelCap ?? weight.StatDefName);
-            var statInputRect = new Rect(statLabelRect.xMax + UiHelpers.ElementGap, rowRect.y,
-                rowRect.xMax - statLabelRect.xMax - UiHelpers.ElementGap, rowRect.height);
-            Widgets.HorizontalSlider(statInputRect, ref weight.Weight, new FloatRange(-2f, 2f),
-                $"{weight.Weight:N1}", 0.1f);
-        }
-        Text.Font = font;
-        Text.Anchor = anchor;
-        return rowRect.yMax - rect.yMin;
-    }
-
     private float DoPawnTraits(Rect rect)
     {
         var font = Text.Font;
@@ -752,10 +663,9 @@ internal class ManageLoadoutsDialog : Window
         Widgets.Label(labelRect, Resources.Strings.Loadouts.PawnTraits);
         Text.Font = font;
         Text.Anchor = anchor;
-        var settingsRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
-            UiHelpers.ListRowHeight);
+        var settingsRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width, UiHelpers.ListRowHeight);
         var index = 0;
-        foreach (var pawnTrait in SelectedLoadout.PawnTraits.ToList())
+        foreach (var pawnTrait in SelectedLoadout!.PawnTraits.ToList())
         {
             var traitRect = GetPawnSettingRect(settingsRect, index);
             var traitDef = DefDatabase<TraitDef>.GetNamedSilentFail(pawnTrait.Key);
@@ -769,22 +679,19 @@ internal class ManageLoadoutsDialog : Window
                 description = traitDef.description;
                 if (description.NullOrEmpty()) { description = pawnTrait.Key; }
             }
-            DoPawnSetting(traitRect, pawnTrait.Value,
-                value => SelectedLoadout.PawnTraits[pawnTrait.Key] = value,
-                () => _ = SelectedLoadout.PawnTraits.Remove(pawnTrait.Key), label, description);
+            DoPawnSetting(traitRect, pawnTrait.Value, value => SelectedLoadout!.PawnTraits[pawnTrait.Key] = value,
+                () => _ = SelectedLoadout!.PawnTraits.Remove(pawnTrait.Key), label, description);
             index++;
         }
         var settingRect = GetPawnSettingRect(settingsRect, index);
         if (Widgets.ButtonText(settingRect, Resources.Strings.Add))
         {
             Find.WindowStack.Add(new FloatMenu(DefDatabase<TraitDef>.AllDefsListForReading
-                .Where(traitDef => !SelectedLoadout.PawnTraits.ContainsKey(traitDef.defName))
+                .Where(traitDef => !SelectedLoadout!.PawnTraits.ContainsKey(traitDef.defName))
                 .OrderBy(traitDef => traitDef.defName).Select(traitDef =>
                     new FloatMenuOption(
-                        traitDef.label.NullOrEmpty()
-                            ? traitDef.defName
-                            : traitDef.label.CapitalizeFirst(),
-                        () => SelectedLoadout.PawnTraits[traitDef.defName] = true)).ToList()));
+                        traitDef.label.NullOrEmpty() ? traitDef.defName : traitDef.label.CapitalizeFirst(),
+                        () => SelectedLoadout!.PawnTraits[traitDef.defName] = true)).ToList()));
         }
         return settingRect.yMax - rect.yMin;
     }
@@ -799,78 +706,72 @@ internal class ManageLoadoutsDialog : Window
         Widgets.Label(labelRect, Resources.Strings.Loadouts.PawnWorkCapacities);
         Text.Font = font;
         Text.Anchor = anchor;
-        var settingsRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
-            UiHelpers.ListRowHeight);
+        var settingsRect = new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width, UiHelpers.ListRowHeight);
         var index = 0;
-        foreach (var pawnCapacity in SelectedLoadout.PawnWorkCapacities.ToList())
+        foreach (var pawnCapacity in SelectedLoadout!.PawnWorkCapacities.ToList())
         {
             var tagRect = GetPawnSettingRect(settingsRect, index);
             var label = Enum.TryParse<WorkTags>(pawnCapacity.Key, out var tag)
                 ? tag.LabelTranslated().CapitalizeFirst()
                 : pawnCapacity.Key;
             DoPawnSetting(tagRect, pawnCapacity.Value,
-                value => SelectedLoadout.PawnWorkCapacities[pawnCapacity.Key] = value,
-                () => _ = SelectedLoadout.PawnWorkCapacities.Remove(pawnCapacity.Key), label, null);
+                value => SelectedLoadout!.PawnWorkCapacities[pawnCapacity.Key] = value,
+                () => _ = SelectedLoadout!.PawnWorkCapacities.Remove(pawnCapacity.Key), label, null);
             index++;
         }
         var settingRect = GetPawnSettingRect(settingsRect, index);
         if (Widgets.ButtonText(settingRect, Resources.Strings.Add))
         {
             Find.WindowStack.Add(new FloatMenu(Enum.GetValues(typeof(WorkTags)).OfType<WorkTags>()
-                .Where(tag => !SelectedLoadout.PawnWorkCapacities.ContainsKey(tag.ToString()))
+                .Where(tag => !SelectedLoadout!.PawnWorkCapacities.ContainsKey(tag.ToString()))
                 .OrderBy(tag => tag.LabelTranslated().CapitalizeFirst()).Select(tag =>
                     new FloatMenuOption(tag.LabelTranslated().CapitalizeFirst(),
-                        () => SelectedLoadout.PawnWorkCapacities[tag.ToString()] = true))
-                .ToList()));
+                        () => SelectedLoadout!.PawnWorkCapacities[tag.ToString()] = true)).ToList()));
         }
         return settingRect.yMax - rect.yMin;
     }
 
     private void DoPrimaryWeaponRule(Rect rect)
     {
-        var inputRect =
-            UiHelpers.DoLabeledRect(rect, Resources.Strings.Loadouts.PrimaryWeaponLabel);
+        var inputRect = UiHelpers.DoLabeledRect(rect, Resources.Strings.Loadouts.PrimaryWeaponLabel);
         var inputWidth = (inputRect.width - UiHelpers.ElementGap) / 2f;
         var typeRect = new Rect(inputRect.x, inputRect.y, inputWidth, inputRect.height);
-        var ruleRect = new Rect(inputRect.x + inputWidth + UiHelpers.ElementGap, inputRect.y,
-            inputWidth, inputRect.height);
+        var ruleRect = new Rect(inputRect.x + inputWidth + UiHelpers.ElementGap, inputRect.y, inputWidth,
+            inputRect.height);
         if (Widgets.ButtonText(typeRect,
-                Resources.Strings.Loadouts.GetPrimaryWeaponTypeLabel(
-                    SelectedLoadout.PrimaryRuleType)))
+                Resources.Strings.Loadouts.GetPrimaryWeaponTypeLabel(SelectedLoadout!.PrimaryRuleType)))
         {
             Find.WindowStack.Add(new FloatMenu(Enum.GetValues(typeof(Loadout.PrimaryWeaponType))
                 .OfType<Loadout.PrimaryWeaponType>().Select(pwt =>
                     new FloatMenuOption(Resources.Strings.Loadouts.GetPrimaryWeaponTypeLabel(pwt),
-                        () => SelectedLoadout.PrimaryRuleType = pwt)).ToList()));
+                        () => SelectedLoadout!.PrimaryRuleType = pwt)).ToList()));
         }
-        switch (SelectedLoadout.PrimaryRuleType)
+        switch (SelectedLoadout!.PrimaryRuleType)
         {
             case Loadout.PrimaryWeaponType.None:
                 break;
             case Loadout.PrimaryWeaponType.RangedWeapon:
                 if (Widgets.ButtonText(ruleRect,
-                        SelectedLoadout.PrimaryRangedWeaponRuleId == null
+                        SelectedLoadout!.PrimaryRangedWeaponRuleId == null
                             ? Resources.Strings.WeaponRules.NoRuleSelected
-                            : EquipmentManager
-                                .GetRangedWeaponRule((int)SelectedLoadout.PrimaryRangedWeaponRuleId)
+                            : EquipmentManager.GetRangedWeaponRule((int)SelectedLoadout!.PrimaryRangedWeaponRuleId)
                                 ?.Label ?? "-"))
                 {
-                    Find.WindowStack.Add(new FloatMenu(EquipmentManager.GetRangedWeaponRules()
-                        .Select(rule => new FloatMenuOption(rule.Label,
-                            () => SelectedLoadout.PrimaryRangedWeaponRuleId = rule.Id)).ToList()));
+                    Find.WindowStack.Add(new FloatMenu(EquipmentManager.GetRangedWeaponRules().Select(rule =>
+                            new FloatMenuOption(rule.Label, () => SelectedLoadout!.PrimaryRangedWeaponRuleId = rule.Id))
+                        .ToList()));
                 }
                 break;
             case Loadout.PrimaryWeaponType.MeleeWeapon:
                 if (Widgets.ButtonText(ruleRect,
-                        SelectedLoadout.PrimaryMeleeWeaponRuleId == null
+                        SelectedLoadout!.PrimaryMeleeWeaponRuleId == null
                             ? Resources.Strings.WeaponRules.NoRuleSelected
-                            : EquipmentManager
-                                .GetMeleeWeaponRule((int)SelectedLoadout.PrimaryMeleeWeaponRuleId)
+                            : EquipmentManager.GetMeleeWeaponRule((int)SelectedLoadout!.PrimaryMeleeWeaponRuleId)
                                 ?.Label ?? "-"))
                 {
-                    Find.WindowStack.Add(new FloatMenu(EquipmentManager.GetMeleeWeaponRules()
-                        .Select(rule => new FloatMenuOption(rule.Label,
-                            () => SelectedLoadout.PrimaryMeleeWeaponRuleId = rule.Id)).ToList()));
+                    Find.WindowStack.Add(new FloatMenu(EquipmentManager.GetMeleeWeaponRules().Select(rule =>
+                            new FloatMenuOption(rule.Label, () => SelectedLoadout!.PrimaryMeleeWeaponRuleId = rule.Id))
+                        .ToList()));
                 }
                 break;
             default:
@@ -880,43 +781,38 @@ internal class ManageLoadoutsDialog : Window
 
     private void DoRangedSidearmRules(Rect rect)
     {
-        var rulesRect =
-            UiHelpers.DoLabeledRect(rect, Resources.Strings.Loadouts.RangedSidearmRulesLabel);
-        for (var i = 0; i < SelectedLoadout.RangedSidearmRules.Count; i++)
+        var rulesRect = UiHelpers.DoLabeledRect(rect, Resources.Strings.Loadouts.RangedSidearmRulesLabel);
+        for (var i = 0; i < SelectedLoadout!.RangedSidearmRules.Count; i++)
         {
-            var rule = SelectedLoadout.RangedSidearmRules[i];
+            var rule = SelectedLoadout!.RangedSidearmRules[i];
             var ruleRect = GetLabeledButtonListItemRect(rulesRect, i);
-            var deleteButtonRect =
-                new Rect(ruleRect.x, ruleRect.y, ruleRect.height, ruleRect.height).ContractedBy(4f);
+            var deleteButtonRect = new Rect(ruleRect.x, ruleRect.y, ruleRect.height, ruleRect.height).ContractedBy(4f);
             if (Widgets.ButtonImageFitted(deleteButtonRect, Resources.Textures.Delete))
             {
-                _ = SelectedLoadout.RangedSidearmRules.Remove(rule);
+                _ = SelectedLoadout!.RangedSidearmRules.Remove(rule);
                 break;
             }
-            var ruleButtonRect = new Rect(deleteButtonRect.xMax + UiHelpers.ElementGap / 2f,
-                ruleRect.y, ruleRect.width - deleteButtonRect.width - UiHelpers.ElementGap / 2f,
-                ruleRect.height);
-            if (Widgets.ButtonText(ruleButtonRect,
-                    EquipmentManager.GetRangedWeaponRule(rule)?.Label ?? "-"))
+            var ruleButtonRect = new Rect(deleteButtonRect.xMax + UiHelpers.ElementGap / 2f, ruleRect.y,
+                ruleRect.width - deleteButtonRect.width - UiHelpers.ElementGap / 2f, ruleRect.height);
+            if (Widgets.ButtonText(ruleButtonRect, EquipmentManager.GetRangedWeaponRule(rule)?.Label ?? "-"))
             {
                 Find.WindowStack.Add(new FloatMenu(EquipmentManager.GetRangedWeaponRules()
-                    .Where(rwr => !SelectedLoadout.RangedSidearmRules.Contains(rwr.Id))
-                    .Select(rwr => new FloatMenuOption(rwr.Label, () =>
-                    {
-                        SelectedLoadout.RangedSidearmRules.Add(rwr.Id);
-                        _ = SelectedLoadout.RangedSidearmRules.Remove(rule);
-                    })).ToList()));
+                    .Where(rwr => !SelectedLoadout!.RangedSidearmRules.Contains(rwr.Id)).Select(rwr =>
+                        new FloatMenuOption(rwr.Label, () =>
+                        {
+                            SelectedLoadout!.RangedSidearmRules.Add(rwr.Id);
+                            _ = SelectedLoadout!.RangedSidearmRules.Remove(rule);
+                        })).ToList()));
             }
         }
         var newRule = EquipmentManager.GetRangedWeaponRules()
-            .FirstOrDefault(rwr => !SelectedLoadout.RangedSidearmRules.Contains(rwr.Id));
+            .FirstOrDefault(rwr => !SelectedLoadout!.RangedSidearmRules.Contains(rwr.Id));
         if (newRule != null)
         {
-            var addButtonRect =
-                GetLabeledButtonListItemRect(rulesRect, SelectedLoadout.RangedSidearmRules.Count);
+            var addButtonRect = GetLabeledButtonListItemRect(rulesRect, SelectedLoadout!.RangedSidearmRules.Count);
             if (Widgets.ButtonText(addButtonRect, Resources.Strings.Add))
             {
-                SelectedLoadout.RangedSidearmRules.Add(newRule.Id);
+                SelectedLoadout!.RangedSidearmRules.Add(newRule.Id);
             }
         }
     }
@@ -935,20 +831,14 @@ internal class ManageLoadoutsDialog : Window
             UiHelpers.ListRowHeight);
         DoPrimaryWeaponRule(primaryWeaponRect);
         var rangedSidearmsRowCount =
-            (int)Math.Ceiling((SelectedLoadout.RangedSidearmRules.Count + 1f) /
-                LabeledButtonListColumnCount);
-        var rangedSidearmsRect = new Rect(rect.x, primaryWeaponRect.yMax + UiHelpers.ElementGap,
-            rect.width,
-            UiHelpers.ButtonHeight * rangedSidearmsRowCount +
-            UiHelpers.ButtonGap * (rangedSidearmsRowCount - 1));
+            (int)Math.Ceiling((SelectedLoadout!.RangedSidearmRules.Count + 1f) / LabeledButtonListColumnCount);
+        var rangedSidearmsRect = new Rect(rect.x, primaryWeaponRect.yMax + UiHelpers.ElementGap, rect.width,
+            UiHelpers.ButtonHeight * rangedSidearmsRowCount + UiHelpers.ButtonGap * (rangedSidearmsRowCount - 1));
         DoRangedSidearmRules(rangedSidearmsRect);
         var meleeSidearmsRowCount =
-            (int)Math.Ceiling((SelectedLoadout.MeleeSidearmRules.Count + 1f) /
-                LabeledButtonListColumnCount);
-        var meleeSidearmsRect = new Rect(rect.x, rangedSidearmsRect.yMax + UiHelpers.ElementGap,
-            rect.width,
-            UiHelpers.ButtonHeight * meleeSidearmsRowCount +
-            UiHelpers.ButtonGap * (meleeSidearmsRowCount - 1));
+            (int)Math.Ceiling((SelectedLoadout!.MeleeSidearmRules.Count + 1f) / LabeledButtonListColumnCount);
+        var meleeSidearmsRect = new Rect(rect.x, rangedSidearmsRect.yMax + UiHelpers.ElementGap, rect.width,
+            UiHelpers.ButtonHeight * meleeSidearmsRowCount + UiHelpers.ButtonGap * (meleeSidearmsRowCount - 1));
         DoMeleeSidearmRules(meleeSidearmsRect);
         var toolRect = new Rect(rect.x, meleeSidearmsRect.yMax + UiHelpers.ElementGap, rect.width,
             UiHelpers.ListRowHeight);
@@ -960,89 +850,74 @@ internal class ManageLoadoutsDialog : Window
     {
         var inputRect = UiHelpers.DoLabeledRect(rect, Resources.Strings.Loadouts.ToolsLabel);
         if (Widgets.ButtonText(inputRect,
-                SelectedLoadout.ToolRuleId == null
+                SelectedLoadout!.ToolRuleId == null
                     ? Resources.Strings.WeaponRules.NoRuleSelected
-                    : EquipmentManager.GetToolRule((int)SelectedLoadout.ToolRuleId)?.Label ?? "-"))
+                    : EquipmentManager.GetToolRule((int)SelectedLoadout!.ToolRuleId)?.Label ?? "-"))
         {
             Find.WindowStack.Add(new FloatMenu(EquipmentManager.GetToolRules().Select(rule =>
-                    new FloatMenuOption(rule.Label, () => SelectedLoadout.ToolRuleId = rule.Id))
-                .ToList()));
+                new FloatMenuOption(rule.Label, () => SelectedLoadout!.ToolRuleId = rule.Id)).ToList()));
         }
     }
 
     public override void DoWindowContents(Rect inRect)
     {
         var sectionHeaderHeight = Text.LineHeightOf(GameFont.Medium) + UiHelpers.ElementGap;
-        var buttonRowRect = new Rect(inRect.x + UiHelpers.ButtonGap, inRect.y,
-            inRect.width - UiHelpers.ButtonGap * 2, UiHelpers.ButtonHeight);
+        var buttonRowRect = new Rect(inRect.x + UiHelpers.ButtonGap, inRect.y, inRect.width - UiHelpers.ButtonGap * 2,
+            UiHelpers.ButtonHeight);
         var labelRect = new Rect(inRect.x, buttonRowRect.yMax + UiHelpers.ElementGap, inRect.width,
             UiHelpers.LabelHeight);
         DoButtonRow(buttonRowRect);
-        UiHelpers.DoGapLineHorizontal(new Rect(inRect.x, buttonRowRect.yMax, inRect.width,
-            UiHelpers.ElementGap));
+        UiHelpers.DoGapLineHorizontal(new Rect(inRect.x, buttonRowRect.yMax, inRect.width, UiHelpers.ElementGap));
         if (SelectedLoadout == null)
         {
-            Labels.DoLabel(labelRect, Resources.Strings.Loadouts.NoLoadoutSelected,
-                TextAnchor.MiddleLeft);
+            Labels.DoLabel(labelRect, Resources.Strings.Loadouts.NoLoadoutSelected, TextAnchor.MiddleLeft);
         }
         else
         {
-            Fields.DoLabeledTextInput(labelRect, 0, null, Resources.Strings.Loadouts.LoadoutLabel,
-                null, ref SelectedLoadout.Label, UiHelpers.ValidNameRegex, 30, null, out _);
-            UiHelpers.DoGapLineHorizontal(new Rect(inRect.x, labelRect.yMax, inRect.width,
-                UiHelpers.ElementGap));
-            var availablePawnsHeight =
-                sectionHeaderHeight + PawnBox.GetPawnBoxHeight(AvailablePawnsRowCount);
-            var availablePawnsRect = new Rect(inRect.x, inRect.yMax - availablePawnsHeight,
-                inRect.width, availablePawnsHeight);
+            Fields.DoLabeledTextInput(labelRect, 0, null, Resources.Strings.Loadouts.LoadoutLabel, null,
+                ref SelectedLoadout!.Label, UiHelpers.ValidNameRegex, 30, null, out _);
+            UiHelpers.DoGapLineHorizontal(new Rect(inRect.x, labelRect.yMax, inRect.width, UiHelpers.ElementGap));
+            var availablePawnsHeight = sectionHeaderHeight + PawnBox.GetPawnBoxHeight(AvailablePawnsRowCount);
+            var availablePawnsRect = new Rect(inRect.x, inRect.yMax - availablePawnsHeight, inRect.width,
+                availablePawnsHeight);
             var outerRect = new Rect(inRect.x, labelRect.yMax + UiHelpers.ElementGap, inRect.width,
-                availablePawnsRect.y - UiHelpers.ElementGap -
-                (labelRect.yMax + UiHelpers.ElementGap));
+                availablePawnsRect.y - UiHelpers.ElementGap - (labelRect.yMax + UiHelpers.ElementGap));
             var scrollViewRect = new Rect(outerRect.x, outerRect.y,
                 outerRect.width - GUI.skin.verticalScrollbar.fixedWidth - 4f, _scrollViewHeight);
             var y = 0f;
             Widgets.BeginScrollView(outerRect, ref _scrollPosition, scrollViewRect);
-            y += DoLoadoutSettings(new Rect(scrollViewRect.x, scrollViewRect.y + y,
-                scrollViewRect.width, 1f));
-            UiHelpers.DoGapLineHorizontal(new Rect(scrollViewRect.x, scrollViewRect.y + y,
-                scrollViewRect.width, UiHelpers.ElementGap));
+            y += DoLoadoutSettings(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width, 1f));
+            UiHelpers.DoGapLineHorizontal(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width,
+                UiHelpers.ElementGap));
             y += UiHelpers.ElementGap;
-            y += DoRules(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width,
-                1f));
-            UiHelpers.DoGapLineHorizontal(new Rect(scrollViewRect.x, scrollViewRect.y + y,
-                scrollViewRect.width, UiHelpers.ElementGap));
+            y += DoRules(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width, 1f));
+            UiHelpers.DoGapLineHorizontal(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width,
+                UiHelpers.ElementGap));
             y += UiHelpers.ElementGap;
-            y += DoPawnTraits(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width,
-                1f));
-            UiHelpers.DoGapLineHorizontal(new Rect(scrollViewRect.x, scrollViewRect.y + y,
-                scrollViewRect.width, UiHelpers.ElementGap));
+            y += DoPawnTraits(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width, 1f));
+            UiHelpers.DoGapLineHorizontal(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width,
+                UiHelpers.ElementGap));
             y += UiHelpers.ElementGap;
-            y += DoPawnCapacities(new Rect(scrollViewRect.x, scrollViewRect.y + y,
-                scrollViewRect.width, 1f));
-            UiHelpers.DoGapLineHorizontal(new Rect(scrollViewRect.x, scrollViewRect.y + y,
-                scrollViewRect.width, UiHelpers.ElementGap));
+            y += DoPawnCapacities(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width, 1f));
+            UiHelpers.DoGapLineHorizontal(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width,
+                UiHelpers.ElementGap));
             y += UiHelpers.ElementGap;
-            y += DoPawnWorkCapacities(new Rect(scrollViewRect.x, scrollViewRect.y + y,
-                scrollViewRect.width, 1f));
-            UiHelpers.DoGapLineHorizontal(new Rect(scrollViewRect.x, scrollViewRect.y + y,
-                scrollViewRect.width, UiHelpers.ElementGap));
+            y += DoPawnWorkCapacities(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width, 1f));
+            UiHelpers.DoGapLineHorizontal(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width,
+                UiHelpers.ElementGap));
             y += UiHelpers.ElementGap;
-            y += DoPawnSkills(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width,
-                1f));
-            UiHelpers.DoGapLineHorizontal(new Rect(scrollViewRect.x, scrollViewRect.y + y,
-                scrollViewRect.width, UiHelpers.ElementGap));
+            y += DoPawnSkills(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width, 1f));
+            UiHelpers.DoGapLineHorizontal(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width,
+                UiHelpers.ElementGap));
             y += UiHelpers.ElementGap;
-            y += DoPawnPassions(new Rect(scrollViewRect.x, scrollViewRect.y + y,
-                scrollViewRect.width, 1f));
-            UiHelpers.DoGapLineHorizontal(new Rect(scrollViewRect.x, scrollViewRect.y + y,
-                scrollViewRect.width, UiHelpers.ElementGap));
+            y += DoPawnPassions(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width, 1f));
+            UiHelpers.DoGapLineHorizontal(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width,
+                UiHelpers.ElementGap));
             y += UiHelpers.ElementGap;
-            y += DoPawnStats(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width,
-                1f));
+            y += DoPawnStats(new Rect(scrollViewRect.x, scrollViewRect.y + y, scrollViewRect.width, 1f));
             if (Event.current.type == EventType.Layout) { _scrollViewHeight = y; }
             Widgets.EndScrollView();
-            UiHelpers.DoGapLineHorizontal(new Rect(inRect.x, outerRect.yMax, inRect.width,
-                UiHelpers.ElementGap));
+            UiHelpers.DoGapLineHorizontal(new Rect(inRect.x, outerRect.yMax, inRect.width, UiHelpers.ElementGap));
             DoAvailablePawns(availablePawnsRect);
         }
     }
@@ -1051,22 +926,19 @@ internal class ManageLoadoutsDialog : Window
     {
         var rowIndex = Math.DivRem(index, LabeledButtonListColumnCount, out var columnIndex);
         var columnWidth =
-            (-1 * LabeledButtonListColumnCount * UiHelpers.ElementGap + UiHelpers.ElementGap +
-                rect.width) / LabeledButtonListColumnCount;
+            (-1 * LabeledButtonListColumnCount * UiHelpers.ElementGap + UiHelpers.ElementGap + rect.width) /
+            LabeledButtonListColumnCount;
         return new Rect(rect.x + (columnWidth + UiHelpers.ElementGap) * columnIndex,
-            rect.y + (UiHelpers.ButtonHeight + UiHelpers.ButtonGap) * rowIndex, columnWidth,
-            UiHelpers.ButtonHeight);
+            rect.y + (UiHelpers.ButtonHeight + UiHelpers.ButtonGap) * rowIndex, columnWidth, UiHelpers.ButtonHeight);
     }
 
     private Rect GetPawnSettingRect(Rect rect, int index)
     {
         var rowIndex = Math.DivRem(index, PawnSettingsColumnCount, out var columnIndex);
-        var columnWidth =
-            (-1 * PawnSettingsColumnCount * UiHelpers.ElementGap + UiHelpers.ElementGap +
-                rect.width) / PawnSettingsColumnCount;
+        var columnWidth = (-1 * PawnSettingsColumnCount * UiHelpers.ElementGap + UiHelpers.ElementGap + rect.width) /
+            PawnSettingsColumnCount;
         return new Rect(rect.x + (columnWidth + UiHelpers.ElementGap) * columnIndex,
-            rect.y + (UiHelpers.ListRowHeight + UiHelpers.ElementGap) * rowIndex, columnWidth,
-            UiHelpers.ListRowHeight);
+            rect.y + (UiHelpers.ListRowHeight + UiHelpers.ElementGap) * rowIndex, columnWidth, UiHelpers.ListRowHeight);
     }
 
     public override void PreClose()

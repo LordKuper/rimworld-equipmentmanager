@@ -9,13 +9,13 @@ responsibility:
 
 ## Canonical source
 - Official docs: https://learn.microsoft.com/dotnet/csharp/
-- Last verified: 2026-06-06
+- Last verified: 2026-06-07
 
 ## API surface used in project
 - `<LangVersion>latest</LangVersion>`: every project compiles with the newest C# language version the installed Roslyn/SDK supports, decoupled from the runtime target. Set in both `Source/EquipmentManager/EquipmentManager.csproj` and `Source/EquipmentManager.Tests/EquipmentManager.Tests.csproj`.
 - `<TargetFramework>net48</TargetFramework>`: .NET Framework 4.8 — RimWorld's Mono runtime target. Identical in production and test projects.
-- JetBrains nullability annotations (`[CanBeNull]`, `[NotNull]`, `[UsedImplicitly]`, `[Pure]`): production code carries nullability intent via attributes (the production project has not yet enabled the C# nullable context).
-- C# nullable reference types (`<Nullable>enable</Nullable>`): enabled in the test project only; `?` reference-type syntax and flow analysis are available there.
+- C# nullable reference types (`<Nullable>enable</Nullable>`): enabled project-wide (production and test); `?` reference-type syntax and compiler flow analysis carry all nullability intent. See ADR-0001 for the migration rationale and resolution patterns.
+- JetBrains annotations: the nullability attributes (`[NotNull]`, `[CanBeNull]`) have been removed — superseded by real NRT. Only non-nullability JetBrains attributes (`[UsedImplicitly]`, `[Pure]`) may still appear; `using JetBrains.Annotations;` is retained only in files that still reference one.
 - `InternalsVisibleTo`: production exposes internals to `EquipmentManager.Tests` (declared in the csproj `ItemGroup`).
 
 ## Version-specific notes
@@ -30,15 +30,14 @@ responsibility:
 
 ## Deprecations and breaking changes from prior version
 - No prior in-project version to migrate from; this is the established baseline.
-- Planned change (tracked as a dedicated future sprint, not done ad hoc): flip the production project to `<Nullable>enable</Nullable>` to match the standard already met by the test project. Doing so surfaces ~148 nullable warnings that fail the build under `TreatWarningsAsErrors`, which is why it is scoped to its own sprint.
+- **Completed change (sprint 001-full-audit-alignment):** `<Nullable>enable</Nullable>` is now enabled on the production project (`EquipmentManager.csproj`), matching the test project. All NRT sites resolved with real annotations/guards; all 224 JetBrains nullability attributes removed. Build is green under `TreatWarningsAsErrors` + `WarningLevel 9999`.
 
 ## Project conventions
-- Target standard: `<Nullable>enable</Nullable>` for all projects. Test project already complies; production project does not yet.
-- Until the production migration lands, production code uses JetBrains `[CanBeNull]`/`[NotNull]` annotations for nullability intent. New/rewritten production code MUST stay annotation-consistent and MUST NOT introduce `T?` reference-type syntax — it errors without the nullable context enabled.
-- After migration, prefer C# nullable reference types over JetBrains annotations; the two MUST NOT contradict. Never disable the nullable context anywhere.
+- **`<Nullable>enable</Nullable>` is enabled on all projects** (production and test). The migration is complete.
+- Prefer C# nullable reference types over JetBrains annotations; the two MUST NOT contradict. Never disable the nullable context anywhere.
+- `[UsedImplicitly]` (and other non-nullability JetBrains attributes) may still appear where needed; `using JetBrains.Annotations;` is retained only in those files.
 - Zero-warning policy: both projects build with `TreatWarningsAsErrors=true` and `WarningLevel 9999` (Debug and Release). Any warning — including analyzer findings — fails the build, so code MUST compile warning-clean.
 - Mod identity: reference `EquipmentManagerMod.ModId` rather than a bare `"LordKuper.EquipmentManager"` literal.
 
 ## Known issues and workarounds
 - Using a newer-C# feature that depends on a missing BCL type fails to compile on net48 with a missing-type error. Workaround: add the minimal polyfill attribute/type in-project, or avoid the feature. Prefer avoidance unless the polyfill is clearly justified.
-- `T?` reference-type syntax in production code errors today because the nullable context is off there — use JetBrains annotations instead until the migration sprint.

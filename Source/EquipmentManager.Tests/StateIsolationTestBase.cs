@@ -24,51 +24,56 @@ public abstract class StateIsolationTestBase
         typeof(PawnCache),
         typeof(ToolCache),
         typeof(ItemRule),
-        typeof(WorkTypeRule),
-        typeof(EquipmentManagerMapComponent)
+        // Note: Include only types with static _equipmentManager fields. EquipmentManagerMapComponent
+        // has an instance field, not static, so it's not included here.
     ];
 
     private readonly Dictionary<Type, object?> _snapshot = new();
 
     /// <summary>
-    ///     Gets the value of a static field via reflection.
-    /// </summary>
-    private static object? GetStaticFieldValue(Type type, string fieldName)
-    {
-        var field = type.GetField(fieldName, BindingFlags.Static | BindingFlags.NonPublic);
-        return field?.GetValue(null);
-    }
-
-    /// <summary>
     ///     Restores the snapshotted mutable static state after each test.
+    ///     Fails loudly if any caching type's _equipmentManager field is missing (renamed/removed),
+    ///     so isolation drift is caught rather than silently skipped.
     /// </summary>
     [TearDown]
     public void RestoreState()
     {
         foreach (var type in CachingTypes)
-            SetStaticFieldValue(type, EquipmentManagerFieldName,
-                _snapshot.TryGetValue(type, out var value) ? value : null);
-    }
+        {
+            var field = type.GetField(EquipmentManagerFieldName, BindingFlags.Static | BindingFlags.NonPublic);
+            if (field == null)
+            {
+                throw new InvalidOperationException(
+                    $"Expected caching type {type.Name} to have a static field '{EquipmentManagerFieldName}', " +
+                    $"but it was not found. This indicates a refactoring mismatch; check that the field name " +
+                    $"has not been renamed or removed from {type.FullName}.");
+            }
 
-    /// <summary>
-    ///     Sets the value of a static field via reflection.
-    /// </summary>
-    private static void SetStaticFieldValue(Type type, string fieldName, object? value)
-    {
-        var field = type.GetField(fieldName, BindingFlags.Static | BindingFlags.NonPublic)
-                    ?? throw new InvalidOperationException(
-                        $"Static field {type.Name}.{fieldName} not found; test infrastructure may be out of sync with production code");
-        field.SetValue(null, value);
+            field.SetValue(null, _snapshot.TryGetValue(type, out var value) ? value : null);
+        }
     }
 
     /// <summary>
     ///     Snapshots the relevant mutable static state before each test.
+    ///     Fails loudly if any caching type's _equipmentManager field is missing (renamed/removed),
+    ///     so isolation drift is caught rather than silently skipped.
     /// </summary>
     [SetUp]
     public void SnapshotState()
     {
         _snapshot.Clear();
         foreach (var type in CachingTypes)
-            _snapshot[type] = GetStaticFieldValue(type, EquipmentManagerFieldName);
+        {
+            var field = type.GetField(EquipmentManagerFieldName, BindingFlags.Static | BindingFlags.NonPublic);
+            if (field == null)
+            {
+                throw new InvalidOperationException(
+                    $"Expected caching type {type.Name} to have a static field '{EquipmentManagerFieldName}', " +
+                    $"but it was not found. This indicates a refactoring mismatch; check that the field name " +
+                    $"has not been renamed or removed from {type.FullName}.");
+            }
+
+            _snapshot[type] = field.GetValue(null);
+        }
     }
 }

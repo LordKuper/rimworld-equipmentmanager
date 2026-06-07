@@ -8,6 +8,11 @@ namespace EquipmentManager.DefOfs;
  SuppressMessage("ReSharper", "InconsistentNaming")]
 public static class PawnColumnDefOf
 {
-    [SuppressMessage("Usage", "CA2211:Non-constant fields should not be visible")]
-    public static PawnColumnDef EM_Loadout;
+    // Populated by RimWorld's [DefOf] reflection injection before any game code runs.
+    // The field is contractually non-null at every read site after startup completes.
+    // FieldCanBeMadeReadOnly.Global suppressed: [DefOf] reflection writes after the class
+    // initializer — readonly is not applicable.
+    [SuppressMessage("Usage", "CA2211:Non-constant fields should not be visible"),
+     SuppressMessage("ReSharper", "FieldCanBeMadeReadOnly.Global")]
+    public static PawnColumnDef EM_Loadout = null!;
 }
