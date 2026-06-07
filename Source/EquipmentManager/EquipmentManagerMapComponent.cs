@@ -272,6 +272,7 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
         _hasUpdateTime = true;
         EquipmentManager.LogMessage(
             $"Updating equipment at year={_updateTime.Year}, day={_updateTime.Day}, hour={_updateTime.Hour:N1} ====================");
+        EquipmentManager.PruneDestroyedThingCaches();
         UpdatePawnCache();
         UpdateLoadouts();
         UpdatePrimaryWeapons();
