@@ -112,14 +112,14 @@ Commands (from `commands.yaml`): build `dotnet build Source/EquipmentManager.sln
 <!-- owner: backend-dev | AC: AC-20 | deps: Task 1 (uses WorkTypeThingRule), Task 6 -->
 
 ### Task 10: C-1/C-2 — production nullable migration (headline)
-- [ ] Set `<Nullable>enable</Nullable>` on `Source/EquipmentManager/EquipmentManager.csproj` (commit AFTER Phase A per AC-1).
-- [ ] Resolve remaining NRT sites (~131 minus those deleted in Phase A) with real annotations/guards: `IExposable`/Scribe-populated fields use the `= null!` pattern; immutable ctor-set fields use `required`/real `?`; dereferenced hot-path sites prefer real `?` + guard over `null!` (R-C1).
-- [ ] Keep CE reflection-delegate fields (`CombatExtendedHelper.cs` and weapon caches) nullable `T?` with existing null-guards — do NOT convert to non-null or `= null!` on the hot path (AC-14, R-C3, ADR-0003).
-- [ ] Resolve C-5 (`UpdateAmmo` null `map`) and C-7 (`pawn.skills`/`pawn.health` guards) as they surface as CS86xx during this pass.
-- [ ] Remove all 224 JetBrains nullability attributes (`[NotNull]`/`[CanBeNull]`/`[ItemNotNull]`), pairing each removal with the matching real NRT annotation in the same edit (AC-12).
-- [ ] Remove `using JetBrains.Annotations;` only from files that no longer reference any JetBrains attribute; retain it where `[UsedImplicitly]` (or other non-nullability attribute) is still used (AC-13).
-- [ ] Use no nullable-warning `#pragma warning disable` to mask sites (AC-11).
-- [ ] Build clean: 0 warnings, 0 errors under `TreatWarningsAsErrors` (AC-10).
+- [x] Set `<Nullable>enable</Nullable>` on `Source/EquipmentManager/EquipmentManager.csproj` (commit AFTER Phase A per AC-1).
+- [x] Resolve remaining NRT sites (~131 minus those deleted in Phase A) with real annotations/guards: `IExposable`/Scribe-populated fields use the `= null!` pattern; immutable ctor-set fields use `required`/real `?`; dereferenced hot-path sites prefer real `?` + guard over `null!` (R-C1).
+- [x] Keep CE reflection-delegate fields (`CombatExtendedHelper.cs` and weapon caches) nullable `T?` with existing null-guards — do NOT convert to non-null or `= null!` on the hot path (AC-14, R-C3, ADR-0003).
+- [x] Resolve C-5 (`UpdateAmmo` null `map`) and C-7 (`pawn.skills`/`pawn.health` guards) as they surface as CS86xx during this pass.
+- [x] Remove all 224 JetBrains nullability attributes (`[NotNull]`/`[CanBeNull]`/`[ItemNotNull]`), pairing each removal with the matching real NRT annotation in the same edit (AC-12).
+- [x] Remove `using JetBrains.Annotations;` only from files that no longer reference any JetBrains attribute; retain it where `[UsedImplicitly]` (or other non-nullability attribute) is still used (AC-13).
+- [x] Use no nullable-warning `#pragma warning disable` to mask sites (AC-11).
+- [x] Build clean: 0 warnings, 0 errors under `TreatWarningsAsErrors` (AC-10).
 <!-- owner: backend-dev | AC: AC-9, AC-10, AC-11, AC-12, AC-13, AC-14 | deps: Task 6 (HARD: must follow Phase A) -->
 
 ### Task 11: C-16 — route 61 raw Verse.Log.* through the project Logger wrapper
