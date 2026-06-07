@@ -11,11 +11,13 @@ using Verse;
 
 namespace EquipmentManager;
 
-internal class RangedWeaponCache([NotNull] Thing thing) : ItemCache
+internal class RangedWeaponCache : ThingCache
 {
     private AmmoUserPropsDelegate _ammoUserPropsMethod;
     private bool _initialized;
     private bool _isAmmo;
+
+    public RangedWeaponCache([NotNull] Thing thing) : base(thing, 24f) { }
 
     private float AccuracyClose { get; set; }
     private float AccuracyLong { get; set; }
@@ -92,7 +94,6 @@ internal class RangedWeaponCache([NotNull] Thing thing) : ItemCache
     private float MinRange { get; set; }
     private float SightsEfficiency { get; set; }
     private float StoppingPower { get; set; }
-    private Thing Thing { get; } = thing ?? throw new ArgumentNullException(nameof(thing));
     private int TicksBetweenBurstShots { get; set; }
     private float Warmup { get; set; }
 

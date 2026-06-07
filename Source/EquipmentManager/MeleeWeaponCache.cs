@@ -10,12 +10,14 @@ using Verse;
 
 namespace EquipmentManager;
 
-internal class MeleeWeaponCache([NotNull] Thing thing) : ItemCache
+internal class MeleeWeaponCache : ThingCache
 {
     private AccessTools.FieldRef<Tool, float> _armorPenetrationBluntDelegate;
     private AccessTools.FieldRef<Tool, float> _armorPenetrationSharpDelegate;
     private bool _initialized;
     private Type _toolType;
+
+    public MeleeWeaponCache([NotNull] Thing thing) : base(thing, 24f) { }
 
     private float ArmorPenetration { get; set; }
 
@@ -36,8 +38,6 @@ internal class MeleeWeaponCache([NotNull] Thing thing) : ItemCache
             return _armorPenetrationSharpDelegate;
         }
     }
-
-    private Thing Thing { get; } = thing ?? throw new ArgumentNullException(nameof(thing));
 
     private Type ToolType
     {

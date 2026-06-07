@@ -10,15 +10,15 @@ using Verse;
 
 namespace EquipmentManager;
 
-internal class ToolCache([NotNull] Thing thing) : ItemCache
+internal class ToolCache : ThingCache
 {
     private static EquipmentManagerGameComponent _equipmentManager;
     private readonly Dictionary<string, float> _workTypeScores = new();
 
+    public ToolCache([NotNull] Thing thing) : base(thing, 24f) { }
+
     private static EquipmentManagerGameComponent EquipmentManager =>
         _equipmentManager ??= Current.Game.GetComponent<EquipmentManagerGameComponent>();
-
-    private Thing Thing { get; } = thing ?? throw new ArgumentNullException(nameof(thing));
 
     private float GetCustomStatValue([NotNull] StatDef statDef,
         IReadOnlyCollection<WorkTypeDef> workTypeDefs)
