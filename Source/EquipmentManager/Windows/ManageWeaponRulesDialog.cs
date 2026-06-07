@@ -8,6 +8,7 @@ using LordKuper.Common.Filters.Limits;
 using RimWorld;
 using UnityEngine;
 using Verse;
+using LordKuper.Common.UI;
 using LordKuper.Common.UI.Widgets;
 
 namespace EquipmentManager.Windows;
@@ -44,7 +45,7 @@ internal partial class ManageWeaponRulesDialog : Window
     private int ExclusiveItemIconsRowCount => InitialSize.y < MaxSize.y ? 2 : 3;
 
     public override Vector2 InitialSize =>
-        UiHelpers.GetWindowSize(new Vector2(850f, 650f), MaxSize);
+        LordKuper.Common.UI.Windows.GetWindowSize(new Vector2(850f, 650f), MaxSize);
 
     private static Vector2 MaxSize => new(1000f, 1000f);
 

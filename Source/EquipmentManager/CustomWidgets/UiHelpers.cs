@@ -95,10 +95,4 @@ internal static class UiHelpers
         };
     }
 
-    public static Vector2 GetWindowSize(Vector2 minSize, Vector2 maxSize)
-    {
-        var width = Mathf.Clamp(Prefs.ScreenWidth / Prefs.UIScale * 0.9f, minSize.x, maxSize.x);
-        var height = Mathf.Clamp(Prefs.ScreenHeight / Prefs.UIScale * 0.9f, minSize.y, maxSize.y);
-        return new Vector2(width, height);
-    }
 }

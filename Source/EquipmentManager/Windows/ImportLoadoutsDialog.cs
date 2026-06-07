@@ -38,7 +38,7 @@ internal class ImportLoadoutsDialog : Window
         _equipmentManager ??= Current.Game.GetComponent<EquipmentManagerGameComponent>();
 
     public override Vector2 InitialSize =>
-        UiHelpers.GetWindowSize(new Vector2(850f, 500f), new Vector2(1000f, 500f));
+        LordKuper.Common.UI.Windows.GetWindowSize(new Vector2(850f, 500f), new Vector2(1000f, 500f));
 
     private void DoButtonRow(Rect rect)
     {

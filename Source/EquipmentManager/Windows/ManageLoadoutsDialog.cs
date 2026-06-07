@@ -36,7 +36,7 @@ internal class ManageLoadoutsDialog : Window
         _equipmentManager ??= Current.Game.GetComponent<EquipmentManagerGameComponent>();
 
     public override Vector2 InitialSize =>
-        UiHelpers.GetWindowSize(new Vector2(850f, 650f), MaxSize);
+        LordKuper.Common.UI.Windows.GetWindowSize(new Vector2(850f, 650f), MaxSize);
 
     private int LabeledButtonListColumnCount => InitialSize.x < MaxSize.x ? 2 : 3;
     private static Vector2 MaxSize => new(1200f, 1000f);
