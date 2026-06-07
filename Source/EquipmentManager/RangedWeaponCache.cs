@@ -40,20 +40,19 @@ internal class RangedWeaponCache : ThingCache
             var ammoUserProps = _ammoUserPropsMethod();
             if (ammoUserProps == null)
             {
-                Log.Error(
-                    $"Equipment Manager: CompProperties_AmmoUser was not found for {Thing.LabelCapNoCount}");
+                Logger.LogError(
+                    $"CompProperties_AmmoUser was not found for {Thing.LabelCapNoCount}");
                 return ammoTypes;
             }
             var ammoSet = CombatExtendedHelper.AmmoSetDelegate(ammoUserProps);
             if (ammoSet == null)
             {
-                Log.Error($"Equipment Manager: Ammo set was not found for {Thing.LabelCapNoCount}");
+                Logger.LogError($"Ammo set was not found for {Thing.LabelCapNoCount}");
                 return ammoTypes;
             }
             if (!(CombatExtendedHelper.AmmoTypesDelegate(ammoSet) is IEnumerable<object> ammoLinks))
             {
-                Log.Error(
-                    $"Equipment Manager: Could not get ammo links for {Thing.LabelCapNoCount}");
+                Logger.LogError($"Could not get ammo links for {Thing.LabelCapNoCount}");
                 return ammoTypes;
             }
             ammoTypes.AddRange(ammoLinks
@@ -134,8 +133,7 @@ internal class RangedWeaponCache : ThingCache
                     throw new ArgumentOutOfRangeException(nameof(statDef));
             }
         }
-        Log.Error(
-            $"Equipment Manager: Tried to evaluate unknown custom ranged stat ({statDef.defName})");
+        Logger.LogError($"Tried to evaluate unknown custom ranged stat ({statDef.defName})");
         return 0f;
     }
 
@@ -179,8 +177,7 @@ internal class RangedWeaponCache : ThingCache
                     AccessTools.PropertyGetter(CombatExtendedHelper.CompAmmoUserType, "Props");
                 if (ammoUserPropsMethod == null)
                 {
-                    Log.Error(
-                        "Equipment Manager: Could not find 'CombatExtended.CompAmmoUser.Props'");
+                    Logger.LogError("Could not find 'CombatExtended.CompAmmoUser.Props'");
                 }
                 else
                 {
@@ -192,8 +189,9 @@ internal class RangedWeaponCache : ThingCache
         }
         catch (Exception exception)
         {
-            Log.Error(
-                $"Equipment Manager: Could not create Combat Extended delegates for {Thing.LabelCapNoCount}: {exception.Message}");
+            Logger.LogError(
+                $"Could not create Combat Extended delegates for {Thing.LabelCapNoCount}: {exception.Message}",
+                exception);
             _ammoUserPropsMethod = null;
         }
     }
@@ -206,8 +204,8 @@ internal class RangedWeaponCache : ThingCache
         }
         if (projectileProperties.damageDef == null)
         {
-            Log.Warning(
-                $"Equipment Manager: Projectile for {Thing.LabelCapNoCount} has no damageDef, damage set to 0");
+            Logger.LogWarning(
+                $"Projectile for {Thing.LabelCapNoCount} has no damageDef, damage set to 0");
             Damage = 0;
         }
         else
@@ -215,8 +213,8 @@ internal class RangedWeaponCache : ThingCache
             try { Damage = projectileProperties.GetDamageAmount(Thing); }
             catch (Exception e)
             {
-                Log.Warning(
-                    $"Equipment Manager: Could not get projectile damage for {Thing.LabelCapNoCount}: {e.Message}");
+                Logger.LogWarning(
+                    $"Could not get projectile damage for {Thing.LabelCapNoCount}: {e.Message}", e);
                 Damage = 0;
             }
         }
@@ -224,8 +222,9 @@ internal class RangedWeaponCache : ThingCache
         try { ArmorPenetration = projectileProperties.GetArmorPenetration(Thing); }
         catch (Exception e)
         {
-            Log.Warning(
-                $"Equipment Manager: Could not get projectile armor penetration for {Thing.LabelCapNoCount}: {e.Message}");
+            Logger.LogWarning(
+                $"Could not get projectile armor penetration for {Thing.LabelCapNoCount}: {e.Message}",
+                e);
             ArmorPenetration = 0;
         }
     }
@@ -235,16 +234,16 @@ internal class RangedWeaponCache : ThingCache
     {
         if (projectileProperties.damageDef == null)
         {
-            Log.Warning(
-                $"Equipment Manager: Projectile for {Thing.LabelCapNoCount} has no damageDef, damage set to 0");
+            Logger.LogWarning(
+                $"Projectile for {Thing.LabelCapNoCount} has no damageDef, damage set to 0");
             Damage = 0;
         }
         else { Damage = projectileProperties.GetDamageAmount(Thing); }
         StoppingPower = projectileProperties.stoppingPower;
         if (projectileProperties.GetType() != CombatExtendedHelper.ProjectilePropertiesType)
         {
-            Log.Warning(
-                $"Equipment Manager: {Thing.LabelCapNoCount}'s projectile type is not CombatExtended-compatible");
+            Logger.LogWarning(
+                $"{Thing.LabelCapNoCount}'s projectile type is not CombatExtended-compatible");
             ReadProjectileProperties(projectileProperties);
         }
         else
@@ -269,14 +268,14 @@ internal class RangedWeaponCache : ThingCache
                 var verb = Thing.def.Verbs.FirstOrDefault(vp => vp.range > 0);
                 if (verb == null)
                 {
-                    Log.Warning(
-                        $"Equipment Manager: Could not find correct ranged weapon verb on the first try for weapon '{Thing.LabelCapNoCount}' ({Thing.def.defName})");
+                    Logger.LogWarning(
+                        $"Could not find correct ranged weapon verb on the first try for weapon '{Thing.LabelCapNoCount}' ({Thing.def.defName})");
                     verb = Thing.def.Verbs.FirstOrDefault();
                 }
                 if (verb == null)
                 {
-                    Log.Error(
-                        $"Equipment Manager: Could not find ranged weapon verb for weapon '{Thing.LabelCapNoCount}' ({Thing.def.defName})");
+                    Logger.LogError(
+                        $"Could not find ranged weapon verb for weapon '{Thing.LabelCapNoCount}' ({Thing.def.defName})");
                     return true;
                 }
                 if (verb.defaultProjectile?.projectile != null)
@@ -353,8 +352,9 @@ internal class RangedWeaponCache : ThingCache
         }
         catch (Exception exception)
         {
-            Log.Error(
-                $"Equipment Manager: Could not update cache of '{Thing.LabelCapNoCount}' ({Thing.def?.defName}): {exception.Message}");
+            Logger.LogError(
+                $"Could not update cache of '{Thing.LabelCapNoCount}' ({Thing.def?.defName}): {exception.Message}",
+                exception);
         }
         return true;
     }

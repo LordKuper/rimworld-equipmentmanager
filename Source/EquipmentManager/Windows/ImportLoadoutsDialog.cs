@@ -204,8 +204,8 @@ internal class ImportLoadoutsDialog : Window
             }
             catch (Exception e)
             {
-                Log.Warning(
-                    $"Equipment Manager: Could not process save game file {file.FullName}: {e.Message}");
+                Logger.LogWarning(
+                    $"Could not process save game file {file.FullName}: {e.Message}", e);
             }
         }
     }
@@ -411,7 +411,7 @@ internal class ImportLoadoutsDialog : Window
                     xmlReader.ReadEndElement();
                     break;
                 default:
-                    Log.Warning($"Equipment Manager: Unknown Loadout property '{xmlReader.Name}'");
+                    Logger.LogWarning($"Unknown Loadout property '{xmlReader.Name}'");
                     break;
             }
         }
@@ -432,14 +432,14 @@ internal class ImportLoadoutsDialog : Window
             }
             else
             {
-                Log.Error(
-                    $"Equipment Manager: Could not find any 'li' nodes inside the 'Loadouts' node in the save game file {savedGameFile}");
+                Logger.LogError(
+                    $"Could not find any 'li' nodes inside the 'Loadouts' node in the save game file {savedGameFile}");
             }
         }
         else
         {
-            Log.Error(
-                $"Equipment Manager: Could not find 'Loadouts' node in the save game file {savedGameFile}");
+            Logger.LogError(
+                $"Could not find 'Loadouts' node in the save game file {savedGameFile}");
         }
     }
 
@@ -520,8 +520,7 @@ internal class ImportLoadoutsDialog : Window
                     rottable = bool.Parse(xmlReader.ReadElementContentAsString());
                     break;
                 default:
-                    Log.Warning(
-                        $"Equipment Manager: Unknown MeleeWeaponRule property '{xmlReader.Name}'");
+                    Logger.LogWarning($"Unknown MeleeWeaponRule property '{xmlReader.Name}'");
                     break;
             }
         }
@@ -542,14 +541,14 @@ internal class ImportLoadoutsDialog : Window
             }
             else
             {
-                Log.Error(
-                    $"Equipment Manager: Could not find any 'li' nodes inside the 'MeleeWeaponRules' node in the save game file {savedGameFile}");
+                Logger.LogError(
+                    $"Could not find any 'li' nodes inside the 'MeleeWeaponRules' node in the save game file {savedGameFile}");
             }
         }
         else
         {
-            Log.Error(
-                $"Equipment Manager: Could not find 'MeleeWeaponRules' node in the save game file {savedGameFile}");
+            Logger.LogError(
+                $"Could not find 'MeleeWeaponRules' node in the save game file {savedGameFile}");
         }
     }
 
@@ -710,8 +709,7 @@ internal class ImportLoadoutsDialog : Window
                     ammoCount = xmlReader.ReadElementContentAsInt();
                     break;
                 default:
-                    Log.Warning(
-                        $"Equipment Manager: Unknown RangedWeaponRule property '{xmlReader.Name}'");
+                    Logger.LogWarning($"Unknown RangedWeaponRule property '{xmlReader.Name}'");
                     break;
             }
         }
@@ -732,14 +730,14 @@ internal class ImportLoadoutsDialog : Window
             }
             else
             {
-                Log.Error(
-                    $"Equipment Manager: Could not find any 'li' nodes inside the 'RangedWeaponRules' node in the save game file {savedGameFile}");
+                Logger.LogError(
+                    $"Could not find any 'li' nodes inside the 'RangedWeaponRules' node in the save game file {savedGameFile}");
             }
         }
         else
         {
-            Log.Error(
-                $"Equipment Manager: Could not find 'RangedWeaponRules' node in the save game file {savedGameFile}");
+            Logger.LogError(
+                $"Could not find 'RangedWeaponRules' node in the save game file {savedGameFile}");
         }
     }
 
@@ -804,27 +802,28 @@ internal class ImportLoadoutsDialog : Window
                     }
                     else
                     {
-                        Log.Warning(
-                            $"Equipment Manager: Could not find game components' data in the save game file {savedGameFile}");
+                        Logger.LogWarning(
+                            $"Could not find game components' data in the save game file {savedGameFile}");
                     }
                 }
                 else
                 {
-                    Log.Error(
-                        $"Equipment Manager: Could not find game data in the save game file {savedGameFile}");
+                    Logger.LogError(
+                        $"Could not find game data in the save game file {savedGameFile}");
                 }
             }
             else
             {
-                Log.Error(
-                    $"Equipment Manager: Could not find root node in the save game file {savedGameFile}");
+                Logger.LogError(
+                    $"Could not find root node in the save game file {savedGameFile}");
             }
             xmlReader.Close();
         }
         catch (Exception exception)
         {
-            Log.Warning(
-                $"Equipment Manager: Could not process save game file {savedGameFile}{Environment.NewLine}{exception.Message}");
+            Logger.LogWarning(
+                $"Could not process save game file {savedGameFile}{Environment.NewLine}{exception.Message}",
+                exception);
         }
     }
 
@@ -1011,7 +1010,7 @@ internal class ImportLoadoutsDialog : Window
                     ranged = bool.Parse(xmlReader.ReadElementContentAsString());
                     break;
                 default:
-                    Log.Warning($"Equipment Manager: Unknown ToolRule property '{xmlReader.Name}'");
+                    Logger.LogWarning($"Unknown ToolRule property '{xmlReader.Name}'");
                     break;
             }
         }
@@ -1030,14 +1029,14 @@ internal class ImportLoadoutsDialog : Window
             }
             else
             {
-                Log.Error(
-                    $"Equipment Manager: Could not find any 'li' nodes inside the 'ToolRules' node in the save game file {savedGameFile}");
+                Logger.LogError(
+                    $"Could not find any 'li' nodes inside the 'ToolRules' node in the save game file {savedGameFile}");
             }
         }
         else
         {
-            Log.Error(
-                $"Equipment Manager: Could not find 'ToolRules' node in the save game file {savedGameFile}");
+            Logger.LogError(
+                $"Could not find 'ToolRules' node in the save game file {savedGameFile}");
         }
     }
 
@@ -1069,8 +1068,7 @@ internal class ImportLoadoutsDialog : Window
                     xmlReader.ReadEndElement();
                     break;
                 default:
-                    Log.Warning(
-                        $"Equipment Manager: Unknown WorkTypeRule property '{xmlReader.Name}'");
+                    Logger.LogWarning($"Unknown WorkTypeRule property '{xmlReader.Name}'");
                     break;
             }
         }
@@ -1095,14 +1093,14 @@ internal class ImportLoadoutsDialog : Window
             }
             else
             {
-                Log.Error(
-                    $"Equipment Manager: Could not find any 'li' nodes inside the 'WorkTypeRules' node in the save game file {savedGameFile}");
+                Logger.LogError(
+                    $"Could not find any 'li' nodes inside the 'WorkTypeRules' node in the save game file {savedGameFile}");
             }
         }
         else
         {
-            Log.Error(
-                $"Equipment Manager: Could not find 'WorkTypeRules' node in the save game file {savedGameFile}");
+            Logger.LogError(
+                $"Could not find 'WorkTypeRules' node in the save game file {savedGameFile}");
         }
     }
 }

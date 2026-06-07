@@ -103,14 +103,15 @@ internal class MeleeWeaponCache : ThingCache
                         throw new ArgumentOutOfRangeException(nameof(statDef));
                 }
             }
-            Log.Error(
-                $"Equipment Manager: Tried to evaluate unknown custom melee stat ({statDef.defName})");
+            Logger.LogError(
+                $"Tried to evaluate unknown custom melee stat ({statDef.defName})");
             return 0f;
         }
         catch (Exception e)
         {
-            Log.Error(
-                $"Equipment Manager: An error occured while evaluating custom melee stat '{statDef.defName}' of '{Thing.def.defName}':\n{e.Message}\n{e.StackTrace}");
+            Logger.LogError(
+                $"An error occured while evaluating custom melee stat '{statDef.defName}' of '{Thing.def.defName}':\n{e.Message}\n{e.StackTrace}",
+                e);
             return 0f;
         }
     }
@@ -142,21 +143,19 @@ internal class MeleeWeaponCache : ThingCache
         _toolType = AccessTools.TypeByName("CombatExtended.ToolCE");
         if (_toolType == null)
         {
-            Log.Error("Equipment Manager: Could not find 'CombatExtended.ToolCE'");
+            Logger.LogError("Could not find 'CombatExtended.ToolCE'");
         }
         _armorPenetrationSharpDelegate =
             AccessTools.FieldRefAccess<float>(ToolType, "armorPenetrationSharp");
         if (_armorPenetrationSharpDelegate == null)
         {
-            Log.Error(
-                "Equipment Manager: Could not find 'CombatExtended.ToolCE.armorPenetrationSharp'");
+            Logger.LogError("Could not find 'CombatExtended.ToolCE.armorPenetrationSharp'");
         }
         _armorPenetrationBluntDelegate =
             AccessTools.FieldRefAccess<float>(ToolType, "armorPenetrationBlunt");
         if (_armorPenetrationBluntDelegate == null)
         {
-            Log.Error(
-                "Equipment Manager: Could not find 'CombatExtended.ToolCE.armorPenetrationBlunt'");
+            Logger.LogError("Could not find 'CombatExtended.ToolCE.armorPenetrationBlunt'");
         }
     }
 
@@ -170,8 +169,8 @@ internal class MeleeWeaponCache : ThingCache
                 var tools = Thing.def.tools.Where(tool => tool.power > 0f).ToList();
                 if (!tools.Any())
                 {
-                    Log.Error(
-                        $"Equipment Manager: Could not find any melee tools of '{Thing.LabelCapNoCount}' ({Thing.def?.defName})");
+                    Logger.LogError(
+                        $"Could not find any melee tools of '{Thing.LabelCapNoCount}' ({Thing.def?.defName})");
                 }
                 else
                 {
@@ -180,8 +179,8 @@ internal class MeleeWeaponCache : ThingCache
                     {
                         if (tool.GetType() != ToolType)
                         {
-                            Log.Warning(
-                                $"Equipment Manager: {Thing.LabelCapNoCount}'s tool '{tool.label}' is not CombatExtended-compatible");
+                            Logger.LogWarning(
+                                $"{Thing.LabelCapNoCount}'s tool '{tool.label}' is not CombatExtended-compatible");
                             ArmorPenetration += tool.armorPenetration;
                         }
                         else
@@ -202,8 +201,9 @@ internal class MeleeWeaponCache : ThingCache
         }
         catch (Exception exception)
         {
-            Log.Error(
-                $"Equipment Manager: Could not update cache of '{Thing.LabelCapNoCount}' ({Thing.def?.defName}): {exception.Message}");
+            Logger.LogError(
+                $"Could not update cache of '{Thing.LabelCapNoCount}' ({Thing.def?.defName}): {exception.Message}",
+                exception);
         }
         return true;
     }

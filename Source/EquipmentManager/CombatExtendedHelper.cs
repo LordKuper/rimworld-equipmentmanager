@@ -28,20 +28,20 @@ internal static class CombatExtendedHelper
                 AccessTools.FieldRefAccess<float>(ProjectilePropertiesType, "armorPenetrationSharp");
             if (ArmorPenetrationSharpDelegate == null)
             {
-                Log.Error(
-                    "Equipment Manager: Could not find 'CombatExtended.ProjectilePropertiesCE.armorPenetrationSharp'");
+                Logger.LogError(
+                    "Could not find 'CombatExtended.ProjectilePropertiesCE.armorPenetrationSharp'");
             }
             ArmorPenetrationBluntDelegate =
                 AccessTools.FieldRefAccess<float>(ProjectilePropertiesType, "armorPenetrationBlunt");
             if (ArmorPenetrationBluntDelegate == null)
             {
-                Log.Error(
-                    "Equipment Manager: Could not find 'CombatExtended.ProjectilePropertiesCE.armorPenetrationBlunt'");
+                Logger.LogError(
+                    "Could not find 'CombatExtended.ProjectilePropertiesCE.armorPenetrationBlunt'");
             }
         }
         else
         {
-            Log.Error("Equipment Manager: Could not find 'CombatExtended.ProjectilePropertiesCE'");
+            Logger.LogError("Could not find 'CombatExtended.ProjectilePropertiesCE'");
         }
 
         var settingsType = AccessTools.TypeByName("CombatExtended.Settings");
@@ -57,26 +57,26 @@ internal static class CombatExtendedHelper
                         settingsField.GetValue(null));
                 if (_enableAmmoSystemMethod == null)
                 {
-                    Log.Error(
-                        "Equipment Manager: Could not create delegate for 'CombatExtended.Settings.EnableAmmoSystem'");
+                    Logger.LogError(
+                        "Could not create delegate for 'CombatExtended.Settings.EnableAmmoSystem'");
                 }
             }
             else
             {
-                Log.Error(
-                    "Equipment Manager: Could not find 'CombatExtended.Settings.EnableAmmoSystem' or 'CombatExtended.Controller.settings'");
+                Logger.LogError(
+                    "Could not find 'CombatExtended.Settings.EnableAmmoSystem' or 'CombatExtended.Controller.settings'");
             }
         }
         else
         {
-            Log.Error(
-                "Equipment Manager: Could not find 'CombatExtended.Settings' or 'CombatExtended.Controller'");
+            Logger.LogError(
+                "Could not find 'CombatExtended.Settings' or 'CombatExtended.Controller'");
         }
 
         CompAmmoUserType = AccessTools.TypeByName("CombatExtended.CompAmmoUser");
         if (CompAmmoUserType == null)
         {
-            Log.Error("Equipment Manager: Could not find 'CombatExtended.CompAmmoUser'");
+            Logger.LogError("Could not find 'CombatExtended.CompAmmoUser'");
         }
 
         var compPropsAmmoUserType =
@@ -86,14 +86,13 @@ internal static class CombatExtendedHelper
             AmmoSetDelegate = AccessTools.FieldRefAccess<Def>(compPropsAmmoUserType, "ammoSet");
             if (AmmoSetDelegate == null)
             {
-                Log.Error(
-                    "Equipment Manager: Could not find 'CombatExtended.CompProperties_AmmoUser.ammoSet'");
+                Logger.LogError(
+                    "Could not find 'CombatExtended.CompProperties_AmmoUser.ammoSet'");
             }
         }
         else
         {
-            Log.Error(
-                "Equipment Manager: Could not find 'CombatExtended.CompProperties_AmmoUser'");
+            Logger.LogError("Could not find 'CombatExtended.CompProperties_AmmoUser'");
         }
 
         var ammoSetDefType = AccessTools.TypeByName("CombatExtended.AmmoSetDef");
@@ -103,13 +102,12 @@ internal static class CombatExtendedHelper
                 AccessTools.FieldRefAccess<object>(ammoSetDefType, "ammoTypes");
             if (AmmoTypesDelegate == null)
             {
-                Log.Error(
-                    "Equipment Manager: Could not find 'CombatExtended.AmmoSetDef.ammoTypes'");
+                Logger.LogError("Could not find 'CombatExtended.AmmoSetDef.ammoTypes'");
             }
         }
         else
         {
-            Log.Error("Equipment Manager: Could not find 'CombatExtended.AmmoSetDef'");
+            Logger.LogError("Could not find 'CombatExtended.AmmoSetDef'");
         }
 
         var ammoLinkType = AccessTools.TypeByName("CombatExtended.AmmoLink");
@@ -118,12 +116,12 @@ internal static class CombatExtendedHelper
             AmmoDelegate = AccessTools.FieldRefAccess<ThingDef>(ammoLinkType, "ammo");
             if (AmmoDelegate == null)
             {
-                Log.Error("Equipment Manager: Could not find 'CombatExtended.AmmoLink.ammo'");
+                Logger.LogError("Could not find 'CombatExtended.AmmoLink.ammo'");
             }
         }
         else
         {
-            Log.Error("Equipment Manager: Could not find 'CombatExtended.AmmoLink'");
+            Logger.LogError("Could not find 'CombatExtended.AmmoLink'");
         }
     }
 
