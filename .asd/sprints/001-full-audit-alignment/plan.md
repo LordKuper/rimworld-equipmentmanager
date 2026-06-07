@@ -50,47 +50,47 @@ Commands (from `commands.yaml`): build `dotnet build Source/EquipmentManager.sln
 **Test scope.** Tests are genuine unit tests over pure-logic units (stat-range math, work-type weight assembly, rule/loadout init, legacy-stat round-trips, loadout eligibility, ammo/primary-rule/copy getters, tool-cache composite key). No automated integration/game-context test is created. RU-1 changes WorkType scoring outputs (OQ-1 default-weight parity: EM flat `2f` vs Common `WorkTypeStatMap.DefaultWorkTypeStats` per-stat weights); the characterization test in Task 13 (AC-26) decides OQ-1, but any in-game assignment-decision shift (R-C2) is verified only by manual in-game observation — flagged below as a manual-verification item, not an automated test.
 
 ### Task 1: RU-1 — replace WorkTypeRule with Common.WorkTypeThingRule + WorkTypeStatMap
-- [ ] Delete `Source/EquipmentManager/WorkTypeRule.cs` (the 290-line reimplementation, incl. its `DefaultWorkTypeStats` literal and the four redundant nested guards).
-- [ ] Wire EM to consume `LordKuper.Common.WorkTypeThingRule` (+ `WorkTypeStatMap.Rebuild`) wherever `WorkTypeRule` was constructed/stored/scored (game component rule family, `ToolCache`, `ToolRule.GetThingScore`, dialog tab).
-- [ ] Do NOT add a Scribe save-migration shim (`backward_compat=none`); old saves silently lose persisted WorkType rules (approved).
-- [ ] Resolve OQ-1 default-weight parity per the Task 13 characterization test: if EM's flat `2f` default diverges intentionally from Common's per-stat weighted defaults, apply only the EM default-weight seed and still drop the duplicated recipe/skill/AllRelevantThings/scoring machinery (EM wording wins).
-- [ ] Confirm `grep -r "class WorkTypeRule"` under `Source/EquipmentManager/` returns nothing and `WorkTypeThingRule` is referenced.
-- [ ] Build green. Auto-resolves C-9 (AC-17), removes the 36-site nullable hotspot, and satisfies RU-5 (AC-8).
+- [x] Delete `Source/EquipmentManager/WorkTypeRule.cs` (the 290-line reimplementation, incl. its `DefaultWorkTypeStats` literal and the four redundant nested guards).
+- [x] Wire EM to consume `LordKuper.Common.WorkTypeThingRule` (+ `WorkTypeStatMap.Rebuild`) wherever `WorkTypeRule` was constructed/stored/scored (game component rule family, `ToolCache`, `ToolRule.GetThingScore`, dialog tab).
+- [x] Do NOT add a Scribe save-migration shim (`backward_compat=none`); old saves silently lose persisted WorkType rules (approved).
+- [x] Resolve OQ-1 default-weight parity per the Task 13 characterization test: if EM's flat `2f` default diverges intentionally from Common's per-stat weighted defaults, apply only the EM default-weight seed and still drop the duplicated recipe/skill/AllRelevantThings/scoring machinery (EM wording wins).
+- [x] Confirm `grep -r "class WorkTypeRule"` under `Source/EquipmentManager/` returns nothing and `WorkTypeThingRule` is referenced.
+- [x] Build green. Auto-resolves C-9 (AC-17), removes the 36-site nullable hotspot, and satisfies RU-5 (AC-8).
 <!-- owner: backend-dev | AC: AC-2, AC-8, AC-17 | deps: none (Phase A, first) -->
 
 ### Task 2: RU-2 — delete EM stat-range duplicate; consume Common.StatRanges
-- [ ] Delete `Source/EquipmentManager/EquipmentManagerGameComponent_StatRanges.cs` (the `_statRanges` instance dict + `ExposeData_StatRanges`).
-- [ ] Delete `LegacyCustomStatDefs.NormalizeStatRanges` (the stat-range save-migration).
-- [ ] Replace EM `NormalizeStatValue`/`UpdateStatRange` usage with `Common.StatRanges` (public as of rimworld-common commit `17199b6`); accept process-global ephemeral stat ranges (not save-persisted), rebuilt via `InitializeStatRanges`.
-- [ ] Confirm `grep -r "NormalizeStatRanges\|ExposeData_StatRanges\|_statRanges"` returns nothing; `Common.StatRanges` referenced.
-- [ ] Build green. Auto-resolves the EM copy of C-4 (first-sample `[v,v]` seeding now correct upstream).
+- [x] Delete `Source/EquipmentManager/EquipmentManagerGameComponent_StatRanges.cs` (the `_statRanges` instance dict + `ExposeData_StatRanges`).
+- [x] Delete `LegacyCustomStatDefs.NormalizeStatRanges` (the stat-range save-migration).
+- [x] Replace EM `NormalizeStatValue`/`UpdateStatRange` usage with `Common.StatRanges` (public as of rimworld-common commit `17199b6`); accept process-global ephemeral stat ranges (not save-persisted), rebuilt via `InitializeStatRanges`.
+- [x] Confirm `grep -r "NormalizeStatRanges\|ExposeData_StatRanges\|_statRanges"` returns nothing; `Common.StatRanges` referenced.
+- [x] Build green. Auto-resolves the EM copy of C-4 (first-sample `[v,v]` seeding now correct upstream).
 <!-- owner: backend-dev | AC: AC-3, AC-16 | deps: none (Phase A) -->
 
 ### Task 3: RU-3 — ItemCache → Common.ThingCache
-- [ ] Re-base `RangedWeaponCache`/`MeleeWeaponCache`/`ToolCache` on `LordKuper.Common.ThingCache` (or otherwise remove the duplicated `StatValues` dictionary + clear).
-- [ ] Delete `Source/EquipmentManager/ItemCache.cs`.
-- [ ] Confirm `grep -r "class ItemCache"` returns nothing; cache types reference `ThingCache`.
-- [ ] Build green. (Does NOT resolve C-3 — that EM-specific composite-key fix is Task 7.)
+- [x] Re-base `RangedWeaponCache`/`MeleeWeaponCache`/`ToolCache` on `LordKuper.Common.ThingCache` (or otherwise remove the duplicated `StatValues` dictionary + clear).
+- [x] Delete `Source/EquipmentManager/ItemCache.cs`.
+- [x] Confirm `grep -r "class ItemCache"` returns nothing; cache types reference `ThingCache`.
+- [x] Build green. (Does NOT resolve C-3 — that EM-specific composite-key fix is Task 7.)
 <!-- owner: backend-dev | AC: AC-4 | deps: coordinate with Task 7 (both touch ToolCache) -->
 
 ### Task 4: RU-4 — delete EquipmentManagerStatDefs; inline StatHelper.GetStatsByCategory
-- [ ] Inline the five category call-sites to `Common.Helpers.StatHelper.GetStatsByCategory(StatCategory.X)`.
-- [ ] Delete `Source/EquipmentManager/EquipmentManagerStatDefs.cs`.
-- [ ] Confirm `grep -r "EquipmentManagerStatDefs"` returns nothing.
-- [ ] Build green.
+- [x] Inline the five category call-sites to `Common.Helpers.StatHelper.GetStatsByCategory(StatCategory.X)`.
+- [x] Delete `Source/EquipmentManager/EquipmentManagerStatDefs.cs`.
+- [x] Confirm `grep -r "EquipmentManagerStatDefs"` returns nothing.
+- [x] Build green.
 <!-- owner: backend-dev | AC: AC-5 | deps: none (Phase A) -->
 
 ### Task 5: RU-6 — UiHelpers.GetWindowSize → Common.UI.Windows.GetWindowSize
-- [ ] Delete the local `GetWindowSize` body in `Source/EquipmentManager/CustomWidgets/UiHelpers.cs`; route call-sites to `Common.UI.Windows.GetWindowSize`.
-- [ ] Retain EM-specific `UiHelpers` members (`CycleSettingValue`, `GetSettingCheckboxState`, `ValidNameRegex`, gap/label helpers).
-- [ ] Confirm no local `GetWindowSize` definition remains; `Windows.GetWindowSize` referenced.
-- [ ] Build green.
+- [x] Delete the local `GetWindowSize` body in `Source/EquipmentManager/CustomWidgets/UiHelpers.cs`; route call-sites to `Common.UI.Windows.GetWindowSize`.
+- [x] Retain EM-specific `UiHelpers` members (`CycleSettingValue`, `GetSettingCheckboxState`, `ValidNameRegex`, gap/label helpers).
+- [x] Confirm no local `GetWindowSize` definition remains; `Windows.GetWindowSize` referenced.
+- [x] Build green.
 <!-- owner: backend-dev | AC: AC-6 | deps: none (Phase A) -->
 
 ### Task 6: Phase A green gate — reuse deletes/migrations complete before nullable flip
-- [ ] Confirm Tasks 1–5 (RU-1, RU-2, RU-3, RU-4, RU-6) are merged and the solution builds green BEFORE any `<Nullable>enable</Nullable>` is set.
-- [ ] Confirm in git history that the reuse-delete/migrate commit(s) precede the nullable-flip commit (Task 10) and that no deleted file was annotated with NRT in the interim.
-- [ ] Run `dotnet build Source/EquipmentManager.slnx -c Release` → 0 warnings, 0 errors.
+- [x] Confirm Tasks 1–5 (RU-1, RU-2, RU-3, RU-4, RU-6) are merged and the solution builds green BEFORE any `<Nullable>enable</Nullable>` is set.
+- [x] Confirm in git history that the reuse-delete/migrate commit(s) precede the nullable-flip commit (Task 10) and that no deleted file was annotated with NRT in the interim.
+- [x] Run `dotnet build Source/EquipmentManager.slnx -c Release` → 0 warnings, 0 errors.
 <!-- owner: backend-dev | AC: AC-1 (also feeds AC-41) | deps: Task 1, Task 2, Task 3, Task 4, Task 5 -->
 
 ### Task 7: C-3 — ToolCache composite cache key including workTypeDefs
