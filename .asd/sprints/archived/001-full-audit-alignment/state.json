@@ -1,7 +1,7 @@
 {
   "sprint_id": "001-full-audit-alignment",
   "branch": "sprint/001-full-audit-alignment",
-  "phase": "pr",
+  "phase": "done",
   "reviews": {
     "design": {
       "iteration": 2,
@@ -73,5 +73,7 @@
   "review_fixes_pending": null,
   "subsystems_touched": [],
   "new_subsystems": [],
-  "escalations": []
+  "escalations": [],
+  "archived_at": "2026-06-07",
+  "pr_url": "https://github.com/LordKuper/rimworld-equipmentmanager/pull/7"
 }
