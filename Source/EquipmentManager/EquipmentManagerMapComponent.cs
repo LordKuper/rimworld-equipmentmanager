@@ -383,10 +383,9 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
 
     private void UpdateMeleeSidearms()
     {
+        var assignedByOthers = new HashSet<Thing>(_pawnCache.Values.SelectMany(pc => pc.AssignedWeapons.Keys));
         foreach (var pawn in _pawnCache.Values.Where(pc => pc.ShouldUpdateEquipment && pc.AssignedLoadout != null))
         {
-            var assignedByOthers = new HashSet<Thing>(_pawnCache.Values.Where(pc => pc != pawn)
-                .SelectMany(pc => pc.AssignedWeapons.Keys));
             var sidearmMemory = CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn);
             foreach (var rule in pawn.AssignedLoadout!.MeleeSidearmRules.Select(EquipmentManager.GetMeleeWeaponRule)
                          .Where(rule => rule != null))
@@ -508,10 +507,9 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
 
     private void UpdateRangedSidearms()
     {
+        var assignedByOthers = new HashSet<Thing>(_pawnCache.Values.SelectMany(pc => pc.AssignedWeapons.Keys));
         foreach (var pawn in _pawnCache.Values.Where(pc => pc.ShouldUpdateEquipment && pc.AssignedLoadout != null))
         {
-            var assignedByOthers = new HashSet<Thing>(_pawnCache.Values.Where(pc => pc != pawn)
-                .SelectMany(pc => pc.AssignedWeapons.Keys));
             foreach (var rule in pawn.AssignedLoadout!.RangedSidearmRules.Select(EquipmentManager.GetRangedWeaponRule)
                          .Where(rule => rule != null))
             {
