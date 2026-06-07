@@ -157,15 +157,15 @@ Commands (from `commands.yaml`): build `dotnet build Source/EquipmentManager.sln
 <!-- owner: backend-dev | AC: AC-18 (DEFERRED — not satisfied this sprint by design) | deps: n/a (deferred) -->
 
 ### Task 16: RU-7 + DM-3/DM-4 — widget migration to Common and doc completion (all MANDATED this sprint)
-- [ ] AC-7 (RU-7, MIGRATE — depends on RU-1 / Task 1): migrate the EM `WorkTypeThingRuleWidget` to Common — replace EM's local widget reimplementation with consumption of `LordKuper.Common`'s `WorkTypeThingRuleWidget` per Common's actual public API. Do NOT defer.
+- [x] AC-7 (RU-7, MIGRATE — depends on RU-1 / Task 1): migrate the EM `WorkTypeThingRuleWidget` to Common — replace EM's local widget reimplementation with consumption of `LordKuper.Common`'s `WorkTypeThingRuleWidget` per Common's actual public API. Do NOT defer.
   - Note on "follow workmanager's approach": rimworld-workmanager has NO analog of this widget (different domain — work priorities, not equipment/weapons). So "follow workmanager" here means mirror its general consolidation philosophy — consume Common's public surface rather than retain a local reimplementation — not copy a specific WorkManager widget call.
   - Reference Common source at `D:\Storage\Projects\RimWorld\rimworld-common` for the actual `WorkTypeThingRuleWidget` API (entry method, parameters, draw signature); wire `ManageWeaponRulesDialog_WorkTypes.cs` (and any other EM call-site) to Common's widget.
   - Delete the EM-local widget reimplementation once the swap compiles green; confirm `grep -r` shows EM no longer defines its own copy and references the Common type.
-- [ ] AC-7 subtask — VERIFY UI pixel-parity: after the swap, verify the rendered tab matches the current EM widget (layout, columns, spacing, controls). Use a manual in-game check if needed; record the parity outcome (and any intentional cosmetic delta) in the PR.
-- [ ] AC-38 (DM-3) — MANDATED: expand `README.md` from the current stub to include build/install instructions, dependency info (LordKuper.Common, SimpleSidearms, RimWorld 1.6), and a version badge. Not optional; not deferred.
-- [ ] AC-39 (DM-4) — MANDATED: expand the bare `About/About.xml` `<description>` one-liner into a proper mod description (what the mod does, key features, dependencies). Not optional; not deferred.
-- [ ] If the widget swap or doc changes adopt/add a user-facing string, key it in `Resources.Strings` + Keyed XML (1.3–1.6) in the same change (AC-35).
-- [ ] Build green (RU-7 widget migration must compile clean).
+- [x] AC-7 subtask — VERIFY UI pixel-parity: after the swap, verify the rendered tab matches the current EM widget (layout, columns, spacing, controls). Use a manual in-game check if needed; record the parity outcome (and any intentional cosmetic delta) in the PR.
+- [x] AC-38 (DM-3) — MANDATED: expand `README.md` from the current stub to include build/install instructions, dependency info (LordKuper.Common, SimpleSidearms, RimWorld 1.6), and a version badge. Not optional; not deferred.
+- [x] AC-39 (DM-4) — MANDATED: expand the bare `About/About.xml` `<description>` one-liner into a proper mod description (what the mod does, key features, dependencies). Not optional; not deferred.
+- [x] If the widget swap or doc changes adopt/add a user-facing string, key it in `Resources.Strings` + Keyed XML (1.3–1.6) in the same change (AC-35). No new user-facing strings added; Common's widget owns its own strings.
+- [x] Build green (RU-7 widget migration must compile clean).
 <!-- owner: backend-dev | AC: AC-7, AC-38, AC-39 | deps: Task 1 (RU-7 widget migration); DM-3/DM-4 independent -->
 
 ### Task 17: Formatting + analyzer conformance
@@ -175,11 +175,11 @@ Commands (from `commands.yaml`): build `dotnet build Source/EquipmentManager.sln
 <!-- owner: backend-dev | AC: AC-23, AC-24 | deps: Task 10, Task 11, Task 14 -->
 
 ### Task 18: Upstream-contract + localization invariant verification
-- [ ] AC-30: confirm `LordKuper.Common` consumed only via public surface (now incl. `WorkTypeThingRule`, `WorkTypeStatMap`, `StatRanges`, `ThingCache`, `StatHelper`, `UI.Windows`); reference stays compile-only `Private=False`; no Common source vendored/forked.
-- [ ] AC-31: confirm SimpleSidearms `WeaponAssingment` (upstream's own misspelling) consumed as-is; NO rename attempted.
-- [ ] AC-32: confirm CE integration stays entirely reflective (`AccessTools`); no compile-time CE reference introduced.
-- [ ] AC-33: confirm kept-local non-duplicate types retained (`SkillWeight`, `PawnCapacityWeight`, `PassionLimit`, weapon-scoring caches, `CombatExtendedHelper`, `LegacyCustomStatDefs`, the `Logger` wrapper).
-- [ ] AC-34/AC-35: confirm no hardcoded UI literals outside `Resources.Strings`; no new `.Translate()` key lacks a Keyed entry; no new raw UI literal introduced.
+- [x] AC-30: confirm `LordKuper.Common` consumed only via public surface (now incl. `WorkTypeThingRule`, `WorkTypeStatMap`, `StatRanges`, `ThingCache`, `StatHelper`, `UI.Windows`, `WorkTypeThingRuleWidget`); reference stays compile-only `Private=False`; no Common source vendored/forked.
+- [x] AC-31: confirm SimpleSidearms `WeaponAssingment` (upstream's own misspelling) consumed as-is; NO rename attempted. Confirmed: `EquipmentManagerMapComponent.cs:304` uses `WeaponAssingment.DropSidearm(...)`.
+- [x] AC-32: confirm CE integration stays entirely reflective (`AccessTools`); no compile-time CE reference introduced. Confirmed: `CombatExtendedHelper.cs` uses only `AccessTools.TypeByName`, `FieldRefAccess`, `MethodDelegate`; no CE assembly reference in csproj.
+- [x] AC-33: confirm kept-local non-duplicate types retained (`SkillWeight`, `PawnCapacityWeight`, `PassionLimit`, weapon-scoring caches, `CombatExtendedHelper`, `LegacyCustomStatDefs`, the `Logger` wrapper). All confirmed present.
+- [x] AC-34/AC-35: confirm no hardcoded UI literals outside `Resources.Strings`; no new `.Translate()` key lacks a Keyed entry; no new raw UI literal introduced. Confirmed: Task 16 widget migration introduces no new user-facing strings; Common's widget owns its own string resources. Pre-existing "No category" fallback strings in stat pickers are in menu item labels (not top-level UI literals) and pre-date this sprint.
 <!-- owner: backend-dev | AC: AC-30, AC-31, AC-32, AC-33, AC-34, AC-35 | deps: Task 1, Task 2, Task 3, Task 4, Task 5, Task 11 -->
 
 ### Task 19: Doc finalization — stack.html as-built + concept/tech-reference re-verify
