@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LordKuper.Common;
 using LordKuper.Common.UI.Widgets;
+using RimWorld;
 using UnityEngine;
 using Verse;
 
@@ -10,9 +11,11 @@ namespace EquipmentManager.Windows;
 internal partial class ManageWeaponRulesDialog
 {
     private readonly List<ThingDef> _globallyAvailableWorkTypes = new();
+    private readonly List<Thing> _currentlyAvailableMapThings = new();
     private float _workTypesScrollableContentHeight;
     private Vector2 _workTypesScrollPosition;
     private Vector2 _workTypesThingIconBoxScrollPosition;
+    private Vector2 _workTypesMapThingIconBoxScrollPosition;
 
     private WorkTypeThingRule? SelectedWorkTypeRule
     {
@@ -31,13 +34,22 @@ internal partial class ManageWeaponRulesDialog
             EquipmentManager.GetWorkTypeRules().ToList(),
             SelectedWorkTypeRule, rule => SelectedWorkTypeRule = rule,
             UpdateAvailableItems_WorkTypes, ref _workTypesThingIconBoxScrollPosition,
-            _globallyAvailableWorkTypes);
+            _globallyAvailableWorkTypes, ref _workTypesMapThingIconBoxScrollPosition,
+            _currentlyAvailableMapThings);
     }
 
     private void UpdateAvailableItems_WorkTypes()
     {
         _globallyAvailableWorkTypes.Clear();
+        _currentlyAvailableMapThings.Clear();
         if (SelectedWorkTypeRule == null) { return; }
         _globallyAvailableWorkTypes.AddRange(SelectedWorkTypeRule.GetGloballyAvailableItems());
+        var globalDefs = new HashSet<ThingDef>(_globallyAvailableWorkTypes);
+        var mapThings = Find.CurrentMap?.listerThings?.ThingsInGroup(ThingRequestGroup.Weapon);
+        if (mapThings == null) { return; }
+        _currentlyAvailableMapThings.AddRange(mapThings
+            .Where(thing => globalDefs.Contains(thing.def) &&
+                !(thing.TryGetComp<CompForbiddable>() is { Forbidden: true }))
+            .OrderByDescending(thing => SelectedWorkTypeRule.GetThingScore(thing)));
     }
 }

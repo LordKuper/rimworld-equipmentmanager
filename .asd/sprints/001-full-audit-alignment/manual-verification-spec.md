@@ -111,7 +111,13 @@ This document specifies manual verification steps for test coverage that cannot 
 
 **Migration outcome:** Full migration. `ManageWeaponRulesDialog_WorkTypes.cs` now delegates entirely to `LordKuper.Common.UI.Widgets.WorkTypeThingRuleWidget.DoWidgetTab`. No EM-local reimplementation remains.
 
-**Intentional cosmetic delta:** The previous EM widget showed two side-by-side panes in the bottom section — "Globally available items" (ThingDef icons) and "Currently available items" (Thing icons from the current map, sorted by score). Common's widget shows only the "Globally available items" pane. The currently-available-on-map pane is removed. This is accepted: WorkType rules are global scoring rules (not per-map equipment selection), so the globally available ThingDef view is sufficient. The stat weights section and rule selection are fully migrated.
+**Dual-pane RESTORED (2026-06-07):** The Common `DoWidgetTab` API was extended with `ref mapThingIconBoxScrollPosition` and `mapThings` parameters. EM now wires the second "currently available on map" pane by passing `_currentlyAvailableMapThings` (pre-sorted by `GetThingScore` descending). The on-map list is rebuilt in `UpdateAvailableItems_WorkTypes` (triggered on rule-select and Refresh — not per-frame). The prior cosmetic delta (single-pane only) is resolved; no intentional cosmetic delta remains.
+
+**On-map selection logic:** `_currentlyAvailableMapThings` is built as follows:
+1. `globalDefs = new HashSet<ThingDef>(selectedRule.GetGloballyAvailableItems())`
+2. From `Find.CurrentMap?.listerThings?.ThingsInGroup(ThingRequestGroup.Weapon)`: take things whose `def` is in `globalDefs`, skip forbidden (`thing.TryGetComp<CompForbiddable>() is { Forbidden: true }`).
+3. Sort by `selectedRule.GetThingScore(thing)` descending (pre-sort; widget renders in supplied order).
+4. When no map or no rule selected → empty list (widget renders single pane gracefully).
 
 **Manual in-game verification needed:**
 
@@ -119,9 +125,12 @@ This document specifies manual verification steps for test coverage that cannot 
 |------|----------------------|-----|
 | 1. Open Manage Rules → Work types tab. | Tab renders without error; rule selector button appears at top. | AC-7 |
 | 2. Select a work type rule. | Stat weights section appears; sliders for each weight are shown; Add/Delete stat weight works. | AC-7 |
-| 3. Verify bottom section. | "Available items" section shows globally available ThingDef icons (not a split currently-available pane). This is the intentional cosmetic delta. | AC-7 |
-| 4. Verify Refresh button in bottom section. | Clicking Refresh updates the globally available ThingDef list. | AC-7 |
-| 5. Verify No Rule Selected state. | When no rule is selected, a "No rule selected" label appears in the scrollable area. | AC-7 |
+| 3. Verify bottom section (in-game with a map loaded). | Bottom section shows two side-by-side panes: left = "Available items" (globally available ThingDef icons), right = "Currently available on map" (Thing icons from current map, sorted by score descending). | AC-7 |
+| 4. Verify bottom section (no map / main menu). | Bottom section shows single full-width pane (globally available ThingDef icons only). No crash/error. | AC-7 |
+| 5. Verify Refresh button in bottom section. | Clicking Refresh rebuilds both the globally available ThingDef list and the on-map Things list. | AC-7 |
+| 6. Verify No Rule Selected state. | When no rule is selected, a "No rule selected" label appears in the scrollable area; bottom section shows single pane (empty map list). | AC-7 |
+| 7. Verify on-map items are sorted by score. | On-map Things in the right pane appear in descending score order for the selected rule. | AC-7 |
+| 8. Verify forbidden items excluded. | Weapons marked as forbidden (red X) on the current map do not appear in the right pane. | AC-7 |
 
 ---
 

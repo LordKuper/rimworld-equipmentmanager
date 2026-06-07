@@ -502,6 +502,7 @@ internal partial class ManageWeaponRulesDialog : Window
         _whitelistScrollPosition.Set(0, 0);
         _workTypesScrollPosition.Set(0, 0);
         _workTypesThingIconBoxScrollPosition.Set(0, 0);
+        _workTypesMapThingIconBoxScrollPosition.Set(0, 0);
         _workTypesScrollableContentHeight = 0f;
     }
 
