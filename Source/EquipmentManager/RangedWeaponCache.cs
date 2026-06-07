@@ -263,6 +263,11 @@ internal class RangedWeaponCache : ThingCache
     public override bool Update(RimWorldTime time)
     {
         if (!base.Update(time)) { return false; }
+        // Zero all conditionally-assigned accuracy and DPSA bands before recomputing. A weapon
+        // that changes its verb/range between cache windows would otherwise retain stale band
+        // values from the previous window for bands it no longer covers.
+        AccuracyClose = AccuracyShort = AccuracyMedium = AccuracyLong = 0f;
+        DpsaClose = DpsaShort = DpsaMedium = DpsaLong = Dpsa = 0f;
         try
         {
             if (Thing.def?.Verbs != null)
