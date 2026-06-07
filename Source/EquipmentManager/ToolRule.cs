@@ -29,9 +29,9 @@ internal class ToolRule : ItemRule
         _ranged = ranged;
     }
 
-    private static HashSet<ThingDef> _allRelevantThings;
+    // Reset to null by ResetCache(); lazily rebuilt on first access.
+    private static HashSet<ThingDef>? _allRelevantThings;
 
-    [NotNull]
     public static HashSet<ThingDef> AllRelevantThings
     {
         get
@@ -55,9 +55,8 @@ internal class ToolRule : ItemRule
         ResetEquipmentManagerCache();
     }
 
-    [NotNull] public static IEnumerable<string> DefaultBlacklist => [];
+    public static IEnumerable<string> DefaultBlacklist => [];
 
-    [NotNull]
     public static IEnumerable<ToolRule> DefaultRules =>
     [
         new(0, true)
@@ -76,7 +75,6 @@ internal class ToolRule : ItemRule
         }
     ];
 
-    [NotNull]
     public new static IEnumerable<StatWeight> DefaultStatWeights =>
         new[]
         {
@@ -97,8 +95,7 @@ internal class ToolRule : ItemRule
         Scribe_Values.Look(ref _ranged, nameof(Ranged));
     }
 
-    [NotNull]
-    public IEnumerable<Thing> GetCurrentlyAvailableItems([CanBeNull] Map map,
+    public IEnumerable<Thing> GetCurrentlyAvailableItems(Map? map,
         IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimWorldTime time)
     {
         Initialize();
@@ -106,9 +103,8 @@ internal class ToolRule : ItemRule
             .Where(thing => IsAvailable(thing, workTypeDefs, time)).ToList();
     }
 
-    [NotNull]
     public IEnumerable<Thing> GetCurrentlyAvailableItemsSorted(Map map,
-        [NotNull] IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimWorldTime time)
+        IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimWorldTime time)
     {
         return !workTypeDefs.Any()
             ? throw new ArgumentException("At least one work type must be passed",
@@ -117,7 +113,6 @@ internal class ToolRule : ItemRule
                 .OrderByDescending(thing => GetThingScore(thing, workTypeDefs, time));
     }
 
-    [NotNull]
     private IEnumerable<ThingDef> GetGloballyAvailableItems(
         IReadOnlyCollection<WorkTypeDef> workTypeDefs)
     {
@@ -133,7 +128,6 @@ internal class ToolRule : ItemRule
             .Union(def.equippedStatOffsets ?? []).Any(sm => relevantStats.Contains(sm.stat)));
     }
 
-    [NotNull]
     public IEnumerable<ThingDef> GetGloballyAvailableItemsSorted(
         IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimWorldTime time)
     {
@@ -141,7 +135,7 @@ internal class ToolRule : ItemRule
             .OrderByDescending(def => GetThingDefScore(def, workTypeDefs, time));
     }
 
-    private static float GetStatValue([NotNull] Thing thing, [NotNull] StatDef statDef,
+    private static float GetStatValue(Thing thing, StatDef statDef,
         IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimWorldTime time)
     {
         return thing == null ? throw new ArgumentNullException(nameof(thing)) :
@@ -149,24 +143,26 @@ internal class ToolRule : ItemRule
             EquipmentManager.GetToolCache(thing, time).GetStatValue(statDef, workTypeDefs);
     }
 
-    private float GetThingDefScore([NotNull] ThingDef def,
+    private float GetThingDefScore(ThingDef def,
         IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimWorldTime time)
     {
         if (def == null) { throw new ArgumentNullException(nameof(def)); }
         var cache = EquipmentManager.GetToolDefCache(def, time);
+        // StatDef is non-null here: filtered by Where(statWeight => statWeight.StatDef != null).
         return StatWeights.Where(statWeight => statWeight.StatDef != null).Sum(statWeight =>
-            StatRanges.NormalizeStatValue(statWeight.StatDef,
-                cache.GetStatValueDeviation(statWeight.StatDef, workTypeDefs)) * statWeight.Weight);
+            StatRanges.NormalizeStatValue(statWeight.StatDef!,
+                cache.GetStatValueDeviation(statWeight.StatDef!, workTypeDefs)) * statWeight.Weight);
     }
 
-    public float GetThingScore([NotNull] Thing thing, IReadOnlyCollection<WorkTypeDef> workTypeDefs,
+    public float GetThingScore(Thing thing, IReadOnlyCollection<WorkTypeDef> workTypeDefs,
         RimWorldTime time)
     {
         if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
         var cache = EquipmentManager.GetToolCache(thing, time);
+        // StatDef is non-null here: filtered by Where(sw => sw.StatDef != null).
         var score = StatWeights.Where(sw => sw.StatDef != null).Sum(statWeight =>
-            StatRanges.NormalizeStatValue(statWeight.StatDef,
-                cache.GetStatValueDeviation(statWeight.StatDef, workTypeDefs)) * statWeight.Weight);
+            StatRanges.NormalizeStatValue(statWeight.StatDef!,
+                cache.GetStatValueDeviation(statWeight.StatDef!, workTypeDefs)) * statWeight.Weight);
         if (thing.def.useHitPoints)
         {
             score *= HitPointsCurve.Evaluate((float)thing.HitPoints / thing.MaxHitPoints);
@@ -184,13 +180,14 @@ internal class ToolRule : ItemRule
                 SatisfiesLimits(thing, workTypeDefs, time)));
     }
 
-    private bool SatisfiesLimits([NotNull] Thing thing,
+    private bool SatisfiesLimits(Thing thing,
         IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimWorldTime time)
     {
         if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
+        // StatDef is non-null here: filtered by Where(limit => limit.StatDef != null).
         foreach (var statLimit in StatLimits.Where(limit => limit.StatDef != null))
         {
-            var value = GetStatValue(thing, statLimit.StatDef, workTypeDefs, time);
+            var value = GetStatValue(thing, statLimit.StatDef!, workTypeDefs, time);
             if ((statLimit.MinValue != null && value < statLimit.MinValue) ||
                 (statLimit.MaxValue != null && value > statLimit.MaxValue)) { return false; }
         }
@@ -210,14 +207,15 @@ internal class ToolRule : ItemRule
         foreach (var def in GetWhitelistedItems()) { _ = GloballyAvailableItems.Add(def); }
     }
 
-    public void UpdateStatRanges([NotNull] Thing thing,
-        [NotNull] IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimWorldTime time)
+    public void UpdateStatRanges(Thing thing,
+        IReadOnlyCollection<WorkTypeDef> workTypeDefs, RimWorldTime time)
     {
         if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
         if (workTypeDefs == null) { throw new ArgumentNullException(nameof(workTypeDefs)); }
         var cache = EquipmentManager.GetToolCache(thing, time);
-        var stats = StatWeights.Where(sw => sw.StatDef != null).Select(sw => sw.StatDef)
-            .Union(StatLimits.Where(sl => sl.StatDef != null).Select(sl => sl.StatDef));
+        // StatDef is non-null here: filtered by Where(sw/sl => sw/sl.StatDef != null).
+        var stats = StatWeights.Where(sw => sw.StatDef != null).Select(sw => sw.StatDef!)
+            .Union(StatLimits.Where(sl => sl.StatDef != null).Select(sl => sl.StatDef!));
         foreach (var stat in stats)
         {
             StatRanges.NormalizeStatValue(stat, cache.GetStatValueDeviation(stat, workTypeDefs));

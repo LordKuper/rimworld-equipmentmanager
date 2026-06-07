@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using EquipmentManager.CustomWidgets;
-using JetBrains.Annotations;
 using LordKuper.Common;
 using LordKuper.Common.Helpers;
 using LordKuper.Common.UI;
@@ -15,9 +14,9 @@ internal partial class ManageWeaponRulesDialog
 {
     private readonly List<Thing> _currentlyAvailableMeleeWeapons = [];
     private readonly List<ThingDef> _globallyAvailableMeleeWeapons = [];
-    private MeleeWeaponRule _selectedMeleeWeaponRule;
+    private MeleeWeaponRule? _selectedMeleeWeaponRule;
 
-    private MeleeWeaponRule SelectedMeleeWeaponRule
+    private MeleeWeaponRule? SelectedMeleeWeaponRule
     {
         get => _selectedMeleeWeaponRule;
         set
@@ -90,16 +89,16 @@ internal partial class ManageWeaponRulesDialog
                 propertiesRect.y, UiHelpers.ElementGap, propertiesRect.height));
         }
         DoRuleSetting(UiHelpers.GetBoolSettingRect(propertiesRect, 0, columnWidth),
-            () => SelectedMeleeWeaponRule.UsableWithShields, value =>
+            () => SelectedMeleeWeaponRule!.UsableWithShields, value =>
             {
-                SelectedMeleeWeaponRule.UsableWithShields = value;
+                SelectedMeleeWeaponRule!.UsableWithShields = value;
                 UpdateAvailableItems_MeleeWeapons();
             }, Resources.Strings.WeaponRules.MeleeWeapons.UsableWithShields,
             Resources.Strings.WeaponRules.MeleeWeapons.UsableWithShieldsTooltip);
         DoRuleSetting(UiHelpers.GetBoolSettingRect(propertiesRect, 1, columnWidth),
-            () => SelectedMeleeWeaponRule.Rottable, value =>
+            () => SelectedMeleeWeaponRule!.Rottable, value =>
             {
-                SelectedMeleeWeaponRule.Rottable = value;
+                SelectedMeleeWeaponRule!.Rottable = value;
                 UpdateAvailableItems_MeleeWeapons();
             }, Resources.Strings.WeaponRules.MeleeWeapons.Rottable,
             Resources.Strings.WeaponRules.MeleeWeapons.RottableTooltip);
@@ -187,13 +186,12 @@ internal partial class ManageWeaponRulesDialog
         }
     }
 
-    [NotNull]
-    private string GetMeleeWeaponDefTooltip([NotNull] ThingDef def, [NotNull] ItemRule rule)
+    private string GetMeleeWeaponDefTooltip(ThingDef def, ItemRule rule)
     {
         var stringBuilder = new StringBuilder();
         _ = stringBuilder.AppendLine(def.LabelCap);
-        var stats = rule.GetStatWeights().Where(sw => sw.StatDef != null).Select(sw => sw.StatDef)
-            .Union(rule.GetStatLimits().Where(sl => sl.StatDef != null).Select(sl => sl.StatDef))
+        var stats = rule.GetStatWeights().Where(sw => sw.StatDef != null).Select(sw => sw.StatDef!)
+            .Union(rule.GetStatLimits().Where(sl => sl.StatDef != null).Select(sl => sl.StatDef!))
             .ToHashSet();
         if (!stats.Any()) { return stringBuilder.ToString(); }
         var cache =
@@ -206,13 +204,12 @@ internal partial class ManageWeaponRulesDialog
         return stringBuilder.ToString();
     }
 
-    [NotNull]
-    private string GetMeleeWeaponTooltip([NotNull] Thing thing, [NotNull] ItemRule rule)
+    private string GetMeleeWeaponTooltip(Thing thing, ItemRule rule)
     {
         var stringBuilder = new StringBuilder();
         _ = stringBuilder.AppendLine(thing.LabelCapNoCount);
-        var stats = rule.GetStatWeights().Where(sw => sw.StatDef != null).Select(sw => sw.StatDef)
-            .Union(rule.GetStatLimits().Where(sl => sl.StatDef != null).Select(sl => sl.StatDef))
+        var stats = rule.GetStatWeights().Where(sw => sw.StatDef != null).Select(sw => sw.StatDef!)
+            .Union(rule.GetStatLimits().Where(sl => sl.StatDef != null).Select(sl => sl.StatDef!))
             .ToHashSet();
         if (!stats.Any()) { return stringBuilder.ToString(); }
         var cache =

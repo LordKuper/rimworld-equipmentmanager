@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using EquipmentManager.CustomWidgets;
-using JetBrains.Annotations;
 using LordKuper.Common;
 using LordKuper.Common.Helpers;
 using LordKuper.Common.UI;
@@ -15,9 +14,9 @@ internal partial class ManageWeaponRulesDialog
 {
     private readonly List<Thing> _currentlyAvailableRangedWeapons = [];
     private readonly List<ThingDef> _globallyAvailableRangedWeapons = [];
-    private RangedWeaponRule _selectedRangedWeaponRule;
+    private RangedWeaponRule? _selectedRangedWeaponRule;
 
-    private RangedWeaponRule SelectedRangedWeaponRule
+    private RangedWeaponRule? SelectedRangedWeaponRule
     {
         get => _selectedRangedWeaponRule;
         set
@@ -92,16 +91,16 @@ internal partial class ManageWeaponRulesDialog
                 propertiesRect.y, UiHelpers.ElementGap, propertiesRect.height));
         }
         DoRuleSetting(UiHelpers.GetBoolSettingRect(propertiesRect, 0, columnWidth),
-            () => SelectedRangedWeaponRule.Explosive, value =>
+            () => SelectedRangedWeaponRule!.Explosive, value =>
             {
-                SelectedRangedWeaponRule.Explosive = value;
+                SelectedRangedWeaponRule!.Explosive = value;
                 UpdateAvailableItems_RangedWeapons();
             }, Resources.Strings.WeaponRules.RangedWeapons.Explosive,
             Resources.Strings.WeaponRules.RangedWeapons.ExplosiveTooltip);
         DoRuleSetting(UiHelpers.GetBoolSettingRect(propertiesRect, 1, columnWidth),
-            () => SelectedRangedWeaponRule.ManualCast, value =>
+            () => SelectedRangedWeaponRule!.ManualCast, value =>
             {
-                SelectedRangedWeaponRule.ManualCast = value;
+                SelectedRangedWeaponRule!.ManualCast = value;
                 UpdateAvailableItems_RangedWeapons();
             }, Resources.Strings.WeaponRules.RangedWeapons.ManualCast,
             Resources.Strings.WeaponRules.RangedWeapons.ManualCastTooltip);
@@ -121,7 +120,7 @@ internal partial class ManageWeaponRulesDialog
             new Rect(rect.x, labelRect.yMax + UiHelpers.ElementGap, rect.width,
                 UiHelpers.ListRowHeight), Resources.Strings.WeaponRules.RangedWeapons.AmmoCount,
             Resources.Strings.WeaponRules.RangedWeapons.AmmoCountTooltip);
-        SelectedRangedWeaponRule.AmmoCount = (int)Widgets.HorizontalSlider(ammoCountRect,
+        SelectedRangedWeaponRule!.AmmoCount = (int)Widgets.HorizontalSlider(ammoCountRect,
             SelectedRangedWeaponRule.AmmoCount, 0f, 1000f, true,
             $"{SelectedRangedWeaponRule.AmmoCount:N0}", roundTo: 10f);
     }
@@ -216,13 +215,12 @@ internal partial class ManageWeaponRulesDialog
         }
     }
 
-    [NotNull]
-    private string GetRangedWeaponDefTooltip([NotNull] ThingDef def, [NotNull] ItemRule rule)
+    private string GetRangedWeaponDefTooltip(ThingDef def, ItemRule rule)
     {
         var stringBuilder = new StringBuilder();
         _ = stringBuilder.AppendLine(def.LabelCap);
-        var stats = rule.GetStatWeights().Where(sw => sw.StatDef != null).Select(sw => sw.StatDef)
-            .Union(rule.GetStatLimits().Where(sl => sl.StatDef != null).Select(sl => sl.StatDef))
+        var stats = rule.GetStatWeights().Where(sw => sw.StatDef != null).Select(sw => sw.StatDef!)
+            .Union(rule.GetStatLimits().Where(sl => sl.StatDef != null).Select(sl => sl.StatDef!))
             .ToHashSet();
         if (!stats.Any()) { return stringBuilder.ToString(); }
         var cache =
@@ -235,13 +233,12 @@ internal partial class ManageWeaponRulesDialog
         return stringBuilder.ToString();
     }
 
-    [NotNull]
-    private string GetRangedWeaponTooltip([NotNull] Thing thing, [NotNull] ItemRule rule)
+    private string GetRangedWeaponTooltip(Thing thing, ItemRule rule)
     {
         var stringBuilder = new StringBuilder();
         _ = stringBuilder.AppendLine(thing.LabelCapNoCount);
-        var stats = rule.GetStatWeights().Where(sw => sw.StatDef != null).Select(sw => sw.StatDef)
-            .Union(rule.GetStatLimits().Where(sl => sl.StatDef != null).Select(sl => sl.StatDef))
+        var stats = rule.GetStatWeights().Where(sw => sw.StatDef != null).Select(sw => sw.StatDef!)
+            .Union(rule.GetStatLimits().Where(sl => sl.StatDef != null).Select(sl => sl.StatDef!))
             .ToHashSet();
         if (!stats.Any()) { return stringBuilder.ToString(); }
         var cache =

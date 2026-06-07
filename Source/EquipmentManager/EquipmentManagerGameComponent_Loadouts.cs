@@ -1,7 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
 using LordKuper.Common;
 using LordKuper.Common.Filters.Limits;
 using Verse;
@@ -10,10 +9,11 @@ namespace EquipmentManager;
 
 internal partial class EquipmentManagerGameComponent
 {
-    private List<Loadout> _loadouts;
-    private List<PawnLoadout> _pawnLoadouts;
+    // Populated by Scribe on load (IExposable lifecycle); = null! asserts the fields are always
+    // set before any read, consistent with the RimWorld load contract.
+    private List<Loadout> _loadouts = null!;
+    private List<PawnLoadout> _pawnLoadouts = null!;
 
-    [NotNull]
     public Loadout AddLoadout()
     {
         var id = _loadouts.Any() ? _loadouts.Max(l => l.Id) + 1 : 0;
@@ -22,7 +22,7 @@ internal partial class EquipmentManagerGameComponent
         return loadout;
     }
 
-    public void AddLoadout([NotNull] Loadout loadout)
+    public void AddLoadout(Loadout loadout)
     {
         loadout.NormalizeLegacyCustomStatDefNames();
         var existingLoadout = _loadouts.FirstOrDefault(l => l.Id == loadout.Id);
@@ -30,8 +30,7 @@ internal partial class EquipmentManagerGameComponent
         _loadouts.Add(loadout);
     }
 
-    [NotNull]
-    public Loadout CopyLoadout([NotNull] Loadout loadout)
+    public Loadout CopyLoadout(Loadout loadout)
     {
         var newLoadout = AddLoadout();
         newLoadout.Label = $"{loadout.Label} 2";
@@ -50,8 +49,9 @@ internal partial class EquipmentManagerGameComponent
         }
         foreach (var pawnCapacityLimit in loadout.PawnCapacityLimits)
         {
+            // PawnCapacityDefName is populated by Scribe; non-null by load contract.
             newLoadout.PawnCapacityLimits.Add(new PawnCapacityLimit(
-                pawnCapacityLimit.PawnCapacityDefName, pawnCapacityLimit.MinValue,
+                pawnCapacityLimit.PawnCapacityDefName!, pawnCapacityLimit.MinValue,
                 pawnCapacityLimit.MaxValue));
         }
         foreach (var pawnCapacityWeight in loadout.PawnCapacityWeights)
@@ -70,7 +70,8 @@ internal partial class EquipmentManagerGameComponent
         }
         foreach (var skillLimit in loadout.SkillLimits)
         {
-            newLoadout.SkillLimits.Add(new PawnSkillLimit(skillLimit.SkillDefName,
+            // SkillDefName is populated by Scribe; non-null by load contract.
+            newLoadout.SkillLimits.Add(new PawnSkillLimit(skillLimit.SkillDefName!,
                 skillLimit.MinValue, skillLimit.MaxValue));
         }
         foreach (var skillWeight in loadout.SkillWeights)
@@ -80,7 +81,8 @@ internal partial class EquipmentManagerGameComponent
         }
         foreach (var statLimit in loadout.StatLimits)
         {
-            newLoadout.StatLimits.Add(new StatLimit(statLimit.StatDefName, statLimit.MinValue,
+            // StatDefName is populated by Scribe; non-null by load contract.
+            newLoadout.StatLimits.Add(new StatLimit(statLimit.StatDefName!, statLimit.MinValue,
                 statLimit.MaxValue));
         }
         foreach (var statWeight in loadout.StatWeights)
@@ -110,28 +112,24 @@ internal partial class EquipmentManagerGameComponent
         Scribe_Collections.Look(ref _pawnLoadouts, "PawnLoadouts", LookMode.Deep);
     }
 
-    [CanBeNull]
-    public Loadout GetLoadout(int? id)
+    public Loadout? GetLoadout(int? id)
     {
         return id == null ? null : GetLoadouts().FirstOrDefault(loadout => loadout.Id == id);
     }
 
-    [CanBeNull]
-    public Loadout GetLoadout([NotNull] Pawn pawn)
+    public Loadout? GetLoadout(Pawn pawn)
     {
         if (pawn == null) { throw new ArgumentNullException(nameof(pawn)); }
         _pawnLoadouts ??= [];
         return GetLoadout(GetPawnLoadout(pawn).LoadoutId);
     }
 
-    [NotNull]
     public IEnumerable<Loadout> GetLoadouts()
     {
         return _loadouts ??= [..Loadout.DefaultLoadouts];
     }
 
-    [NotNull]
-    public PawnLoadout GetPawnLoadout([NotNull] Pawn pawn)
+    public PawnLoadout GetPawnLoadout(Pawn pawn)
     {
         if (pawn == null) { throw new ArgumentNullException(nameof(pawn)); }
         _pawnLoadouts ??= [];
@@ -143,7 +141,7 @@ internal partial class EquipmentManagerGameComponent
         return pawnLoadout;
     }
 
-    public void SetPawnLoadout([NotNull] Pawn pawn, [CanBeNull] Loadout loadout, bool automatic)
+    public void SetPawnLoadout(Pawn pawn, Loadout? loadout, bool automatic)
     {
         if (pawn == null) { throw new ArgumentNullException(nameof(pawn)); }
         _pawnLoadouts ??= [];

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using JetBrains.Annotations;
 using LordKuper.Common;
 using LordKuper.Common.Cache;
 using RimWorld;
@@ -9,10 +8,11 @@ namespace EquipmentManager;
 
 internal class PawnCache(Pawn pawn) : TimedCache(6f, true)
 {
-    private static EquipmentManagerGameComponent _equipmentManager;
+    private static EquipmentManagerGameComponent? _equipmentManager;
     public readonly Dictionary<Thing, int> AssignedAmmo = new();
     public readonly Dictionary<Thing, string> AssignedWeapons = new();
-    public Loadout AssignedLoadout;
+    // Null when the pawn is on auto-loadout (no manual assignment).
+    public Loadout? AssignedLoadout;
     public bool AutoLoadout;
     public bool ShouldUpdateEquipment;
 
@@ -23,7 +23,7 @@ internal class PawnCache(Pawn pawn) : TimedCache(6f, true)
 
     public Pawn Pawn { get; } = pawn;
 
-    public bool IsAvailable([NotNull] Loadout loadout)
+    public bool IsAvailable(Loadout loadout)
     {
         return AvailableLoadouts.ContainsKey(loadout);
     }

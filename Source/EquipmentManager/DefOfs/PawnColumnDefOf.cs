@@ -8,6 +8,8 @@ namespace EquipmentManager.DefOfs;
  SuppressMessage("ReSharper", "InconsistentNaming")]
 public static class PawnColumnDefOf
 {
+    // Populated by RimWorld's [DefOf] reflection injection before any game code runs.
+    // The field is contractually non-null at every read site after startup completes.
     [SuppressMessage("Usage", "CA2211:Non-constant fields should not be visible")]
-    public static PawnColumnDef EM_Loadout;
+    public static PawnColumnDef EM_Loadout = null!;
 }

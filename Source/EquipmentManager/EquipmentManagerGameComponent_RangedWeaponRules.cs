@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
 using LordKuper.Common;
 using RimWorld;
 using Verse;
@@ -11,9 +10,10 @@ internal partial class EquipmentManagerGameComponent
 {
     private readonly Dictionary<ThingDef, RangedWeaponCache> _rangedWeaponDefsCache = new();
     private readonly Dictionary<Thing, RangedWeaponCache> _rangedWeaponsCache = new();
-    private List<RangedWeaponRule> _rangedWeaponRules;
+    // Populated by Scribe on load (IExposable lifecycle); = null! asserts the field is always
+    // set before any read, consistent with the RimWorld load contract.
+    private List<RangedWeaponRule> _rangedWeaponRules = null!;
 
-    [NotNull]
     public RangedWeaponRule AddRangedWeaponRule()
     {
         var id = _rangedWeaponRules.Any() ? _rangedWeaponRules.Max(l => l.Id) + 1 : 0;
@@ -34,7 +34,7 @@ internal partial class EquipmentManagerGameComponent
         return rangedWeaponRule;
     }
 
-    public void AddRangedWeaponRule([NotNull] RangedWeaponRule rangedWeaponRule)
+    public void AddRangedWeaponRule(RangedWeaponRule rangedWeaponRule)
     {
         rangedWeaponRule.NormalizeLegacyCustomStatDefNames();
         var existingRule =
@@ -43,8 +43,7 @@ internal partial class EquipmentManagerGameComponent
         _rangedWeaponRules.Add(rangedWeaponRule);
     }
 
-    [NotNull]
-    public RangedWeaponRule CopyRangedWeaponRule([NotNull] RangedWeaponRule rangedWeaponRule)
+    public RangedWeaponRule CopyRangedWeaponRule(RangedWeaponRule rangedWeaponRule)
     {
         var newRangedWeaponRule = AddRangedWeaponRule();
         newRangedWeaponRule.Label = $"{rangedWeaponRule.Label} 2";
@@ -52,11 +51,14 @@ internal partial class EquipmentManagerGameComponent
         newRangedWeaponRule.ManualCast = rangedWeaponRule.ManualCast;
         foreach (var statWeight in rangedWeaponRule.GetStatWeights())
         {
+            // StatDef may be null on loaded items from older saves; guard before calling.
+            if (statWeight.StatDef == null) { continue; }
             newRangedWeaponRule.SetStatWeight(statWeight.StatDef, statWeight.Weight,
                 statWeight.Protected);
         }
         foreach (var statLimit in rangedWeaponRule.GetStatLimits())
         {
+            if (statLimit.StatDef == null) { continue; }
             newRangedWeaponRule.SetStatLimit(statLimit.StatDef, statLimit.MinValue,
                 statLimit.MaxValue);
         }
@@ -93,8 +95,7 @@ internal partial class EquipmentManagerGameComponent
         Scribe_Collections.Look(ref _rangedWeaponRules, "RangedWeaponRules", LookMode.Deep);
     }
 
-    [NotNull]
-    public RangedWeaponCache GetRangedWeaponCache([NotNull] Thing thing, RimWorldTime time)
+    public RangedWeaponCache GetRangedWeaponCache(Thing thing, RimWorldTime time)
     {
         if (!_rangedWeaponsCache.TryGetValue(thing, out var cache))
         {
@@ -105,8 +106,7 @@ internal partial class EquipmentManagerGameComponent
         return cache;
     }
 
-    [NotNull]
-    public RangedWeaponCache GetRangedWeaponDefCache([NotNull] ThingDef thingDef, RimWorldTime time)
+    public RangedWeaponCache GetRangedWeaponDefCache(ThingDef thingDef, RimWorldTime time)
     {
         if (!_rangedWeaponDefsCache.TryGetValue(thingDef, out var cache))
         {
@@ -120,13 +120,11 @@ internal partial class EquipmentManagerGameComponent
         return cache;
     }
 
-    [CanBeNull]
-    public RangedWeaponRule GetRangedWeaponRule(int id)
+    public RangedWeaponRule? GetRangedWeaponRule(int id)
     {
         return GetRangedWeaponRules().FirstOrDefault(rule => rule.Id == id);
     }
 
-    [NotNull]
     public IEnumerable<RangedWeaponRule> GetRangedWeaponRules()
     {
         if (_rangedWeaponRules == null || _rangedWeaponRules.Count == 0)

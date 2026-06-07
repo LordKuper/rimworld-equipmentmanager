@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using JetBrains.Annotations;
+using System.Collections.Generic;
 using LordKuper.Common;
 using Verse;
 
@@ -7,12 +6,14 @@ namespace EquipmentManager;
 
 internal partial class EquipmentManagerGameComponent
 {
-    private List<WorkTypeThingRule> _workTypeRules;
+    // Populated by Scribe on load (IExposable lifecycle); = null! asserts the field is always
+    // set before any read, consistent with the RimWorld load contract.
+    private List<WorkTypeThingRule> _workTypeRules = null!;
 
     // Keyed lookup built on first access after any rule edit; null signals a stale cache.
-    private Dictionary<string, WorkTypeThingRule> _workTypeRulesByDefName;
+    private Dictionary<string, WorkTypeThingRule>? _workTypeRulesByDefName;
 
-    public void AddWorkTypeRule([NotNull] WorkTypeThingRule workTypeRule)
+    public void AddWorkTypeRule(WorkTypeThingRule workTypeRule)
     {
         var existingRule =
             _workTypeRules.FirstOrDefault(rule =>
@@ -34,7 +35,6 @@ internal partial class EquipmentManagerGameComponent
         _workTypeRulesByDefName = null;
     }
 
-    [NotNull]
     public IEnumerable<WorkTypeThingRule> GetWorkTypeRules()
     {
         if (_workTypeRules == null || _workTypeRules.Count == 0)
@@ -50,8 +50,7 @@ internal partial class EquipmentManagerGameComponent
     ///     <c>null</c> if no rule exists for it. Uses a defName-keyed dictionary built once per
     ///     rule-list version, avoiding a per-call linear scan.
     /// </summary>
-    [CanBeNull]
-    public WorkTypeThingRule GetWorkTypeRuleByDefName([NotNull] string workTypeDefName)
+    public WorkTypeThingRule? GetWorkTypeRuleByDefName(string workTypeDefName)
     {
         if (_workTypeRulesByDefName == null)
         {
@@ -59,7 +58,10 @@ internal partial class EquipmentManagerGameComponent
             _workTypeRulesByDefName = new Dictionary<string, WorkTypeThingRule>(_workTypeRules.Count);
             foreach (var rule in _workTypeRules)
             {
-                _workTypeRulesByDefName[rule.WorkTypeDefName] = rule;
+                if (rule.WorkTypeDefName != null)
+                {
+                    _workTypeRulesByDefName[rule.WorkTypeDefName] = rule;
+                }
             }
         }
         _ = _workTypeRulesByDefName.TryGetValue(workTypeDefName, out var result);

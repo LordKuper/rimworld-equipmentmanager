@@ -6,7 +6,9 @@ internal class PawnLoadout : IExposable
 {
     public bool Automatic;
     public int? LoadoutId;
-    public Pawn Pawn;
+    // Populated by Scribe_References.Look on load (IExposable lifecycle); = null! asserts
+    // the field is always set before any read, consistent with the RimWorld load contract.
+    public Pawn Pawn = null!;
 
     public void ExposeData()
     {

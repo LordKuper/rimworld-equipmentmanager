@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using HarmonyLib;
-using JetBrains.Annotations;
 using LordKuper.Common;
 using LordKuper.Common.CustomStats;
 using LordKuper.Common.Helpers;
@@ -12,16 +11,18 @@ namespace EquipmentManager;
 
 internal class MeleeWeaponCache : ThingCache
 {
-    private AccessTools.FieldRef<Tool, float> _armorPenetrationBluntDelegate;
-    private AccessTools.FieldRef<Tool, float> _armorPenetrationSharpDelegate;
+    // CE reflection-delegate fields: legitimately null when Combat Extended is absent.
+    // Kept nullable with existing null-guards per ADR-0003.
+    private AccessTools.FieldRef<Tool, float>? _armorPenetrationBluntDelegate;
+    private AccessTools.FieldRef<Tool, float>? _armorPenetrationSharpDelegate;
     private bool _initialized;
-    private Type _toolType;
+    private Type? _toolType;
 
-    public MeleeWeaponCache([NotNull] Thing thing) : base(thing, 24f) { }
+    public MeleeWeaponCache(Thing thing) : base(thing, 24f) { }
 
     private float ArmorPenetration { get; set; }
 
-    private AccessTools.FieldRef<Tool, float> ArmorPenetrationBluntDelegate
+    private AccessTools.FieldRef<Tool, float>? ArmorPenetrationBluntDelegate
     {
         get
         {
@@ -30,7 +31,7 @@ internal class MeleeWeaponCache : ThingCache
         }
     }
 
-    private AccessTools.FieldRef<Tool, float> ArmorPenetrationSharpDelegate
+    private AccessTools.FieldRef<Tool, float>? ArmorPenetrationSharpDelegate
     {
         get
         {
@@ -39,7 +40,7 @@ internal class MeleeWeaponCache : ThingCache
         }
     }
 
-    private Type ToolType
+    private Type? ToolType
     {
         get
         {
@@ -48,7 +49,7 @@ internal class MeleeWeaponCache : ThingCache
         }
     }
 
-    private float GetCustomStatValue([NotNull] StatDef statDef)
+    private float GetCustomStatValue(StatDef statDef)
     {
         try
         {
@@ -116,7 +117,7 @@ internal class MeleeWeaponCache : ThingCache
         }
     }
 
-    public float GetStatValue([NotNull] StatDef statDef)
+    public float GetStatValue(StatDef statDef)
     {
         if (!StatValues.TryGetValue(statDef, out var value))
         {
@@ -128,7 +129,7 @@ internal class MeleeWeaponCache : ThingCache
         return value;
     }
 
-    public float GetStatValueDeviation([NotNull] StatDef statDef)
+    public float GetStatValueDeviation(StatDef statDef)
     {
         return statDef == null ? throw new ArgumentNullException(nameof(statDef)) :
             MeleeWeaponStats.IsCustomStat(statDef.defName) ? GetCustomStatValue(statDef) :

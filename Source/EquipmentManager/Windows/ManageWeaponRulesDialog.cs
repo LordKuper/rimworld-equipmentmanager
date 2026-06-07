@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using EquipmentManager.CustomWidgets;
-using JetBrains.Annotations;
 using LordKuper.Common;
 using LordKuper.Common.Filters.Limits;
 using RimWorld;
@@ -20,7 +19,7 @@ internal partial class ManageWeaponRulesDialog : Window
     private Vector2 _blacklistScrollPosition;
     private Vector2 _currentItemsScrollPosition;
     private static DialogTab _currentTab = DialogTab.MeleeWeapons;
-    private EquipmentManagerGameComponent _equipmentManager;
+    private EquipmentManagerGameComponent? _equipmentManager;
     private Vector2 _globalItemsScrollPosition;
     private Vector2 _statLimitsScrollPosition;
     private Vector2 _statWeightsScrollPosition;
@@ -49,15 +48,15 @@ internal partial class ManageWeaponRulesDialog : Window
 
     private static Vector2 MaxSize => new(1000f, 1000f);
 
-    private static void CheckSelectedItemRuleHasName([CanBeNull] ItemRule rule)
+    private static void CheckSelectedItemRuleHasName(ItemRule? rule)
     {
         if (rule == null || !rule.Label.NullOrEmpty()) { return; }
         rule.Label = $"{rule.Id}";
     }
 
-    private void DoAvailableItems(Rect rect, [NotNull] IReadOnlyList<ThingDef> globalItems,
+    private void DoAvailableItems(Rect rect, IReadOnlyList<ThingDef> globalItems,
         Action<ThingDef> globalItemRightClickAction, Func<ThingDef, string> globalTooltipGetter,
-        [NotNull] IReadOnlyList<Thing> currentItems, Action<Thing> currentItemRightClickAction,
+        IReadOnlyList<Thing> currentItems, Action<Thing> currentItemRightClickAction,
         Func<Thing, string> currentTooltipGetter, Action refreshAction)
     {
         var columnWidth = (rect.width - UiHelpers.ElementGap) / 2f;
@@ -71,7 +70,7 @@ internal partial class ManageWeaponRulesDialog : Window
             refreshAction, currentTooltipGetter);
     }
 
-    private void DoBlacklist(Rect rect, [NotNull] IReadOnlyCollection<ThingDef> items,
+    private void DoBlacklist(Rect rect, IReadOnlyCollection<ThingDef> items,
         IEnumerable<ThingDef> allItems, Action<ThingDef> addAction,
         Action<ThingDef> rightClickAction, Func<ThingDef, string> tooltipGetter)
     {
@@ -99,7 +98,7 @@ internal partial class ManageWeaponRulesDialog : Window
             items.ToList(), rightClickAction, tooltipGetter);
     }
 
-    private void DoCurrentlyAvailableItems(Rect rect, [NotNull] IReadOnlyList<Thing> items,
+    private void DoCurrentlyAvailableItems(Rect rect, IReadOnlyList<Thing> items,
         Action<Thing> rightClickAction, Action refreshAction, Func<Thing, string> tooltipGetter)
     {
         var font = Text.Font;
@@ -122,9 +121,9 @@ internal partial class ManageWeaponRulesDialog : Window
     }
 
     private void DoExclusiveItems(Rect rect, HashSet<ThingDef> allItems,
-        [NotNull] IReadOnlyCollection<ThingDef> whitelistedItems,
+        IReadOnlyCollection<ThingDef> whitelistedItems,
         Action<ThingDef> whitelistedItemsRightClickAction, Action<ThingDef> addToWhitelistAction,
-        [NotNull] IReadOnlyCollection<ThingDef> blacklistedItems,
+        IReadOnlyCollection<ThingDef> blacklistedItems,
         Action<ThingDef> blacklistedItemsRightClickAction, Action<ThingDef> addToBlacklistAction,
         Func<ThingDef, string> tooltipGetter)
     {
@@ -139,7 +138,7 @@ internal partial class ManageWeaponRulesDialog : Window
             blacklistedItemsRightClickAction, tooltipGetter);
     }
 
-    private void DoGloballyAvailableItems(Rect rect, [NotNull] IReadOnlyList<ThingDef> items,
+    private void DoGloballyAvailableItems(Rect rect, IReadOnlyList<ThingDef> items,
         Action<ThingDef> rightClickAction, Action refreshAction,
         Func<ThingDef, string> tooltipGetter)
     {
@@ -162,7 +161,7 @@ internal partial class ManageWeaponRulesDialog : Window
             ref _globalItemsScrollPosition, items, rightClickAction, tooltipGetter);
     }
 
-    private static void DoRuleSetting(Rect settingRect, [NotNull] Func<bool?> getter,
+    private static void DoRuleSetting(Rect settingRect, Func<bool?> getter,
         Action<bool?> setter, string label, string tooltip)
     {
         var checkboxRect = new Rect(settingRect.x, settingRect.y, settingRect.height,
@@ -180,7 +179,7 @@ internal partial class ManageWeaponRulesDialog : Window
     }
 
     private void DoRuleStatLimits(Rect rect, IEnumerable<StatDef> statDefs,
-        [NotNull] IReadOnlyList<StatLimit> statLimits, Action<StatDef> addAction,
+        IReadOnlyList<StatLimit> statLimits, Action<StatDef> addAction,
         Action<string> deleteAction)
     {
         var font = Text.Font;
@@ -216,7 +215,7 @@ internal partial class ManageWeaponRulesDialog : Window
                 .ContractedBy(4f);
             if (Widgets.ButtonImageFitted(deleteButtonRect, Resources.Textures.Delete))
             {
-                deleteAction(statLimit.StatDefName);
+                deleteAction(statLimit.StatDefName!);
                 break;
             }
             var statLabelRect = new Rect(deleteButtonRect.xMax + UiHelpers.ElementGap / 2f,
@@ -251,8 +250,8 @@ internal partial class ManageWeaponRulesDialog : Window
     }
 
     private void DoRuleStats(Rect rect, IReadOnlyList<StatDef> statDefs,
-        [NotNull] IReadOnlyList<StatWeight> statWeights, Action<StatDef> addWeightAction,
-        Action<string> deleteWeightAction, [NotNull] IReadOnlyList<StatLimit> statLimits,
+        IReadOnlyList<StatWeight> statWeights, Action<StatDef> addWeightAction,
+        Action<string> deleteWeightAction, IReadOnlyList<StatLimit> statLimits,
         Action<StatDef> addLimitAction, Action<string> deleteLimitAction)
     {
         var columnWidth = (rect.width - UiHelpers.ElementGap) / 2f;
@@ -265,7 +264,7 @@ internal partial class ManageWeaponRulesDialog : Window
     }
 
     private void DoRuleStatWeights(Rect rect, IEnumerable<StatDef> statDefs,
-        [NotNull] IReadOnlyList<StatWeight> statWeights, Action<StatDef> addAction,
+        IReadOnlyList<StatWeight> statWeights, Action<StatDef> addAction,
         Action<string> deleteAction)
     {
         var font = Text.Font;
@@ -303,7 +302,7 @@ internal partial class ManageWeaponRulesDialog : Window
             {
                 if (Widgets.ButtonImageFitted(deleteButtonRect, Resources.Textures.Delete))
                 {
-                    deleteAction(statWeight.StatDefName);
+                    deleteAction(statWeight.StatDefName!);
                     break;
                 }
             }
@@ -327,7 +326,7 @@ internal partial class ManageWeaponRulesDialog : Window
     }
 
     private static void DoWeaponRuleEquipMode(Rect rect,
-        [NotNull] Func<ItemRule.WeaponEquipMode> getter, Action<ItemRule.WeaponEquipMode> setter)
+        Func<ItemRule.WeaponEquipMode> getter, Action<ItemRule.WeaponEquipMode> setter)
     {
         var font = Text.Font;
         var anchor = Text.Anchor;
@@ -349,7 +348,7 @@ internal partial class ManageWeaponRulesDialog : Window
         Text.Anchor = anchor;
     }
 
-    private void DoWhitelist(Rect rect, [NotNull] IReadOnlyCollection<ThingDef> items,
+    private void DoWhitelist(Rect rect, IReadOnlyCollection<ThingDef> items,
         IEnumerable<ThingDef> allItems, Action<ThingDef> addAction,
         Action<ThingDef> rightClickAction, Func<ThingDef, string> tooltipGetter)
     {

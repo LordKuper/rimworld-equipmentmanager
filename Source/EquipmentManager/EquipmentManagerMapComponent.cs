@@ -16,7 +16,7 @@ namespace EquipmentManager;
 internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
 {
     private HashSet<Pawn> _allPawns = [];
-    private EquipmentManagerGameComponent _equipmentManager;
+    private EquipmentManagerGameComponent? _equipmentManager;
     private bool _hasUpdateTime;
     private Dictionary<Pawn, PawnCache> _pawnCache = [];
     private RimWorldTime _updateTime;
@@ -24,8 +24,8 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
     private EquipmentManagerGameComponent EquipmentManager =>
         _equipmentManager ??= Current.Game.GetComponent<EquipmentManagerGameComponent>();
 
-    private void AssignAllTools([NotNull] PawnCache pawn, [NotNull] ToolRule rule,
-        [NotNull] HashSet<Thing> assignedByOthers)
+    private void AssignAllTools(PawnCache pawn, ToolRule rule,
+        HashSet<Thing> assignedByOthers)
     {
         var workTypes = WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder
             .Where(wt => !pawn.Pawn.WorkTypeIsDisabled(wt)).ToList();
@@ -69,8 +69,8 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
         }
     }
 
-    private void AssignBestTool([NotNull] PawnCache pawn, [NotNull] ToolRule rule,
-        [NotNull] HashSet<Thing> assignedByOthers)
+    private void AssignBestTool(PawnCache pawn, ToolRule rule,
+        HashSet<Thing> assignedByOthers)
     {
         var sidearmMemory = CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn);
         var workTypes = WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder
@@ -116,12 +116,12 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
         }
     }
 
-    private void AssignPrimaryMeleeWeapon([NotNull] PawnCache pawn,
-        [NotNull] HashSet<Thing> assignedByOthers)
+    private void AssignPrimaryMeleeWeapon(PawnCache pawn,
+        HashSet<Thing> assignedByOthers)
     {
         var sidearmMemory = CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn);
         sidearmMemory.primaryWeaponMode = Enums.PrimaryWeaponMode.Melee;
-        if (pawn.AssignedLoadout.PrimaryMeleeWeaponRuleId == null) { return; }
+        if (pawn.AssignedLoadout!.PrimaryMeleeWeaponRuleId == null) { return; }
         var rule =
             EquipmentManager.GetMeleeWeaponRule((int)pawn.AssignedLoadout.PrimaryMeleeWeaponRuleId);
         if (rule == null) { return; }
@@ -161,12 +161,12 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
         }
     }
 
-    private void AssignPrimaryRangedWeapon([NotNull] PawnCache pawn,
-        [NotNull] HashSet<Thing> assignedByOthers)
+    private void AssignPrimaryRangedWeapon(PawnCache pawn,
+        HashSet<Thing> assignedByOthers)
     {
         var sidearmMemory = CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn);
         sidearmMemory.primaryWeaponMode = Enums.PrimaryWeaponMode.Ranged;
-        if (pawn.AssignedLoadout.PrimaryRangedWeaponRuleId == null) { return; }
+        if (pawn.AssignedLoadout!.PrimaryRangedWeaponRuleId == null) { return; }
         var rule =
             EquipmentManager.GetRangedWeaponRule(
                 (int)pawn.AssignedLoadout.PrimaryRangedWeaponRuleId);
@@ -209,8 +209,8 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
         UpdateAmmo(pawn, bestWeapon, rule);
     }
 
-    private void AssignToolsForWorkTypes([NotNull] PawnCache pawn, [NotNull] ToolRule rule,
-        List<WorkTypeDef> workTypes, [NotNull] HashSet<Thing> assignedByOthers)
+    private void AssignToolsForWorkTypes(PawnCache pawn, ToolRule rule,
+        List<WorkTypeDef> workTypes, HashSet<Thing> assignedByOthers)
     {
         var sidearmMemory = CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn);
         var availableWeapons =
@@ -322,7 +322,7 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
         }
     }
 
-    private static bool ShouldRequestQueueing([NotNull] PawnCache pawn)
+    private static bool ShouldRequestQueueing(PawnCache pawn)
     {
         return pawn.Pawn.CurJob != null;
     }
@@ -423,7 +423,7 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
             pawn.AssignedAmmo.Clear();
         }
         EquipmentManager.LogMessage(
-            $"Equipment Manager: {string.Join(", ", _pawnCache.Values.Where(pc => pc.AssignedLoadout != null).Select(pc => $"{pc.Pawn.LabelShortCap} = {pc.AssignedLoadout.Label}"))}");
+            $"Equipment Manager: {string.Join(", ", _pawnCache.Values.Where(pc => pc.AssignedLoadout != null).Select(pc => $"{pc.Pawn.LabelShortCap} = {pc.AssignedLoadout!.Label}"))}");
     }
 
     private void UpdateMeleeSidearms()
@@ -434,10 +434,10 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
             var assignedByOthers = new HashSet<Thing>(_pawnCache.Values.Where(pc => pc != pawn)
                 .SelectMany(pc => pc.AssignedWeapons.Keys));
             var sidearmMemory = CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn);
-            foreach (var rule in pawn.AssignedLoadout.MeleeSidearmRules
+            foreach (var rule in pawn.AssignedLoadout!.MeleeSidearmRules
                          .Select(EquipmentManager.GetMeleeWeaponRule).Where(rule => rule != null))
             {
-                var availableWeapons = rule.GetCurrentlyAvailableItems(map, _updateTime).ToList();
+                var availableWeapons = rule!.GetCurrentlyAvailableItems(map, _updateTime).ToList();
                 _ = availableWeapons.RemoveAll(thing =>
                     !StatCalculator.CanPickupSidearmInstance((ThingWithComps)thing, pawn.Pawn,
                         out _));
@@ -555,7 +555,7 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
         foreach (var pawn in _pawnCache.Values.Where(pc =>
                      pc.ShouldUpdateEquipment && pc.AssignedLoadout != null))
         {
-            switch (pawn.AssignedLoadout.PrimaryRuleType)
+            switch (pawn.AssignedLoadout!.PrimaryRuleType)
             {
                 case Loadout.PrimaryWeaponType.None:
                     break;
@@ -578,11 +578,11 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
         {
             var assignedByOthers = new HashSet<Thing>(_pawnCache.Values.Where(pc => pc != pawn)
                 .SelectMany(pc => pc.AssignedWeapons.Keys));
-            foreach (var rule in pawn.AssignedLoadout.RangedSidearmRules
+            foreach (var rule in pawn.AssignedLoadout!.RangedSidearmRules
                          .Select(EquipmentManager.GetRangedWeaponRule).Where(rule => rule != null))
             {
                 var sidearmMemory = CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn);
-                var availableWeapons = rule.GetCurrentlyAvailableItems(map, _updateTime).ToList();
+                var availableWeapons = rule!.GetCurrentlyAvailableItems(map, _updateTime).ToList();
                 var carriedWeapons = pawn.Pawn.GetCarriedWeapons(true, true)
                     .Where(weapon => rule.IsAvailable(weapon, _updateTime)).ToList();
                 availableWeapons.AddRange(carriedWeapons);
@@ -673,7 +673,7 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
         foreach (var pawn in _pawnCache.Values.Where(pc =>
                      pc.ShouldUpdateEquipment && pc.AssignedLoadout != null))
         {
-            if (pawn.AssignedLoadout.ToolRuleId == null) { continue; }
+            if (pawn.AssignedLoadout!.ToolRuleId == null) { continue; }
             var rule = EquipmentManager.GetToolRule((int)pawn.AssignedLoadout.ToolRuleId);
             if (rule == null) { continue; }
             switch (rule.EquipMode)

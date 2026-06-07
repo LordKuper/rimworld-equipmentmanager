@@ -8,7 +8,7 @@ namespace EquipmentManager.Windows;
 
 internal class LogDialog : Window
 {
-    private EquipmentManagerGameComponent _equipmentManager;
+    private EquipmentManagerGameComponent? _equipmentManager;
     private Vector2 _scrollPosition;
     private float _listingViewHeight;
 

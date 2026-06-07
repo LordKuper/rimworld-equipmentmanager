@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
-using JetBrains.Annotations;
 using LordKuper.Common;
 using LordKuper.Common.CustomStats;
 using LordKuper.Common.Helpers;
@@ -13,18 +12,19 @@ namespace EquipmentManager;
 
 internal class RangedWeaponCache : ThingCache
 {
-    private AmmoUserPropsDelegate _ammoUserPropsMethod;
+    // CE reflection-delegate field: legitimately null when Combat Extended is absent.
+    // Kept nullable with existing null-guards per ADR-0003.
+    private AmmoUserPropsDelegate? _ammoUserPropsMethod;
     private bool _initialized;
     private bool _isAmmo;
 
-    public RangedWeaponCache([NotNull] Thing thing) : base(thing, 24f) { }
+    public RangedWeaponCache(Thing thing) : base(thing, 24f) { }
 
     private float AccuracyClose { get; set; }
     private float AccuracyLong { get; set; }
     private float AccuracyMedium { get; set; }
     private float AccuracyShort { get; set; }
 
-    [NotNull]
     public IEnumerable<ThingDef> AmmoTypes
     {
         get
@@ -44,17 +44,20 @@ internal class RangedWeaponCache : ThingCache
                     $"CompProperties_AmmoUser was not found for {Thing.LabelCapNoCount}");
                 return ammoTypes;
             }
+            if (CombatExtendedHelper.AmmoSetDelegate == null) { return ammoTypes; }
             var ammoSet = CombatExtendedHelper.AmmoSetDelegate(ammoUserProps);
             if (ammoSet == null)
             {
                 Logger.LogError($"Ammo set was not found for {Thing.LabelCapNoCount}");
                 return ammoTypes;
             }
+            if (CombatExtendedHelper.AmmoTypesDelegate == null) { return ammoTypes; }
             if (!(CombatExtendedHelper.AmmoTypesDelegate(ammoSet) is IEnumerable<object> ammoLinks))
             {
                 Logger.LogError($"Could not get ammo links for {Thing.LabelCapNoCount}");
                 return ammoTypes;
             }
+            if (CombatExtendedHelper.AmmoDelegate == null) { return ammoTypes; }
             ammoTypes.AddRange(ammoLinks
                 .Select(ammoLink => CombatExtendedHelper.AmmoDelegate(ammoLink))
                 .Where(ammoType => ammoType != null));
@@ -62,8 +65,7 @@ internal class RangedWeaponCache : ThingCache
         }
     }
 
-    [CanBeNull]
-    private ThingComp AmmoUserComp =>
+    private ThingComp? AmmoUserComp =>
         !(Thing is ThingWithComps thingWithComps)
             ? null
             : thingWithComps.AllComps.FirstOrDefault(comp =>
@@ -96,7 +98,7 @@ internal class RangedWeaponCache : ThingCache
     private int TicksBetweenBurstShots { get; set; }
     private float Warmup { get; set; }
 
-    private float GetCustomStatValue([NotNull] StatDef statDef)
+    private float GetCustomStatValue(StatDef statDef)
     {
         if (Enum.TryParse(RangedWeaponStats.GetStatName(statDef.defName),
                 out RangedWeaponStat rangedWeaponStat))
@@ -137,7 +139,7 @@ internal class RangedWeaponCache : ThingCache
         return 0f;
     }
 
-    public float GetStatValue([NotNull] StatDef statDef)
+    public float GetStatValue(StatDef statDef)
     {
         if (!StatValues.TryGetValue(statDef, out var value))
         {
@@ -149,7 +151,7 @@ internal class RangedWeaponCache : ThingCache
         return value;
     }
 
-    public float GetStatValueDeviation([NotNull] StatDef statDef)
+    public float GetStatValueDeviation(StatDef statDef)
     {
         return statDef == null ? throw new ArgumentNullException(nameof(statDef)) :
             RangedWeaponStats.IsCustomStat(statDef.defName) ? GetCustomStatValue(statDef) :
@@ -196,7 +198,7 @@ internal class RangedWeaponCache : ThingCache
         }
     }
 
-    private void ReadProjectileProperties([NotNull] ProjectileProperties projectileProperties)
+    private void ReadProjectileProperties(ProjectileProperties projectileProperties)
     {
         if (projectileProperties == null)
         {
@@ -230,7 +232,7 @@ internal class RangedWeaponCache : ThingCache
     }
 
     private void ReadProjectilePropertiesCombatExtended(
-        [NotNull] ProjectileProperties projectileProperties)
+        ProjectileProperties projectileProperties)
     {
         if (projectileProperties.damageDef == null)
         {

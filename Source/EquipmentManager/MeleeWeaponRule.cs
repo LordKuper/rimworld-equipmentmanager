@@ -14,7 +14,8 @@ internal class MeleeWeaponRule : ItemRule
 {
     public delegate bool UsableWithShieldsDelegate(ThingDef thing);
 
-    public static UsableWithShieldsDelegate UsableWithShieldsMethod;
+    // CE reflection-delegate: legitimately null when CE is absent. Kept nullable with null-guard.
+    public static UsableWithShieldsDelegate? UsableWithShieldsMethod;
     private bool? _rottable;
     private bool? _usableWithShields;
     public WeaponEquipMode EquipMode = WeaponEquipMode.BestOne;
@@ -34,9 +35,9 @@ internal class MeleeWeaponRule : ItemRule
         _rottable = rottable;
     }
 
-    private static HashSet<ThingDef> _allRelevantThings;
+    // Reset to null by ResetCache(); lazily rebuilt on first access.
+    private static HashSet<ThingDef>? _allRelevantThings;
 
-    [NotNull]
     public static HashSet<ThingDef> AllRelevantThings
     {
         get
@@ -57,9 +58,8 @@ internal class MeleeWeaponRule : ItemRule
         ResetEquipmentManagerCache();
     }
 
-    [NotNull] public static IEnumerable<string> DefaultBlacklist => ["WoodLog", "Beer"];
+    public static IEnumerable<string> DefaultBlacklist => ["WoodLog", "Beer"];
 
-    [NotNull]
     public static IEnumerable<MeleeWeaponRule> DefaultRules =>
     [
         new(0, true)
@@ -110,7 +110,6 @@ internal class MeleeWeaponRule : ItemRule
         }
     ];
 
-    [NotNull]
     public new static IEnumerable<StatWeight> DefaultStatWeights =>
         new[]
         {
@@ -139,15 +138,13 @@ internal class MeleeWeaponRule : ItemRule
         Scribe_Values.Look(ref _rottable, nameof(Rottable));
     }
 
-    [NotNull]
-    public IEnumerable<Thing> GetCurrentlyAvailableItems([CanBeNull] Map map, RimWorldTime time)
+    public IEnumerable<Thing> GetCurrentlyAvailableItems(Map? map, RimWorldTime time)
     {
         Initialize();
         return (map?.listerThings?.ThingsInGroup(ThingRequestGroup.Weapon) ?? [])
             .Where(thing => IsAvailable(thing, time)).ToList();
     }
 
-    [NotNull]
     public IEnumerable<Thing> GetCurrentlyAvailableItemsSorted(Map map, RimWorldTime time)
     {
         return GetCurrentlyAvailableItems(map, time)
@@ -160,36 +157,36 @@ internal class MeleeWeaponRule : ItemRule
         return GloballyAvailableItems;
     }
 
-    [NotNull]
     public IEnumerable<ThingDef> GetGloballyAvailableItemsSorted(RimWorldTime time)
     {
         return GetGloballyAvailableItems().OrderByDescending(def => GetThingDefScore(def, time));
     }
 
-    private static float GetStatValue([NotNull] Thing thing, [NotNull] StatDef statDef,
-        RimWorldTime time)
+    private static float GetStatValue(Thing thing, StatDef statDef, RimWorldTime time)
     {
         return thing == null ? throw new ArgumentNullException(nameof(thing)) :
             statDef == null ? throw new ArgumentNullException(nameof(statDef)) :
             EquipmentManager.GetMeleeWeaponCache(thing, time).GetStatValue(statDef);
     }
 
-    private float GetThingDefScore([NotNull] ThingDef def, RimWorldTime time)
+    private float GetThingDefScore(ThingDef def, RimWorldTime time)
     {
         if (def == null) { throw new ArgumentNullException(nameof(def)); }
         var cache = EquipmentManager.GetMeleeWeaponDefCache(def, time);
+        // StatDef is non-null here: filtered by Where(statWeight => statWeight.StatDef != null).
         return StatWeights.Where(statWeight => statWeight.StatDef != null).Sum(statWeight =>
-            StatRanges.NormalizeStatValue(statWeight.StatDef,
-                cache.GetStatValueDeviation(statWeight.StatDef)) * statWeight.Weight);
+            StatRanges.NormalizeStatValue(statWeight.StatDef!,
+                cache.GetStatValueDeviation(statWeight.StatDef!)) * statWeight.Weight);
     }
 
-    public float GetThingScore([NotNull] Thing thing, RimWorldTime time)
+    public float GetThingScore(Thing thing, RimWorldTime time)
     {
         if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
         var cache = EquipmentManager.GetMeleeWeaponCache(thing, time);
+        // StatDef is non-null here: filtered by Where(sw => sw.StatDef != null).
         var score = StatWeights.Where(sw => sw.StatDef != null).Sum(statWeight =>
-            StatRanges.NormalizeStatValue(statWeight.StatDef,
-                cache.GetStatValueDeviation(statWeight.StatDef)) * statWeight.Weight);
+            StatRanges.NormalizeStatValue(statWeight.StatDef!,
+                cache.GetStatValueDeviation(statWeight.StatDef!)) * statWeight.Weight);
         if (thing.def.useHitPoints)
         {
             score *= HitPointsCurve.Evaluate((float)thing.HitPoints / thing.MaxHitPoints);
@@ -205,12 +202,13 @@ internal class MeleeWeaponRule : ItemRule
             (GetGloballyAvailableItems().Contains(thing.def) && SatisfiesLimits(thing, time)));
     }
 
-    private bool SatisfiesLimits([NotNull] Thing thing, RimWorldTime time)
+    private bool SatisfiesLimits(Thing thing, RimWorldTime time)
     {
         if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
+        // StatDef is non-null here: filtered by Where(limit => limit.StatDef != null).
         foreach (var statLimit in StatLimits.Where(limit => limit.StatDef != null))
         {
-            var value = GetStatValue(thing, statLimit.StatDef, time);
+            var value = GetStatValue(thing, statLimit.StatDef!, time);
             if ((statLimit.MinValue != null && value < statLimit.MinValue) ||
                 (statLimit.MaxValue != null && value > statLimit.MaxValue)) { return false; }
         }
@@ -236,12 +234,13 @@ internal class MeleeWeaponRule : ItemRule
         foreach (var def in GetWhitelistedItems()) { _ = GloballyAvailableItems.Add(def); }
     }
 
-    public void UpdateStatRanges([NotNull] Thing thing, RimWorldTime time)
+    public void UpdateStatRanges(Thing thing, RimWorldTime time)
     {
         if (thing == null) { throw new ArgumentNullException(nameof(thing)); }
         var cache = EquipmentManager.GetMeleeWeaponCache(thing, time);
-        var stats = StatWeights.Where(sw => sw.StatDef != null).Select(sw => sw.StatDef)
-            .Union(StatLimits.Where(sl => sl.StatDef != null).Select(sl => sl.StatDef));
+        // StatDef is non-null here: filtered by Where(sw/sl => sw/sl.StatDef != null).
+        var stats = StatWeights.Where(sw => sw.StatDef != null).Select(sw => sw.StatDef!)
+            .Union(StatLimits.Where(sl => sl.StatDef != null).Select(sl => sl.StatDef!));
         foreach (var stat in stats)
         {
             StatRanges.NormalizeStatValue(stat, cache.GetStatValueDeviation(stat));

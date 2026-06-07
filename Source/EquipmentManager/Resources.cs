@@ -1,5 +1,4 @@
-﻿using JetBrains.Annotations;
-using UnityEngine;
+﻿using UnityEngine;
 using Verse;
 
 namespace EquipmentManager;
@@ -123,7 +122,6 @@ internal static class Resources
             internal static readonly string ToolsLabel =
                 $"EquipmentManager.Loadouts.{nameof(ToolsLabel)}".Translate();
 
-            [NotNull]
             internal static string GetPrimaryWeaponTypeLabel(
                 Loadout.PrimaryWeaponType primaryWeaponType)
             {
@@ -158,13 +156,11 @@ internal static class Resources
 
         internal static class Stats
         {
-            [NotNull]
             internal static string GetStatDescription(string defName)
             {
                 return $"EquipmentManager.Stats.{defName}.Description".Translate();
             }
 
-            [NotNull]
             internal static string GetStatLabel(string defName)
             {
                 return $"EquipmentManager.Stats.{defName}.Label".Translate();
@@ -234,13 +230,11 @@ internal static class Resources
             internal static readonly string WhitelistedItemsTooltip =
                 $"EquipmentManager.WeaponRules.{nameof(WhitelistedItemsTooltip)}".Translate();
 
-            [NotNull]
             internal static string GetToolEquipModeLabel(ItemRule.ToolEquipMode equipMode)
             {
                 return $"EquipmentManager.WeaponRules.ToolEquipModes.{equipMode}".Translate();
             }
 
-            [NotNull]
             internal static string GetWeaponEquipModeLabel(ItemRule.WeaponEquipMode equipMode)
             {
                 return $"EquipmentManager.WeaponRules.WeaponEquipModes.{equipMode}".Translate();

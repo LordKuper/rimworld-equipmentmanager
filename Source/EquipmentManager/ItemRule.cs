@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
 using LordKuper.Common;
 using LordKuper.Common.Filters.Limits;
 using RimWorld;
@@ -11,7 +10,7 @@ namespace EquipmentManager;
 
 internal class ItemRule : IExposable
 {
-    private static EquipmentManagerGameComponent _equipmentManager;
+    private static EquipmentManagerGameComponent? _equipmentManager;
 
     protected static readonly SimpleCurve HitPointsCurve =
     [
@@ -28,7 +27,9 @@ internal class ItemRule : IExposable
     private HashSet<ThingDef> _whitelistedItems = [];
     protected HashSet<string> BlacklistedItemsDefNames = [];
     protected HashSet<ThingDef> GloballyAvailableItems = [];
-    public string Label;
+    // Label is populated by Scribe on load (IExposable lifecycle); = null! asserts the field
+    // is always set before any read, consistent with the RimWorld load contract.
+    public string Label = null!;
     protected List<StatLimit> StatLimits = [];
     protected List<StatWeight> StatWeights = [];
     protected HashSet<string> WhitelistedItemsDefNames = [];
@@ -54,7 +55,6 @@ internal class ItemRule : IExposable
         _protected = isProtected;
     }
 
-    [NotNull]
     protected static IEnumerable<StatWeight> DefaultStatWeights =>
         CombatExtendedHelper.CombatExtended
             ? new[]
@@ -76,7 +76,10 @@ internal class ItemRule : IExposable
     public virtual void ExposeData()
     {
         Scribe_Values.Look(ref _id, nameof(Id));
-        Scribe_Values.Look(ref Label, nameof(Label));
+        // Use a nullable temp so Scribe can write null on new-game; restore non-null after.
+        string? label = Label;
+        Scribe_Values.Look(ref label, nameof(Label));
+        Label = label ?? Label;
         Scribe_Values.Look(ref _protected, nameof(Protected));
         Scribe_Collections.Look(ref StatWeights, nameof(StatWeights), LookMode.Deep);
         Scribe_Collections.Look(ref StatLimits, nameof(StatLimits), LookMode.Deep);
@@ -86,7 +89,7 @@ internal class ItemRule : IExposable
             LookMode.Value);
     }
 
-    public void AddBlacklistedItem([NotNull] ThingDef thingDef)
+    public void AddBlacklistedItem(ThingDef thingDef)
     {
         if (thingDef == null) { throw new ArgumentNullException(nameof(thingDef)); }
         if (!BlacklistedItemsDefNames.Add(thingDef.defName)) { return; }
@@ -94,7 +97,7 @@ internal class ItemRule : IExposable
         UpdateExclusiveItems();
     }
 
-    public void AddWhitelistedItem([NotNull] ThingDef thingDef)
+    public void AddWhitelistedItem(ThingDef thingDef)
     {
         if (thingDef == null) { throw new ArgumentNullException(nameof(thingDef)); }
         if (!WhitelistedItemsDefNames.Add(thingDef.defName)) { return; }
@@ -174,7 +177,7 @@ internal class ItemRule : IExposable
         _equipmentManager = null;
     }
 
-    public void SetStatLimit([NotNull] StatDef statDef, float? min, float? max)
+    public void SetStatLimit(StatDef statDef, float? min, float? max)
     {
         if (statDef == null) { throw new ArgumentNullException(nameof(statDef)); }
         var statLimit = StatLimits.FirstOrDefault(limit => limit.StatDef == statDef);
@@ -189,7 +192,7 @@ internal class ItemRule : IExposable
         statLimit.MaxValueBuffer = max.ToString();
     }
 
-    public void SetStatWeight([NotNull] StatDef statDef, float weight, bool isProtected)
+    public void SetStatWeight(StatDef statDef, float weight, bool isProtected)
     {
         if (statDef == null) { throw new ArgumentNullException(nameof(statDef)); }
         var statWeight = StatWeights.FirstOrDefault(sw => sw.StatDef == statDef);

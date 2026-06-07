@@ -8,8 +8,11 @@ internal class SkillWeight : IExposable
 {
     public const float WeightCap = 2f;
     private bool _isInitialized;
-    private SkillDef _skillDef;
-    private string _skillDefName;
+    // _skillDef is resolved lazily from _skillDefName; may be null if the def is missing.
+    private SkillDef? _skillDef;
+    // _skillDefName is populated by Scribe on load (IExposable lifecycle); null until Scribe
+    // populates it or the parametrised constructor sets it.
+    private string? _skillDefName;
     public float Weight;
 
     [UsedImplicitly]
@@ -26,7 +29,7 @@ internal class SkillWeight : IExposable
         Weight = weight;
     }
 
-    public SkillDef SkillDef
+    public SkillDef? SkillDef
     {
         get
         {
@@ -35,7 +38,7 @@ internal class SkillWeight : IExposable
         }
     }
 
-    public string SkillDefName => _skillDefName;
+    public string SkillDefName => _skillDefName ?? string.Empty;
 
     public void ExposeData()
     {
@@ -47,6 +50,7 @@ internal class SkillWeight : IExposable
     {
         if (_isInitialized) { return; }
         _isInitialized = true;
+        if (_skillDefName == null) { return; }
         _skillDef = DefDatabase<SkillDef>.GetNamedSilentFail(_skillDefName);
     }
 }

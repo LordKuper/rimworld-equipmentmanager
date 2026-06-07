@@ -112,12 +112,14 @@ internal class Loadout : IExposable
     private List<StatLimit> _statLimits = [];
     private List<StatWeight> _statWeights = [];
     private int _scoreContextTick = -1;
-    private List<Pawn> _scoreContextPawns;
+    private List<Pawn> _scoreContextPawns = [];
     private readonly Dictionary<StatDef, FloatRange> _scoreStatRanges = new();
     private readonly Dictionary<SkillDef, FloatRange> _scoreSkillRanges = new();
     private readonly Dictionary<PawnCapacityDef, FloatRange> _scoreCapacityRanges = new();
     public bool DropUnassignedWeapons = true;
-    public string Label;
+    // Populated by Scribe on load (IExposable lifecycle); = null! asserts the field is always
+    // set before any read, consistent with the RimWorld load contract.
+    public string Label = null!;
     public int? PrimaryMeleeWeaponRuleId;
     public int? PrimaryRangedWeaponRuleId;
     public int Priority;
@@ -288,7 +290,10 @@ internal class Loadout : IExposable
     public void ExposeData()
     {
         Scribe_Values.Look(ref _id, nameof(Id));
-        Scribe_Values.Look(ref Label, nameof(Label));
+        // Use a nullable temp so Scribe can write null on new-game; restore non-null after.
+        string? label = Label;
+        Scribe_Values.Look(ref label, nameof(Label));
+        Label = label ?? Label;
         Scribe_Values.Look(ref Priority, nameof(Priority));
         Scribe_Values.Look(ref _primaryRuleType, nameof(PrimaryRuleType));
         Scribe_Values.Look(ref PrimaryRangedWeaponRuleId, nameof(PrimaryRangedWeaponRuleId));
@@ -309,7 +314,6 @@ internal class Loadout : IExposable
         Scribe_Collections.Look(ref _statWeights, nameof(StatWeights), LookMode.Deep);
     }
 
-    [NotNull]
     public IReadOnlyList<Pawn> GetAvailablePawnsOrdered()
     {
         Initialize();
@@ -324,28 +328,28 @@ internal class Loadout : IExposable
         var score = 0f;
         foreach (var statWeight in _statWeights.Where(sw => sw.StatDef != null))
         {
-            if (statWeight.StatDef.Worker?.IsDisabledFor(pawn) ?? false) { continue; }
-            if (!_scoreStatRanges.TryGetValue(statWeight.StatDef, out var range)) { continue; }
+            if (statWeight.StatDef!.Worker?.IsDisabledFor(pawn) ?? false) { continue; }
+            if (!_scoreStatRanges.TryGetValue(statWeight.StatDef!, out var range)) { continue; }
             var normalizedValue = MathHelper.NormalizeValue(
-                StatHelper.GetStatValue(pawn, statWeight.StatDef), range);
+                StatHelper.GetStatValue(pawn, statWeight.StatDef!), range);
             score += normalizedValue * statWeight.Weight;
         }
         foreach (var skillWeight in _skillWeights.Where(sw => sw.SkillDef != null))
         {
-            if (!_scoreSkillRanges.TryGetValue(skillWeight.SkillDef, out var range)) { continue; }
+            if (!_scoreSkillRanges.TryGetValue(skillWeight.SkillDef!, out var range)) { continue; }
             var normalizedValue = MathHelper.NormalizeValue(
-                pawn.skills.GetSkill(skillWeight.SkillDef).Level, range);
+                pawn.skills.GetSkill(skillWeight.SkillDef!).Level, range);
             score += normalizedValue * skillWeight.Weight;
         }
         foreach (var pawnCapacityWeight in _pawnCapacityWeights.Where(pcw =>
                      pcw.PawnCapacityDef != null))
         {
-            if (!_scoreCapacityRanges.TryGetValue(pawnCapacityWeight.PawnCapacityDef, out var range))
+            if (!_scoreCapacityRanges.TryGetValue(pawnCapacityWeight.PawnCapacityDef!, out var range))
             {
                 continue;
             }
             var normalizedValue = MathHelper.NormalizeValue(
-                pawn.health.capacities.GetLevel(pawnCapacityWeight.PawnCapacityDef), range);
+                pawn.health.capacities.GetLevel(pawnCapacityWeight.PawnCapacityDef!), range);
             score += normalizedValue * pawnCapacityWeight.Weight;
         }
         return score;
@@ -361,26 +365,26 @@ internal class Loadout : IExposable
         foreach (var statWeight in _statWeights.Where(sw => sw.StatDef != null))
         {
             var eligible = _scoreContextPawns
-                .Where(p => !(statWeight.StatDef.Worker?.IsDisabledFor(p) ?? false)).ToList();
+                .Where(p => !(statWeight.StatDef!.Worker?.IsDisabledFor(p) ?? false)).ToList();
             if (!eligible.Any()) { continue; }
-            var values = eligible.Select(p => StatHelper.GetStatValue(p, statWeight.StatDef)).ToList();
-            _scoreStatRanges[statWeight.StatDef] = new FloatRange(values.Min(), values.Max());
+            var values = eligible.Select(p => StatHelper.GetStatValue(p, statWeight.StatDef!)).ToList();
+            _scoreStatRanges[statWeight.StatDef!] = new FloatRange(values.Min(), values.Max());
         }
         _scoreSkillRanges.Clear();
         foreach (var skillWeight in _skillWeights.Where(sw => sw.SkillDef != null))
         {
-            var values = _scoreContextPawns.Select(p => (float)p.skills.GetSkill(skillWeight.SkillDef).Level).ToList();
+            var values = _scoreContextPawns.Select(p => (float)p.skills.GetSkill(skillWeight.SkillDef!).Level).ToList();
             if (!values.Any()) { continue; }
-            _scoreSkillRanges[skillWeight.SkillDef] = new FloatRange(values.Min(), values.Max());
+            _scoreSkillRanges[skillWeight.SkillDef!] = new FloatRange(values.Min(), values.Max());
         }
         _scoreCapacityRanges.Clear();
         foreach (var pawnCapacityWeight in _pawnCapacityWeights.Where(pcw =>
                      pcw.PawnCapacityDef != null))
         {
             var values = _scoreContextPawns
-                .Select(p => p.health.capacities.GetLevel(pawnCapacityWeight.PawnCapacityDef)).ToList();
+                .Select(p => p.health.capacities.GetLevel(pawnCapacityWeight.PawnCapacityDef!)).ToList();
             if (!values.Any()) { continue; }
-            _scoreCapacityRanges[pawnCapacityWeight.PawnCapacityDef] =
+            _scoreCapacityRanges[pawnCapacityWeight.PawnCapacityDef!] =
                 new FloatRange(values.Min(), values.Max());
         }
     }
@@ -444,7 +448,7 @@ internal class Loadout : IExposable
         }
         foreach (var passionLimit in _passionLimits.Where(pl => pl.SkillDef != null))
         {
-            var passion = pawn.skills.GetSkill(passionLimit.SkillDef).passion;
+            var passion = pawn.skills.GetSkill(passionLimit.SkillDef!).passion;
             switch (passionLimit.Value)
             {
                 case PassionValue.None:
@@ -464,7 +468,7 @@ internal class Loadout : IExposable
         foreach (var pawnCapacityLimit in _pawnCapacityLimits.Where(pcl =>
                      pcl.PawnCapacityDef != null))
         {
-            var capacity = pawn.health.capacities.GetLevel(pawnCapacityLimit.PawnCapacityDef);
+            var capacity = pawn.health.capacities.GetLevel(pawnCapacityLimit.PawnCapacityDef!);
             if ((pawnCapacityLimit.MinValue != null && capacity < pawnCapacityLimit.MinValue) ||
                 (pawnCapacityLimit.MaxValue != null && capacity > pawnCapacityLimit.MaxValue))
             {
@@ -473,14 +477,14 @@ internal class Loadout : IExposable
         }
         foreach (var statLimit in _statLimits.Where(sl => sl.StatDef != null))
         {
-            if (statLimit.StatDef.Worker?.IsDisabledFor(pawn) ?? false) { return false; }
-            var statValue = StatHelper.GetStatValue(pawn, statLimit.StatDef);
+            if (statLimit.StatDef!.Worker?.IsDisabledFor(pawn) ?? false) { return false; }
+            var statValue = StatHelper.GetStatValue(pawn, statLimit.StatDef!);
             if ((statLimit.MinValue != null && statValue < statLimit.MinValue) ||
                 (statLimit.MaxValue != null && statValue > statLimit.MaxValue)) { return false; }
         }
         foreach (var skillLimit in _skillLimits.Where(sl => sl.SkillDef != null))
         {
-            var skillValue = pawn.skills.GetSkill(skillLimit.SkillDef).Level;
+            var skillValue = pawn.skills.GetSkill(skillLimit.SkillDef!).Level;
             if ((skillLimit.MinValue != null && skillValue < skillLimit.MinValue) ||
                 (skillLimit.MaxValue != null && skillValue > skillLimit.MaxValue)) { return false; }
         }

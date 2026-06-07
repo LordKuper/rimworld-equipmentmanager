@@ -13,21 +13,20 @@ namespace EquipmentManager.PawnColumnWorkers;
 [UsedImplicitly]
 internal class Loadout : PawnColumnWorker
 {
-    private static EquipmentManagerGameComponent _equipmentManager;
+    private static EquipmentManagerGameComponent? _equipmentManager;
 
     private static EquipmentManagerGameComponent EquipmentManager =>
         _equipmentManager ??= Current.Game.GetComponent<EquipmentManagerGameComponent>();
 
-    [NotNull]
-    private static IEnumerable<Widgets.DropdownMenuElement<EquipmentManager.Loadout>>
+    private static IEnumerable<Widgets.DropdownMenuElement<EquipmentManager.Loadout?>>
         Button_GenerateMenu(Pawn pawn)
     {
         var loadouts = EquipmentManager.GetLoadouts().ToList();
         if (!loadouts.Any())
         {
-            return Array.Empty<Widgets.DropdownMenuElement<EquipmentManager.Loadout>>();
+            return Array.Empty<Widgets.DropdownMenuElement<EquipmentManager.Loadout?>>();
         }
-        var elements = new List<Widgets.DropdownMenuElement<EquipmentManager.Loadout>>
+        var elements = new List<Widgets.DropdownMenuElement<EquipmentManager.Loadout?>>
         {
             new()
             {
@@ -36,7 +35,7 @@ internal class Loadout : PawnColumnWorker
             }
         };
         elements.AddRange(loadouts.Select(currentLoadout =>
-            new Widgets.DropdownMenuElement<EquipmentManager.Loadout>
+            new Widgets.DropdownMenuElement<EquipmentManager.Loadout?>
             {
                 option = new FloatMenuOption(currentLoadout.Label,
                     () => EquipmentManager.SetPawnLoadout(pawn, currentLoadout, false)),
@@ -45,7 +44,7 @@ internal class Loadout : PawnColumnWorker
         return elements;
     }
 
-    public override int Compare([NotNull] Pawn a, [NotNull] Pawn b)
+    public override int Compare(Pawn a, Pawn b)
     {
         return (EquipmentManager.GetPawnLoadout(a).LoadoutId ?? int.MinValue).CompareTo(
             EquipmentManager.GetPawnLoadout(b).LoadoutId ?? int.MinValue);

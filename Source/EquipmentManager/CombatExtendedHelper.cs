@@ -6,15 +6,18 @@ namespace EquipmentManager;
 
 internal static class CombatExtendedHelper
 {
-    private static EnableAmmoSystemDelegate _enableAmmoSystemMethod;
-    public static AccessTools.FieldRef<object, ThingDef> AmmoDelegate;
-    public static AccessTools.FieldRef<CompProperties, Def> AmmoSetDelegate;
-    public static AccessTools.FieldRef<Def, object> AmmoTypesDelegate;
-    public static AccessTools.FieldRef<ProjectileProperties, float> ArmorPenetrationBluntDelegate;
-    public static AccessTools.FieldRef<ProjectileProperties, float> ArmorPenetrationSharpDelegate;
+    // These fields are CE reflection-delegate / soft-dependency fields populated by Initialize()
+    // when Combat Extended is present at runtime. They are legitimately null when CE is absent,
+    // so they are declared nullable with existing null-guards rather than using = null!.
+    private static EnableAmmoSystemDelegate? _enableAmmoSystemMethod;
+    public static AccessTools.FieldRef<object, ThingDef>? AmmoDelegate;
+    public static AccessTools.FieldRef<CompProperties, Def>? AmmoSetDelegate;
+    public static AccessTools.FieldRef<Def, object>? AmmoTypesDelegate;
+    public static AccessTools.FieldRef<ProjectileProperties, float>? ArmorPenetrationBluntDelegate;
+    public static AccessTools.FieldRef<ProjectileProperties, float>? ArmorPenetrationSharpDelegate;
     public static bool CombatExtended;
-    public static Type CompAmmoUserType;
-    public static Type ProjectilePropertiesType;
+    public static Type? CompAmmoUserType;
+    public static Type? ProjectilePropertiesType;
 
     public static bool EnableAmmoSystem =>
         _enableAmmoSystemMethod != null && _enableAmmoSystemMethod();

@@ -1,7 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
 using LordKuper.Common;
 using LordKuper.Common.CustomStats;
 using LordKuper.Common.Helpers;
@@ -12,15 +11,15 @@ namespace EquipmentManager;
 
 internal class ToolCache : ThingCache
 {
-    private static EquipmentManagerGameComponent _equipmentManager;
+    private static EquipmentManagerGameComponent? _equipmentManager;
     private readonly Dictionary<string, float> _workTypeScores = new();
 
-    public ToolCache([NotNull] Thing thing) : base(thing, 24f) { }
+    public ToolCache(Thing thing) : base(thing, 24f) { }
 
     private static EquipmentManagerGameComponent EquipmentManager =>
         _equipmentManager ??= Current.Game.GetComponent<EquipmentManagerGameComponent>();
 
-    private float GetCustomStatValue([NotNull] StatDef statDef,
+    private float GetCustomStatValue(StatDef statDef,
         IReadOnlyCollection<WorkTypeDef> workTypeDefs)
     {
         if (Enum.TryParse(ToolStats.GetStatName(statDef.defName), out ToolStat toolStat))
@@ -45,7 +44,7 @@ internal class ToolCache : ThingCache
         return 0f;
     }
 
-    public float GetStatValue([NotNull] StatDef statDef,
+    public float GetStatValue(StatDef statDef,
         IReadOnlyCollection<WorkTypeDef> workTypeDefs)
     {
         // WorkType-dependent stats vary by the caller's active work-type set and cannot be cached
@@ -66,7 +65,7 @@ internal class ToolCache : ThingCache
         return value;
     }
 
-    public float GetStatValueDeviation([NotNull] StatDef statDef,
+    public float GetStatValueDeviation(StatDef statDef,
         IReadOnlyCollection<WorkTypeDef> workTypeDefs)
     {
         return statDef == null ? throw new ArgumentNullException(nameof(statDef)) :
@@ -74,12 +73,12 @@ internal class ToolCache : ThingCache
             StatHelper.GetStatValueDeviation(Thing, statDef);
     }
 
-    private float GetWorkTypeScore([NotNull] string workTypeDefName)
+    private float GetWorkTypeScore(string workTypeDefName)
     {
         return _workTypeScores.TryGetValue(workTypeDefName, out var score) ? score : 0f;
     }
 
-    private float GetWorkTypesScore([NotNull] IEnumerable<string> workTypeDefNames)
+    private float GetWorkTypesScore(IEnumerable<string> workTypeDefNames)
     {
         return workTypeDefNames.Average(GetWorkTypeScore);
     }

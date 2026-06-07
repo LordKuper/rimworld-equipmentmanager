@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using EquipmentManager.CustomWidgets;
-using JetBrains.Annotations;
 using LordKuper.Common;
 using LordKuper.Common.Helpers;
 using LordKuper.Common.UI;
@@ -16,9 +15,9 @@ internal partial class ManageWeaponRulesDialog
 {
     private readonly List<Thing> _currentlyAvailableTools = [];
     private readonly List<ThingDef> _globallyAvailableTools = [];
-    private ToolRule _selectedToolRule;
+    private ToolRule? _selectedToolRule;
 
-    private ToolRule SelectedToolRule
+    private ToolRule? SelectedToolRule
     {
         get => _selectedToolRule;
         set
@@ -91,9 +90,9 @@ internal partial class ManageWeaponRulesDialog
                 itemPropertiesRect.height));
         }
         DoRuleSetting(UiHelpers.GetBoolSettingRect(itemPropertiesRect, 0, columnWidth),
-            () => SelectedToolRule.Ranged, value =>
+            () => SelectedToolRule!.Ranged, value =>
             {
-                SelectedToolRule.Ranged = value;
+                SelectedToolRule!.Ranged = value;
                 UpdateAvailableItems_Tools();
             }, Resources.Strings.WeaponRules.Tools.Ranged,
             Resources.Strings.WeaponRules.Tools.RangedTooltip);
@@ -180,7 +179,7 @@ internal partial class ManageWeaponRulesDialog
     }
 
     private static void DoToolRuleEquipMode(Rect rect,
-        [NotNull] Func<ItemRule.ToolEquipMode> getter, Action<ItemRule.ToolEquipMode> setter)
+        Func<ItemRule.ToolEquipMode> getter, Action<ItemRule.ToolEquipMode> setter)
     {
         var font = Text.Font;
         var anchor = Text.Anchor;
@@ -203,13 +202,12 @@ internal partial class ManageWeaponRulesDialog
         Text.Anchor = anchor;
     }
 
-    [NotNull]
-    private string GetToolDefTooltip([NotNull] ThingDef def, [NotNull] ItemRule rule)
+    private string GetToolDefTooltip(ThingDef def, ItemRule rule)
     {
         var stringBuilder = new StringBuilder();
         _ = stringBuilder.AppendLine(def.LabelCap);
-        var stats = rule.GetStatWeights().Where(sw => sw.StatDef != null).Select(sw => sw.StatDef)
-            .Union(rule.GetStatLimits().Where(sl => sl.StatDef != null).Select(sl => sl.StatDef))
+        var stats = rule.GetStatWeights().Where(sw => sw.StatDef != null).Select(sw => sw.StatDef!)
+            .Union(rule.GetStatLimits().Where(sl => sl.StatDef != null).Select(sl => sl.StatDef!))
             .ToHashSet();
         if (!stats.Any()) { return stringBuilder.ToString(); }
         var cache = EquipmentManager.GetToolDefCache(def, RimWorldTime.GetMapTime(Find.CurrentMap));
@@ -222,13 +220,12 @@ internal partial class ManageWeaponRulesDialog
         return stringBuilder.ToString();
     }
 
-    [NotNull]
-    private string GetToolTooltip([NotNull] Thing thing, [NotNull] ItemRule rule)
+    private string GetToolTooltip(Thing thing, ItemRule rule)
     {
         var stringBuilder = new StringBuilder();
         _ = stringBuilder.AppendLine(thing.LabelCapNoCount);
-        var stats = rule.GetStatWeights().Where(sw => sw.StatDef != null).Select(sw => sw.StatDef)
-            .Union(rule.GetStatLimits().Where(sl => sl.StatDef != null).Select(sl => sl.StatDef))
+        var stats = rule.GetStatWeights().Where(sw => sw.StatDef != null).Select(sw => sw.StatDef!)
+            .Union(rule.GetStatLimits().Where(sl => sl.StatDef != null).Select(sl => sl.StatDef!))
             .ToHashSet();
         if (!stats.Any()) { return stringBuilder.ToString(); }
         var cache = EquipmentManager.GetToolCache(thing, RimWorldTime.GetMapTime(Find.CurrentMap));

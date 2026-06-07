@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using JetBrains.Annotations;
 using LordKuper.Common;
 using LordKuper.Common.CustomStats;
 using LordKuper.Common.Filters.Limits;
@@ -12,14 +11,13 @@ internal static class LegacyCustomStatDefs
 {
     private const string LegacyPrefix = "EM_";
 
-    [NotNull]
-    public static string NormalizeStatDefName([CanBeNull] string statDefName)
+    public static string NormalizeStatDefName(string? statDefName)
     {
         if (string.IsNullOrEmpty(statDefName))
         {
             throw new ArgumentNullException(nameof(statDefName));
         }
-        if (!statDefName.StartsWith(LegacyPrefix, StringComparison.Ordinal)) { return statDefName; }
+        if (!statDefName!.StartsWith(LegacyPrefix, StringComparison.Ordinal)) { return statDefName; }
         if (TryNormalizeStatName(statDefName, "EM_MeleeWeapons_", out var meleeWeaponStatName) &&
             Enum.TryParse(meleeWeaponStatName, out MeleeWeaponStat meleeWeaponStat))
         {
@@ -38,8 +36,7 @@ internal static class LegacyCustomStatDefs
         return statDefName;
     }
 
-    [NotNull]
-    public static StatLimit NormalizeStatLimit([NotNull] StatLimit statLimit)
+    public static StatLimit NormalizeStatLimit(StatLimit statLimit)
     {
         var normalizedName = NormalizeStatDefName(statLimit.StatDefName);
         return normalizedName == statLimit.StatDefName
@@ -47,8 +44,7 @@ internal static class LegacyCustomStatDefs
             : new StatLimit(normalizedName, statLimit.MinValue, statLimit.MaxValue);
     }
 
-    [NotNull]
-    public static StatWeight NormalizeStatWeight([NotNull] StatWeight statWeight)
+    public static StatWeight NormalizeStatWeight(StatWeight statWeight)
     {
         var normalizedName = NormalizeStatDefName(statWeight.StatDefName);
         return normalizedName == statWeight.StatDefName
@@ -56,8 +52,8 @@ internal static class LegacyCustomStatDefs
             : new StatWeight(normalizedName, statWeight.Weight, statWeight.Protected);
     }
 
-    private static bool TryNormalizeStatName([NotNull] string statDefName, [NotNull] string prefix,
-        [CanBeNull] out string statName)
+    private static bool TryNormalizeStatName(string statDefName, string prefix,
+        out string? statName)
     {
         if (!statDefName.StartsWith(prefix, StringComparison.Ordinal))
         {

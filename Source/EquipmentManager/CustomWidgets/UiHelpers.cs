@@ -1,6 +1,5 @@
 using System;
 using System.Text.RegularExpressions;
-using JetBrains.Annotations;
 using UnityEngine;
 using Verse;
 
@@ -48,7 +47,7 @@ internal static class UiHelpers
         GUI.color = color;
     }
 
-    public static Rect DoLabeledRect(Rect rect, string label, [CanBeNull] string tooltip = null,
+    public static Rect DoLabeledRect(Rect rect, string label, string? tooltip = null,
         float labelWidthFactor = 0.25f)
     {
         var anchor = Text.Anchor;
@@ -61,7 +60,7 @@ internal static class UiHelpers
             rect.width - labelRect.width - ElementGap, rect.height);
     }
 
-    public static void DoLabeledText(Rect rect, string label, [CanBeNull] string value,
+    public static void DoLabeledText(Rect rect, string label, string? value,
         float labelWidthFactor = 0.25f)
     {
         var font = Text.Font;

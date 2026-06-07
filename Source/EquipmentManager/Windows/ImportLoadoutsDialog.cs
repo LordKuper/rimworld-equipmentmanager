@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 using EquipmentManager.CustomWidgets;
-using JetBrains.Annotations;
 using LordKuper.Common;
 using LordKuper.Common.Filters.Limits;
 using LordKuper.Common.UI;
@@ -14,7 +13,7 @@ namespace EquipmentManager.Windows;
 
 internal class ImportLoadoutsDialog : Window
 {
-    private EquipmentManagerGameComponent _equipmentManager;
+    private EquipmentManagerGameComponent? _equipmentManager;
     private readonly List<Loadout> _loadouts = [];
     private readonly List<MeleeWeaponRule> _meleeWeaponRules = [];
     private readonly List<RangedWeaponRule> _rangedWeaponRules = [];
@@ -23,7 +22,7 @@ internal class ImportLoadoutsDialog : Window
     private readonly List<WorkTypeThingRule> _workTypeRules = [];
     private Vector2 _loadoutsListScrollPosition;
     private Vector2 _savedGamesListScrollPosition;
-    private string _selectedSaveGame;
+    private string? _selectedSaveGame;
 
     public ImportLoadoutsDialog()
     {
@@ -216,8 +215,7 @@ internal class ImportLoadoutsDialog : Window
         LoadSavedGames();
     }
 
-    [NotNull]
-    private static Dictionary<string, string> ReadDictionary([NotNull] XmlReader xmlReader)
+    private static Dictionary<string, string> ReadDictionary(XmlReader xmlReader)
     {
         var result = new Dictionary<string, string>();
         var keys = new List<string>();
@@ -257,7 +255,7 @@ internal class ImportLoadoutsDialog : Window
         return result;
     }
 
-    private void ReadLoadoutData([NotNull] XmlReader xmlReader)
+    private void ReadLoadoutData(XmlReader xmlReader)
     {
         if (!xmlReader.ReadToFollowing("li") || !xmlReader.Read()) { return; }
         var id = 0;
@@ -421,7 +419,7 @@ internal class ImportLoadoutsDialog : Window
             pawnCapacityWeights, skillLimits, skillWeights, statLimits, statWeights));
     }
 
-    private void ReadLoadoutsData(string savedGameFile, [NotNull] XmlReader xmlReader)
+    private void ReadLoadoutsData(string savedGameFile, XmlReader xmlReader)
     {
         if (xmlReader.ReadToFollowing("Loadouts"))
         {
@@ -443,7 +441,7 @@ internal class ImportLoadoutsDialog : Window
         }
     }
 
-    private void ReadMeleeWeaponRuleData([NotNull] XmlReader xmlReader)
+    private void ReadMeleeWeaponRuleData(XmlReader xmlReader)
     {
         if (!xmlReader.ReadToFollowing("li") || !xmlReader.Read()) { return; }
         var id = 0;
@@ -529,7 +527,7 @@ internal class ImportLoadoutsDialog : Window
             rottable));
     }
 
-    private void ReadMeleeWeaponRulesData(string savedGameFile, [NotNull] XmlReader xmlReader)
+    private void ReadMeleeWeaponRulesData(string savedGameFile, XmlReader xmlReader)
     {
         if (xmlReader.ReadToFollowing("MeleeWeaponRules"))
         {
@@ -552,8 +550,7 @@ internal class ImportLoadoutsDialog : Window
         }
     }
 
-    [NotNull]
-    private static PassionLimit ReadPassionLimitData([NotNull] XmlReader xmlReader)
+    private static PassionLimit ReadPassionLimitData(XmlReader xmlReader)
     {
         var skillDefName = string.Empty;
         var passionValue = PassionValue.None;
@@ -576,8 +573,7 @@ internal class ImportLoadoutsDialog : Window
         return new PassionLimit(skillDefName) { Value = passionValue };
     }
 
-    [NotNull]
-    private static PawnCapacityLimit ReadPawnCapacityLimitData([NotNull] XmlReader xmlReader)
+    private static PawnCapacityLimit ReadPawnCapacityLimitData(XmlReader xmlReader)
     {
         var pawnCapacityDefName = string.Empty;
         float? minValue = null;
@@ -604,8 +600,7 @@ internal class ImportLoadoutsDialog : Window
         return new PawnCapacityLimit(pawnCapacityDefName, minValue, maxValue);
     }
 
-    [NotNull]
-    private static PawnCapacityWeight ReadPawnCapacityWeightData([NotNull] XmlReader xmlReader)
+    private static PawnCapacityWeight ReadPawnCapacityWeightData(XmlReader xmlReader)
     {
         var pawnCapacityDefName = string.Empty;
         var weight = 0f;
@@ -628,7 +623,7 @@ internal class ImportLoadoutsDialog : Window
         return new PawnCapacityWeight(pawnCapacityDefName, weight);
     }
 
-    private void ReadRangedWeaponRuleData([NotNull] XmlReader xmlReader)
+    private void ReadRangedWeaponRuleData(XmlReader xmlReader)
     {
         if (!xmlReader.ReadToFollowing("li") || !xmlReader.Read()) { return; }
         var id = 0;
@@ -718,7 +713,7 @@ internal class ImportLoadoutsDialog : Window
             ammoCount));
     }
 
-    private void ReadRangedWeaponRulesData(string savedGameFile, [NotNull] XmlReader xmlReader)
+    private void ReadRangedWeaponRulesData(string savedGameFile, XmlReader xmlReader)
     {
         if (xmlReader.ReadToFollowing("RangedWeaponRules"))
         {
@@ -827,8 +822,7 @@ internal class ImportLoadoutsDialog : Window
         }
     }
 
-    [NotNull]
-    private static PawnSkillLimit ReadSkillLimitData([NotNull] XmlReader xmlReader)
+    private static PawnSkillLimit ReadSkillLimitData(XmlReader xmlReader)
     {
         var skillDefName = string.Empty;
         float? minValue = null;
@@ -855,8 +849,7 @@ internal class ImportLoadoutsDialog : Window
         return new PawnSkillLimit(skillDefName, minValue, maxValue);
     }
 
-    [NotNull]
-    private static SkillWeight ReadSkillWeightData([NotNull] XmlReader xmlReader)
+    private static SkillWeight ReadSkillWeightData(XmlReader xmlReader)
     {
         var skillDefName = string.Empty;
         var weight = 0f;
@@ -879,8 +872,7 @@ internal class ImportLoadoutsDialog : Window
         return new SkillWeight(skillDefName, weight);
     }
 
-    [NotNull]
-    private static StatLimit ReadStatLimitData([NotNull] XmlReader xmlReader)
+    private static StatLimit ReadStatLimitData(XmlReader xmlReader)
     {
         var statDefName = string.Empty;
         float? minValue = null;
@@ -908,8 +900,7 @@ internal class ImportLoadoutsDialog : Window
         return new StatLimit(statDefName, minValue, maxValue);
     }
 
-    [NotNull]
-    private static StatWeight ReadStatWeightData([NotNull] XmlReader xmlReader)
+    private static StatWeight ReadStatWeightData(XmlReader xmlReader)
     {
         var statDefName = string.Empty;
         var isProtected = false;
@@ -937,7 +928,7 @@ internal class ImportLoadoutsDialog : Window
         return new StatWeight(statDefName, weight, isProtected);
     }
 
-    private void ReadToolRuleData([NotNull] XmlReader xmlReader)
+    private void ReadToolRuleData(XmlReader xmlReader)
     {
         if (!xmlReader.ReadToFollowing("li") || !xmlReader.Read()) { return; }
         var id = 0;
@@ -1018,7 +1009,7 @@ internal class ImportLoadoutsDialog : Window
             whitelistedItemsDefNames, blacklistedItemsDefNames, equipMode, ranged));
     }
 
-    private void ReadToolRulesData(string savedGameFile, [NotNull] XmlReader xmlReader)
+    private void ReadToolRulesData(string savedGameFile, XmlReader xmlReader)
     {
         if (xmlReader.ReadToFollowing("ToolRules"))
         {
@@ -1040,7 +1031,7 @@ internal class ImportLoadoutsDialog : Window
         }
     }
 
-    private void ReadWorkTypeRuleData([NotNull] XmlReader xmlReader)
+    private void ReadWorkTypeRuleData(XmlReader xmlReader)
     {
         if (!xmlReader.ReadToFollowing("li") || !xmlReader.Read()) { return; }
         var workTypeDefName = string.Empty;
@@ -1081,7 +1072,7 @@ internal class ImportLoadoutsDialog : Window
         _workTypeRules.Add(rule);
     }
 
-    private void ReadWorkTypeRulesData(string savedGameFile, [NotNull] XmlReader xmlReader)
+    private void ReadWorkTypeRulesData(string savedGameFile, XmlReader xmlReader)
     {
         if (xmlReader.ReadToFollowing("WorkTypeRules"))
         {
