@@ -378,7 +378,7 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
             pawn.AssignedAmmo.Clear();
         }
         EquipmentManager.LogMessage(
-            $"Equipment Manager: {string.Join(", ", _pawnCache.Values.Where(pc => pc.AssignedLoadout != null).Select(pc => $"{pc.Pawn.LabelShortCap} = {pc.AssignedLoadout!.Label}"))}");
+            $"Loadouts: {string.Join(", ", _pawnCache.Values.Where(pc => pc.AssignedLoadout != null).Select(pc => $"{pc.Pawn.LabelShortCap} = {pc.AssignedLoadout!.Label}"))}");
     }
 
     private void UpdateMeleeSidearms()
@@ -482,7 +482,7 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
             pawnCache.Update(_updateTime);
         }
         EquipmentManager.LogMessage(
-            $"Equipment Manager: Pawns: {string.Join("; ", _pawnCache.Values.Select(pc => $"{pc.Pawn.LabelShortCap} ({pc.AssignedLoadout?.Label ?? "None"}, {(pc.AutoLoadout ? "auto" : "manual")}) [{(pc.ShouldUpdateEquipment ? "updating" : "not updating")}]"))}");
+            $"Pawns: {string.Join("; ", _pawnCache.Values.Select(pc => $"{pc.Pawn.LabelShortCap} ({pc.AssignedLoadout?.Label ?? "None"}, {(pc.AutoLoadout ? "auto" : "manual")}) [{(pc.ShouldUpdateEquipment ? "updating" : "not updating")}]"))}");
     }
 
     private void UpdatePrimaryWeapons()
