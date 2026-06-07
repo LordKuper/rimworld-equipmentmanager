@@ -24,15 +24,14 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
     private EquipmentManagerGameComponent EquipmentManager =>
         _equipmentManager ??= Current.Game.GetComponent<EquipmentManagerGameComponent>();
 
-    private void AssignAllTools([NotNull] PawnCache pawn, [NotNull] ToolRule rule)
+    private void AssignAllTools([NotNull] PawnCache pawn, [NotNull] ToolRule rule,
+        [NotNull] HashSet<Thing> assignedByOthers)
     {
         var workTypes = WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder
             .Where(wt => !pawn.Pawn.WorkTypeIsDisabled(wt)).ToList();
         var availableWeapons =
             rule.GetCurrentlyAvailableItems(map, workTypes, _updateTime).ToList();
-        var assignedWeapons = new HashSet<Thing>(
-            _pawnCache.Values.SelectMany(pc => pc.AssignedWeapons.Keys));
-        _ = availableWeapons.RemoveAll(thing => assignedWeapons.Contains(thing));
+        _ = availableWeapons.RemoveAll(thing => assignedByOthers.Contains(thing));
         var carriedWeapons = pawn.Pawn.GetCarriedWeapons(true, true)
             .Where(thing => rule.IsAvailable(thing, workTypes, _updateTime)).ToList();
         availableWeapons.AddRange(carriedWeapons);
@@ -52,6 +51,7 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
                              out _))))
         {
             pawn.AssignedWeapons.Add(weapon, "tool");
+            _ = assignedByOthers.Add(weapon);
             if (carriedWeapons.Contains(weapon))
             {
                 var sidearmMemory = CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn);
@@ -69,16 +69,15 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
         }
     }
 
-    private void AssignBestTool([NotNull] PawnCache pawn, [NotNull] ToolRule rule)
+    private void AssignBestTool([NotNull] PawnCache pawn, [NotNull] ToolRule rule,
+        [NotNull] HashSet<Thing> assignedByOthers)
     {
         var sidearmMemory = CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn);
         var workTypes = WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder
             .Where(wt => !pawn.Pawn.WorkTypeIsDisabled(wt)).ToList();
         var availableWeapons =
             rule.GetCurrentlyAvailableItems(map, workTypes, _updateTime).ToList();
-        var assignedWeapons = new HashSet<Thing>(
-            _pawnCache.Values.SelectMany(pc => pc.AssignedWeapons.Keys));
-        _ = availableWeapons.RemoveAll(thing => assignedWeapons.Contains(thing));
+        _ = availableWeapons.RemoveAll(thing => assignedByOthers.Contains(thing));
         var carriedWeapons = pawn.Pawn.GetCarriedWeapons(true, true)
             .Where(thing => rule.IsAvailable(thing, workTypes, _updateTime)).ToList();
         availableWeapons.AddRange(carriedWeapons);
@@ -101,6 +100,7 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
         if (bestWeapon == null) { return; }
         if (pawn.AssignedWeapons.Keys.Any(thing => thing.def == bestWeapon.def)) { return; }
         pawn.AssignedWeapons.Add(bestWeapon, "tool");
+        _ = assignedByOthers.Add(bestWeapon);
         if (carriedWeapons.Contains(bestWeapon))
         {
             if (!sidearmMemory.RememberedWeapons.Contains(bestWeapon.toThingDefStuffDefPair()))
@@ -116,7 +116,8 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
         }
     }
 
-    private void AssignPrimaryMeleeWeapon([NotNull] PawnCache pawn)
+    private void AssignPrimaryMeleeWeapon([NotNull] PawnCache pawn,
+        [NotNull] HashSet<Thing> assignedByOthers)
     {
         var sidearmMemory = CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn);
         sidearmMemory.primaryWeaponMode = Enums.PrimaryWeaponMode.Melee;
@@ -128,8 +129,6 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
         var carriedWeapons = pawn.Pawn.GetCarriedWeapons(true, true)
             .Where(weapon => rule.IsAvailable(weapon, _updateTime)).ToList();
         availableWeapons.AddRange(carriedWeapons);
-        var assignedByOthers = new HashSet<Thing>(_pawnCache.Values.Where(pc => pc != pawn)
-            .SelectMany(pc => pc.AssignedWeapons.Keys));
         _ = availableWeapons.RemoveAll(thing => assignedByOthers.Contains(thing));
         _ = availableWeapons.RemoveAll(thing => !EquipmentUtility.CanEquip(thing, pawn.Pawn) ||
             (thing.Spawned &&
@@ -144,6 +143,7 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
             .ThenBy(thing => thing.GetHashCode()).FirstOrDefault();
         if (bestWeapon == null) { return; }
         pawn.AssignedWeapons.Add(bestWeapon, "primary");
+        _ = assignedByOthers.Add(bestWeapon);
         if (carriedWeapons.Contains(bestWeapon))
         {
             var defPair = bestWeapon.toThingDefStuffDefPair();
@@ -161,7 +161,8 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
         }
     }
 
-    private void AssignPrimaryRangedWeapon([NotNull] PawnCache pawn)
+    private void AssignPrimaryRangedWeapon([NotNull] PawnCache pawn,
+        [NotNull] HashSet<Thing> assignedByOthers)
     {
         var sidearmMemory = CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn);
         sidearmMemory.primaryWeaponMode = Enums.PrimaryWeaponMode.Ranged;
@@ -174,8 +175,6 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
         var carriedWeapons = pawn.Pawn.GetCarriedWeapons(true, true)
             .Where(weapon => rule.IsAvailable(weapon, _updateTime)).ToList();
         availableWeapons.AddRange(carriedWeapons);
-        var assignedByOthers = new HashSet<Thing>(_pawnCache.Values.Where(pc => pc != pawn)
-            .SelectMany(pc => pc.AssignedWeapons.Keys));
         _ = availableWeapons.RemoveAll(thing => assignedByOthers.Contains(thing));
         _ = availableWeapons.RemoveAll(thing => !EquipmentUtility.CanEquip(thing, pawn.Pawn) ||
             (thing.Spawned &&
@@ -191,6 +190,7 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
             .ThenBy(thing => thing.GetHashCode()).FirstOrDefault();
         if (bestWeapon == null) { return; }
         pawn.AssignedWeapons.Add(bestWeapon, "primary");
+        _ = assignedByOthers.Add(bestWeapon);
         if (carriedWeapons.Contains(bestWeapon))
         {
             var defPair = bestWeapon.toThingDefStuffDefPair();
@@ -210,13 +210,11 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
     }
 
     private void AssignToolsForWorkTypes([NotNull] PawnCache pawn, [NotNull] ToolRule rule,
-        List<WorkTypeDef> workTypes)
+        List<WorkTypeDef> workTypes, [NotNull] HashSet<Thing> assignedByOthers)
     {
         var sidearmMemory = CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn);
         var availableWeapons =
             rule.GetCurrentlyAvailableItems(map, workTypes, _updateTime).ToList();
-        var assignedByOthers = new HashSet<Thing>(_pawnCache.Values.Where(pc => pc != pawn)
-            .SelectMany(pc => pc.AssignedWeapons.Keys));
         _ = availableWeapons.RemoveAll(thing => assignedByOthers.Contains(thing));
         _ = availableWeapons.RemoveAll(thing =>
             !StatCalculator.CanPickupSidearmInstance((ThingWithComps)thing, pawn.Pawn, out _));
@@ -246,6 +244,7 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
             if (bestWeapon == null) { continue; }
             if (pawn.AssignedWeapons.Keys.Any(thing => thing.def == bestWeapon.def)) { continue; }
             pawn.AssignedWeapons.Add(bestWeapon, $"tool_{workType.labelShort}");
+            _ = assignedByOthers.Add(bestWeapon);
             if (carriedWeapons.Contains(bestWeapon) &&
                 !sidearmMemory.RememberedWeapons.Contains(bestWeapon.toThingDefStuffDefPair()))
             {
@@ -551,6 +550,8 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
 
     private void UpdatePrimaryWeapons()
     {
+        var assignedByOthers = new HashSet<Thing>(
+            _pawnCache.Values.SelectMany(pc => pc.AssignedWeapons.Keys));
         foreach (var pawn in _pawnCache.Values.Where(pc =>
                      pc.ShouldUpdateEquipment && pc.AssignedLoadout != null))
         {
@@ -559,10 +560,10 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
                 case Loadout.PrimaryWeaponType.None:
                     break;
                 case Loadout.PrimaryWeaponType.RangedWeapon:
-                    AssignPrimaryRangedWeapon(pawn);
+                    AssignPrimaryRangedWeapon(pawn, assignedByOthers);
                     break;
                 case Loadout.PrimaryWeaponType.MeleeWeapon:
-                    AssignPrimaryMeleeWeapon(pawn);
+                    AssignPrimaryMeleeWeapon(pawn, assignedByOthers);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -667,6 +668,8 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
 
     private void UpdateTools()
     {
+        var assignedByOthers = new HashSet<Thing>(
+            _pawnCache.Values.SelectMany(pc => pc.AssignedWeapons.Keys));
         foreach (var pawn in _pawnCache.Values.Where(pc =>
                      pc.ShouldUpdateEquipment && pc.AssignedLoadout != null))
         {
@@ -678,18 +681,20 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
                 case ItemRule.ToolEquipMode.OneForEveryWorkType:
                     AssignToolsForWorkTypes(pawn, rule,
                         WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder
-                            .Where(wt => wt.visible && !pawn.Pawn.WorkTypeIsDisabled(wt)).ToList());
+                            .Where(wt => wt.visible && !pawn.Pawn.WorkTypeIsDisabled(wt)).ToList(),
+                        assignedByOthers);
                     break;
                 case ItemRule.ToolEquipMode.OneForEveryAssignedWorkType:
                     AssignToolsForWorkTypes(pawn, rule,
                         WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder.Where(wt =>
-                            wt.visible && pawn.Pawn.workSettings.WorkIsActive(wt)).ToList());
+                            wt.visible && pawn.Pawn.workSettings.WorkIsActive(wt)).ToList(),
+                        assignedByOthers);
                     break;
                 case ItemRule.ToolEquipMode.BestOne:
-                    AssignBestTool(pawn, rule);
+                    AssignBestTool(pawn, rule, assignedByOthers);
                     break;
                 case ItemRule.ToolEquipMode.AllAvailable:
-                    AssignAllTools(pawn, rule);
+                    AssignAllTools(pawn, rule, assignedByOthers);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
