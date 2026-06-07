@@ -126,7 +126,7 @@ internal partial class EquipmentManagerGameComponent
 
     public IEnumerable<Loadout> GetLoadouts()
     {
-        return _loadouts ??= [..Loadout.DefaultLoadouts];
+        return _loadouts ??= [.. Loadout.DefaultLoadouts];
     }
 
     public PawnLoadout GetPawnLoadout(Pawn pawn)
@@ -156,7 +156,9 @@ internal partial class EquipmentManagerGameComponent
         {
             _pawnLoadouts.Add(new PawnLoadout
             {
-                Pawn = pawn, LoadoutId = loadout?.Id, Automatic = automatic
+                Pawn = pawn,
+                LoadoutId = loadout?.Id,
+                Automatic = automatic
             });
         }
     }
