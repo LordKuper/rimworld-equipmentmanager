@@ -4,6 +4,7 @@ using System.Text;
 using EquipmentManager.CustomWidgets;
 using JetBrains.Annotations;
 using LordKuper.Common;
+using LordKuper.Common.Helpers;
 using LordKuper.Common.UI;
 using UnityEngine;
 using Verse;
@@ -161,7 +162,7 @@ internal partial class ManageWeaponRulesDialog
             DoItemProperties_RangedWeapons(itemPropertiesRect);
             UiHelpers.DoGapLineHorizontal(new Rect(rect.x, itemPropertiesRect.yMax, rect.width,
                 UiHelpers.ElementGap));
-            DoRuleStats(statsRect, EquipmentManagerStatDefs.RangedWeaponStatDefs,
+            DoRuleStats(statsRect, StatHelper.GetStatsByCategory(StatCategory.WeaponRanged).ToList(),
                 SelectedRangedWeaponRule.GetStatWeights(), def =>
                 {
                     SelectedRangedWeaponRule.SetStatWeight(def, 0f, false);

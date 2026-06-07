@@ -5,6 +5,7 @@ using System.Text;
 using EquipmentManager.CustomWidgets;
 using JetBrains.Annotations;
 using LordKuper.Common;
+using LordKuper.Common.Helpers;
 using LordKuper.Common.UI;
 using UnityEngine;
 using Verse;
@@ -126,7 +127,7 @@ internal partial class ManageWeaponRulesDialog
             DoItemProperties_Tools(itemPropertiesRect);
             UiHelpers.DoGapLineHorizontal(new Rect(rect.x, itemPropertiesRect.yMax, rect.width,
                 UiHelpers.ElementGap));
-            DoRuleStats(statsRect, EquipmentManagerStatDefs.ToolStatDefs,
+            DoRuleStats(statsRect, StatHelper.GetStatsByCategory(StatCategory.Tool).ToList(),
                 SelectedToolRule.GetStatWeights(), def =>
                 {
                     SelectedToolRule.SetStatWeight(def, 0f, false);

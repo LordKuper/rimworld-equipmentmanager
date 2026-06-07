@@ -3,6 +3,7 @@ using System.Linq;
 using EquipmentManager.CustomWidgets;
 using LordKuper.Common;
 using LordKuper.Common.Filters.Limits;
+using LordKuper.Common.Helpers;
 using LordKuper.Common.UI;
 using LordKuper.Common.UI.Widgets;
 using RimWorld;
@@ -625,7 +626,7 @@ internal class ManageLoadoutsDialog : Window
             rect.width - labelRect.width - UiHelpers.ElementGap, labelRect.height);
         if (Widgets.ButtonText(buttonRect, Resources.Strings.Add))
         {
-            Find.WindowStack.Add(new FloatMenu(EquipmentManagerStatDefs.DefaultPawnStatDefs
+            Find.WindowStack.Add(new FloatMenu(StatHelper.GetStatsByCategory(StatCategory.Pawn)
                 .Where(def => SelectedLoadout.StatLimits.All(sl => sl.StatDefName != def.defName))
                 .Select(def =>
                     new FloatMenuOption(
@@ -699,7 +700,7 @@ internal class ManageLoadoutsDialog : Window
             rect.width - labelRect.width - UiHelpers.ElementGap, labelRect.height);
         if (Widgets.ButtonText(buttonRect, Resources.Strings.Add))
         {
-            Find.WindowStack.Add(new FloatMenu(EquipmentManagerStatDefs.DefaultPawnStatDefs
+            Find.WindowStack.Add(new FloatMenu(StatHelper.GetStatsByCategory(StatCategory.Pawn)
                 .Where(def => SelectedLoadout.StatWeights.All(sw => sw.StatDefName != def.defName))
                 .Select(def =>
                     new FloatMenuOption(
