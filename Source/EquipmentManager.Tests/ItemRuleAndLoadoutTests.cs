@@ -236,9 +236,10 @@ public class ItemRuleAndLoadoutTests : StateIsolationTestBase
         originalWeights.Should().HaveSameCount(copiedWeights, "copied rule should have same weights as original");
 
         // Now mutate the original's collections by adding/changing a weight.
-        if (potentialWeights.Count > 0 && potentialWeights[0].StatDef != null)
+        if (potentialWeights.Count > 0)
         {
-            originalRule.SetStatWeight(potentialWeights[0].StatDef, 0.99f, false);
+            var mutatedStatDef = potentialWeights[0].StatDef;
+            if (mutatedStatDef != null) { originalRule.SetStatWeight(mutatedStatDef, 0.99f, false); }
         }
 
         // Verify the original has the mutated weight.
@@ -311,9 +312,10 @@ public class ItemRuleAndLoadoutTests : StateIsolationTestBase
         originalWeights.Should().HaveSameCount(copiedWeights, "copied rule should have same weights as original");
 
         // Now mutate the original's collections by adding/changing a weight.
-        if (potentialWeights.Count > 0 && potentialWeights[0].StatDef != null)
+        if (potentialWeights.Count > 0)
         {
-            originalRule.SetStatWeight(potentialWeights[0].StatDef, 0.99f, false);
+            var mutatedStatDef = potentialWeights[0].StatDef;
+            if (mutatedStatDef != null) { originalRule.SetStatWeight(mutatedStatDef, 0.99f, false); }
         }
 
         // Verify the original has the mutated weight.
@@ -384,9 +386,10 @@ public class ItemRuleAndLoadoutTests : StateIsolationTestBase
         originalWeights.Should().HaveSameCount(copiedWeights, "copied rule should have same weights as original");
 
         // Now mutate the original's collections by adding/changing a weight.
-        if (potentialWeights.Count > 0 && potentialWeights[0].StatDef != null)
+        if (potentialWeights.Count > 0)
         {
-            originalRule.SetStatWeight(potentialWeights[0].StatDef, 0.99f, false);
+            var mutatedStatDef = potentialWeights[0].StatDef;
+            if (mutatedStatDef != null) { originalRule.SetStatWeight(mutatedStatDef, 0.99f, false); }
         }
 
         // Verify the original has the mutated weight.
@@ -409,27 +412,23 @@ public class ItemRuleAndLoadoutTests : StateIsolationTestBase
     }
 
     /// <summary>
-    ///     Tests that ToolCache correctly handles WorkType-dependent stat scoring.
-    ///     The cache must NOT use a StatDef-only key for WorkType-dependent stats,
-    ///     as the same tool may have different stat values depending on which work-type
-    ///     definitions are passed in. This test verifies the C-3 fix: ToolCache.GetStatValue
-    ///     correctly computes WorkType-dependent stats on demand and does NOT return a stale
-    ///     cached value when the work-type-def set changes (AC-29 requirement).
+    ///     Tool-cache work-type-dependent stat scoring must not be keyed by stat definition alone.
+    ///     The same tool can score differently depending on which work-type definitions it is
+    ///     evaluated against, so work-type-dependent stats must be computed on demand rather than
+    ///     returned from a stale entry keyed only by the stat definition.
     /// </summary>
     [Test]
-    [Ignore("game-context only — ToolCache requires a Thing instance and Current.Game access to GetWorkTypeRuleByDefName. " +
-            "In-game validation: the same tool yields different WorkType.stat scores when evaluated against " +
-            "different sets of work-type definitions; scores are NOT cached under a StatDef-only key")]
-    public void ToolCache_GetStatValue_WorkTypeDependentStats_ComputedOnDemandNotCached()
+    [Ignore("game-context only — ToolCache wraps a live Thing instance and resolves work-type rules via " +
+            "Current.Game, neither of which exists in the unit-test harness. Verified in-game: the same tool " +
+            "yields different work-type stat scores for different work-type sets; scores are not keyed by stat definition alone")]
+    public void ToolCache_WorkTypeDependentStats_ComputedOnDemandNotCached()
     {
-        // Note: This test verifies the C-3 fix: WorkType-dependent stats (ToolStat.WorkType) are
-        // computed on demand via GetCustomStatValue -> GetWorkTypesScore, not cached under a
-        // StatDef-only key. Since ToolCache(Thing) requires a real Thing and GetWorkTypeRuleByDefName
-        // requires Current.Game context, this behavior is verified manually in-game per
-        // manual-verification-spec for AC-29 / C-3:
+        // Work-type-dependent stats are computed on demand rather than cached under a stat-definition-only
+        // key. ToolCache wraps a live Thing and resolves work-type rules through Current.Game, so this is
+        // verified manually in-game (see manual-verification-spec.md):
         //
-        // - Create two ToolRules with different work-type sets.
+        // - Create two tool rules with different work-type sets.
         // - Evaluate the same tool against each rule's work-type set.
-        // - Confirm the tool's WorkType stat score differs per set (proving it's not a stale cache).
+        // - Confirm the tool's work-type stat score differs per set (proving the score is not a stale cache entry).
     }
 }
