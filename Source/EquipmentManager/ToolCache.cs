@@ -41,14 +41,21 @@ internal class ToolCache : ThingCache
                     throw new ArgumentOutOfRangeException(nameof(statDef));
             }
         }
-        Log.Error(
-            $"Equipment Manager: Tried to evaluate unknown custom tool stat ({statDef.defName})");
+        Logger.LogError($"Tried to evaluate unknown custom tool stat ({statDef.defName})");
         return 0f;
     }
 
     public float GetStatValue([NotNull] StatDef statDef,
         IReadOnlyCollection<WorkTypeDef> workTypeDefs)
     {
+        // WorkType-dependent stats vary by the caller's active work-type set and cannot be cached
+        // under a StatDef-only key. Compute them on demand without touching the shared cache.
+        if (ToolStats.IsCustomStat(statDef.defName) &&
+            Enum.TryParse(ToolStats.GetStatName(statDef.defName), out ToolStat toolStat) &&
+            toolStat == ToolStat.WorkType)
+        {
+            return GetCustomStatValue(statDef, workTypeDefs);
+        }
         if (!StatValues.TryGetValue(statDef, out var value))
         {
             value = ToolStats.IsCustomStat(statDef.defName)
@@ -91,16 +98,16 @@ internal class ToolCache : ThingCache
             foreach (var workTypeDef in WorkTypeDefsUtility.WorkTypeDefsInPriorityOrder)
             {
                 var score = 0f;
-                var workTypeRule = EquipmentManager.GetWorkTypeRules()
-                    .FirstOrDefault(rule => rule.WorkTypeDefName == workTypeDef.defName);
+                var workTypeRule = EquipmentManager.GetWorkTypeRuleByDefName(workTypeDef.defName);
                 if (workTypeRule != null) { score += workTypeRule.GetThingScore(Thing); }
                 _workTypeScores.Add(workTypeDef.defName, score);
             }
         }
         catch (Exception exception)
         {
-            Log.Error(
-                $"Equipment Manager: Could not update cache of '{Thing.LabelCapNoCount}' ({Thing.def?.defName}): {exception.Message}");
+            Logger.LogError(
+                $"Could not update cache of '{Thing.LabelCapNoCount}' ({Thing.def?.defName}): {exception.Message}",
+                exception);
         }
         return true;
     }
