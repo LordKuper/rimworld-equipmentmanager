@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>LordKuper.EquipmentManager</name>
+    </assembly>
+    <members>
+        <member name="T:LordKuper.EquipmentManager.DefOfs.PawnColumnDefOf">
+            <summary>
+                Holds references to the mod's <see cref="T:RimWorld.PawnColumnDef" />s, injected by RimWorld's
+                <see cref="T:RimWorld.DefOf" /> reflection at startup.
+            </summary>
+        </member>
+        <member name="F:LordKuper.EquipmentManager.DefOfs.PawnColumnDefOf.EM_Loadout">
+            <summary>The loadout-selection column shown in the Assign tab.</summary>
+        </member>
+        <member name="M:LordKuper.EquipmentManager.EquipmentManagerGameComponent.PruneDestroyedThingCaches">
+            <summary>
+                Removes per-Thing cache entries whose <see cref="T:Verse.Thing" /> key has been destroyed or
+                discarded. Called once per assignment pass to prevent unbounded dictionary growth over a
+                long session. Def-keyed caches (<c>_rangedWeaponDefsCache</c>, etc.) are bounded by the
+                number of <see cref="T:Verse.ThingDef" />s in the game and are not pruned here.
+            </summary>
+        </member>
+        <member name="M:LordKuper.EquipmentManager.EquipmentManagerGameComponent.GetWorkTypeRuleByDefName(System.String)">
+            <summary>
+                Returns the <see cref="T:LordKuper.Common.WorkTypeThingRule" /> for the given work-type defName, or
+                <c>null</c> if no rule exists for it. Uses a defName-keyed dictionary built once per
+                rule-list version, avoiding a per-call linear scan.
+            </summary>
+        </member>
+        <member name="T:LordKuper.EquipmentManager.EquipmentManagerMod">
+            <summary>
+                Mod entry point. Applies Harmony patches and detects optional integrations on startup.
+            </summary>
+        </member>
+        <member name="M:LordKuper.EquipmentManager.EquipmentManagerMod.#ctor(Verse.ModContentPack)">
+            <summary>Initializes the mod: patches with Harmony and detects compatible mods.</summary>
+            <param name="content">The mod content pack provided by RimWorld.</param>
+        </member>
+        <member name="M:LordKuper.EquipmentManager.ItemRule.GetDefaultStatWeights">
+            <summary>
+                Returns the base set of default stat weights applied to all item rules.
+                When Combat Extended is active the Bulk stat is included; otherwise it is omitted.
+                Subclasses override this method to prepend their own stat weights and call
+                <c>base.GetDefaultStatWeights()</c> to include the base set.
+            </summary>
+        </member>
+        <member name="M:LordKuper.EquipmentManager.Logger.LogError(System.String,System.Exception)">
+            <summary>
+                Logs an error message with optional exception details.
+            </summary>
+            <param name="message">The error message to log.</param>
+            <param name="exception">The exception associated with the error, or <c>null</c> if none.</param>
+        </member>
+        <member name="M:LordKuper.EquipmentManager.Logger.LogMessage(System.String)">
+            <summary>
+                Logs a general informational message.
+            </summary>
+            <param name="message">The message to log.</param>
+        </member>
+        <member name="M:LordKuper.EquipmentManager.Logger.LogWarning(System.String,System.Exception)">
+            <summary>
+                Logs a warning message with optional exception details.
+            </summary>
+            <param name="message">The warning message to log.</param>
+            <param name="exception">The exception associated with the warning, or <c>null</c> if none.</param>
+        </member>
+        <member name="T:LordKuper.EquipmentManager.PassionValue">
+            <summary>Passion threshold a pawn's skill must meet for a loadout limit.</summary>
+        </member>
+        <member name="F:LordKuper.EquipmentManager.PassionValue.None">
+            <summary>No passion.</summary>
+        </member>
+        <member name="F:LordKuper.EquipmentManager.PassionValue.Minor">
+            <summary>Minor passion (interested).</summary>
+        </member>
+        <member name="F:LordKuper.EquipmentManager.PassionValue.Major">
+            <summary>Major passion (burning).</summary>
+        </member>
+        <member name="F:LordKuper.EquipmentManager.PassionValue.Any">
+            <summary>Any passion level, including none.</summary>
+        </member>
+    </members>
+</doc>

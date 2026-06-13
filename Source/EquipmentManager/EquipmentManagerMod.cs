@@ -6,11 +6,16 @@ using Verse;
 
 namespace LordKuper.EquipmentManager;
 
+/// <summary>
+///     Mod entry point. Applies Harmony patches and detects optional integrations on startup.
+/// </summary>
 [UsedImplicitly]
 public class EquipmentManagerMod : Mod
 {
     internal const string ModId = "LordKuper.EquipmentManager";
 
+    /// <summary>Initializes the mod: patches with Harmony and detects compatible mods.</summary>
+    /// <param name="content">The mod content pack provided by RimWorld.</param>
     public EquipmentManagerMod(ModContentPack content) : base(content)
     {
         Logger.LogMessage($"Initializing (v.{Assembly.GetExecutingAssembly().GetName().Version})...");

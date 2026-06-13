@@ -9,11 +9,12 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <OutputPath>..\..\1.6\Assemblies\</OutputPath>
-    <Version>1.6.0.3</Version>
+    <Version>1.6.0.4</Version>
     <Company>LordKuper</Company>
     <Product>EquipmentManager</Product>
     <Copyright>Copyright ©LordKuper</Copyright>
     <NeutralLanguage>en-US</NeutralLanguage>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
