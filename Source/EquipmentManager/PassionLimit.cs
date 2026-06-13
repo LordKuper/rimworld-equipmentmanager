@@ -4,11 +4,19 @@ using Verse;
 
 namespace LordKuper.EquipmentManager;
 
+/// <summary>Passion threshold a pawn's skill must meet for a loadout limit.</summary>
 public enum PassionValue
 {
+    /// <summary>No passion.</summary>
     None,
+
+    /// <summary>Minor passion (interested).</summary>
     Minor,
+
+    /// <summary>Major passion (burning).</summary>
     Major,
+
+    /// <summary>Any passion level, including none.</summary>
     Any
 }
 

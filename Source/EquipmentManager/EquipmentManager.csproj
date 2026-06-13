@@ -14,6 +14,7 @@
     <Product>EquipmentManager</Product>
     <Copyright>Copyright ©LordKuper</Copyright>
     <NeutralLanguage>en-US</NeutralLanguage>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
