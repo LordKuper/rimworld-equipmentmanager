@@ -291,7 +291,11 @@ internal class EquipmentManagerMapComponent(Map map) : MapComponent(map)
                 EquipmentManager.LogMessage(
                     $"Dropping {string.Join(", ", unassignedWeapons.Select(thing => thing.LabelCapNoCount))} from {pawn.Pawn.LabelShortCap}'s inventory");
             }
-            foreach (var weapon in unassignedWeapons) { WeaponAssingment.DropSidearm(pawn.Pawn, weapon, true, true); }
+            foreach (var weapon in unassignedWeapons)
+            {
+                WeaponAssingment.DropSidearm(pawn.Pawn, weapon, true, true);
+                if (weapon.Spawned) { weapon.SetForbidden(false, false); }
+            }
             var sidearmMemory = CompSidearmMemory.GetMemoryCompForPawn(pawn.Pawn);
             foreach (var weapon in sidearmMemory.RememberedWeapons.Where(weapon =>
                          pawn.AssignedWeapons.Keys.All(thing => thing.toThingDefStuffDefPair() != weapon)).ToList())
